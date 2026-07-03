@@ -1,0 +1,19 @@
+[Unit]
+Description=TINY (Reachy Mini) — bidirectional voice listener
+After=network-online.target sound.target reachy-mini.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/tiny-the-reachy
+EnvironmentFile=-%h/tiny-the-reachy/.env
+Environment=VOICE_PROVIDER=openai
+Environment=REACHY_CONNECTION_MODE=auto
+ExecStart=%h/tiny-the-reachy/.venv/bin/python %h/tiny-the-reachy/voice_listener.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

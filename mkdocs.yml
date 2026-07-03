@@ -1,0 +1,135 @@
+site_name: tiny
+site_url: https://cagataycali.github.io/tiny-the-reachy
+site_description: "tiny · Strands agent for the Reachy Mini — expressive, conversational, on the desk."
+site_author: Cagatay Cali
+repo_url: https://github.com/cagataycali/tiny-the-reachy
+repo_name: cagataycali/tiny-the-reachy
+edit_uri: edit/main/docs/
+copyright: "🤖 tiny · Expression · Language · Presence — on the desk"
+
+exclude_docs: |
+  *.bak
+  LIVE_DEPLOY.md
+
+extra_css:
+  - stylesheets/tiny.css?v=1
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+  - javascripts/mermaid-init.js?v=1
+
+nav:
+  - Home: index.md
+  - Start:
+      - Quickstart: start/quickstart.md
+      - Docker: start/docker.md
+      - Systemd: start/systemd.md
+  - Showcase:
+      - Expression: showcase/expression.md
+      - Personas: showcase/personas.md
+  - Tools:
+      - Catalog: tools/catalog.md
+      - Motion: tools/motion.md
+      - Expression: tools/expression.md
+      - Sensing: tools/sensing.md
+  - Guide:
+      - Architecture: guide/architecture.md
+      - Safety envelope: guide/safety.md
+      - Cross-persona brain: guide/brain.md
+      - Extending: guide/extending.md
+      - Troubleshooting: guide/troubleshooting.md
+  - Reference:
+      - The family: reference/family.md
+      - Daemon API: reference/daemon.md
+      - Env vars: reference/env.md
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  icon:
+    repo: fontawesome/brands/github
+  logo: assets/favicon.svg
+  favicon: assets/favicon.svg
+  font:
+    text: Inter
+    code: JetBrains Mono
+  palette:
+    - scheme: default
+      primary: white
+      accent: purple
+      toggle:
+        icon: material/weather-night
+        name: switch to dark
+    - scheme: slate
+      primary: black
+      accent: purple
+      toggle:
+        icon: material/weather-sunny
+        name: switch to light
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.footer
+    - navigation.sections
+    - navigation.indexes
+    - toc.follow
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+    - search.suggest
+    - search.highlight
+    - search.share
+    - announce.dismiss
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format ''
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.betterem
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - def_list
+  - footnotes
+  - toc:
+      permalink: "·"
+
+plugins:
+  - search:
+      lang: en
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/cagataycali/tiny-the-reachy
+    - icon: fontawesome/brands/x-twitter
+      link: https://twitter.com/cagataycali
+  status:
+    new: recently added
+    deprecated: deprecated

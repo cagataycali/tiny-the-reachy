@@ -1,0 +1,22 @@
+# Core agent stack
+strands-agents
+strands-agents-tools
+strands-agents[bidi]
+
+# Reachy Mini SDK (talks to the daemon on :8000)
+# Extras: opencv (camera frames), examples (gradio_client for TTS), mujoco (sim)
+reachy_mini[opencv,examples]
+
+# Telegram + dispatch + memory tooling (shared-brain stack)
+requests
+python-dotenv
+
+# TTS via HF Spaces (reachy_say)
+gradio_client
+
+# Speech / realtime voice models
+google-genai            # Gemini Live bidi (optional)
+websockets
+
+# devduck (imported by dispatch tool for sub-agents)
+devduck

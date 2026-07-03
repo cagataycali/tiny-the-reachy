@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.memory/
+.telegram_offset
+telegram_events/
+*.log
+logs/
+reachy_mini_picture.jpg
+recorded_audio.wav
+/tmp/tiny_view.jpg
+
+# mkdocs build output
+site/

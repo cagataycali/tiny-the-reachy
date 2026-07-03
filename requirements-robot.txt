@@ -1,0 +1,5 @@
+# Extra deps only needed ON the robot / for hardware media.
+# The base reachy_mini[opencv] already pulls opencv + camera enumeration.
+# On the Wireless (CM4) the daemon ships with the SDK preinstalled.
+pyaudio                 # local mic/speaker for the bidi voice persona
+sounddevice

@@ -1,0 +1,17 @@
+[Unit]
+Description=TINY (Reachy Mini) — telegram persona
+After=network-online.target reachy-mini-daemon.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pollen/tiny-the-reachy
+EnvironmentFile=-/home/pollen/tiny-the-reachy/.env
+ExecStart=/venvs/apps_venv/bin/python /home/pollen/tiny-the-reachy/telegram_listener.py
+Restart=on-failure
+RestartSec=8
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

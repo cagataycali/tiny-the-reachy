@@ -1,0 +1,19 @@
+[Unit]
+Description=TINY (Reachy Mini) — slow-thinker heartbeat loop (every 30s)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/tiny-the-reachy
+EnvironmentFile=-%h/tiny-the-reachy/.env
+Environment=REACHY_CONNECTION_MODE=auto
+Environment=THINKER_INTERVAL=30
+ExecStart=%h/tiny-the-reachy/.venv/bin/python %h/tiny-the-reachy/thinker_loop.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

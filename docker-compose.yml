@@ -1,0 +1,123 @@
+# Canonical compose file for TINY (Reachy Mini).
+#
+#   make build       # docker compose build
+#   make up          # docker compose up -d
+#   make logs        # docker compose logs -f
+#   make down        # docker compose down
+#
+# Architecture: three always-on agent personas (voice / telegram / thinker)
+# that share ONE SQLite brain (.memory/mem.db) and all connect to the Reachy
+# Mini DAEMON (owns the hardware) on :8000.
+#
+# The daemon itself is NOT in this compose file — it ships with the Reachy Mini
+# SDK and runs either on the host laptop (Lite) or on the CM4 (Wireless). Use
+# host networking so these containers can reach it at localhost:8000 /
+# reachy-mini.local:8000. Set REACHY_USE_SIM=1 in .env to run against MuJoCo.
+
+services:
+  # 🎙️ Always-on bidirectional voice (local mic + speaker, head-wobble on speech)
+  tiny-voice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tiny
+    container_name: tiny-voice
+    network_mode: host           # reach the daemon on localhost/reachy-mini.local:8000
+    devices:
+      - /dev/snd:/dev/snd        # mic + speaker
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./.memory:/app/.memory   # shared brain: memory + agent_log + voice_bridge + tg_history
+      - ./tools:/app/tools       # live tools without rebuild
+      - ./logs:/app/logs
+    environment:
+      - REACHY_HOST
+      - REACHY_PORT
+      - REACHY_CONNECTION_MODE
+      - REACHY_USE_SIM
+      - REACHY_MEDIA_BACKEND
+      - REACHY_CAMERA_BACKEND
+      - TINY_MODEL_ID
+      - AWS_BEARER_TOKEN_BEDROCK
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_DEFAULT_REGION=us-west-2
+      - OPENAI_API_KEY
+      - VOICE_PROVIDER
+      - VOICE_NAME
+      - VOICE_MODEL
+      - VOICE_RESTART_DELAY
+      - GOOGLE_API_KEY
+      - GEMINI_API_KEY
+      - TELEGRAM_BOT_TOKEN
+      - TELEGRAM_ALLOWED_USERS
+      - TELEGRAM_DEFAULT_CHAT_ID
+    entrypoint: ["python", "voice_listener.py"]
+    restart: unless-stopped
+
+  # 💬 Telegram listener — spawns a fresh telegram-persona agent per message
+  tiny-telegram:
+    image: tiny
+    container_name: tiny-telegram
+    depends_on:
+      - tiny-voice
+    network_mode: host
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./.memory:/app/.memory
+      - ./tools:/app/tools
+      - ./logs:/app/logs
+      - ./telegram_events:/app/telegram_events
+    environment:
+      - REACHY_HOST
+      - REACHY_PORT
+      - REACHY_CONNECTION_MODE
+      - REACHY_USE_SIM
+      - REACHY_MEDIA_BACKEND
+      - REACHY_CAMERA_BACKEND
+      - TINY_MODEL_ID
+      - AWS_BEARER_TOKEN_BEDROCK
+      - AWS_DEFAULT_REGION=us-west-2
+      - OPENAI_API_KEY
+      - GOOGLE_API_KEY
+      - GEMINI_API_KEY
+      - TELEGRAM_BOT_TOKEN
+      - TELEGRAM_ALLOWED_USERS
+      - TELEGRAM_DEFAULT_CHAT_ID
+      - TELEGRAM_HISTORY_LIMIT
+    entrypoint: ["python", "telegram_listener.py"]
+    restart: unless-stopped
+
+  # 🧠 Slow-thinker — 30s heartbeat: photo + expression + telegram + journal
+  tiny-thinker:
+    image: tiny
+    container_name: tiny-thinker
+    depends_on:
+      - tiny-voice
+    network_mode: host
+    volumes:
+      - ~/.aws:/root/.aws:ro
+      - ./.memory:/app/.memory
+      - ./tools:/app/tools
+      - ./logs:/app/logs
+      - ./telegram_events:/app/telegram_events
+    environment:
+      - REACHY_HOST
+      - REACHY_PORT
+      - REACHY_CONNECTION_MODE
+      - REACHY_USE_SIM
+      - REACHY_MEDIA_BACKEND
+      - REACHY_CAMERA_BACKEND
+      - TINY_MODEL_ID
+      - THINKER_INTERVAL=30
+      - AWS_BEARER_TOKEN_BEDROCK
+      - AWS_DEFAULT_REGION=us-west-2
+      - OPENAI_API_KEY
+      - GOOGLE_API_KEY
+      - GEMINI_API_KEY
+      - TELEGRAM_BOT_TOKEN
+      - TELEGRAM_ALLOWED_USERS
+      - TELEGRAM_DEFAULT_CHAT_ID
+    entrypoint: ["python", "thinker_loop.py"]
+    restart: unless-stopped
