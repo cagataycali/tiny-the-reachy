@@ -37,6 +37,27 @@ onto Pollen Robotics' expressive desktop robot. The cross-persona nervous
 system (memory + agent_log + voice_bridge) is copied verbatim; only the robot
 tool layer changes.
 
+## 🔌 Use as an MCP server
+
+Drive Tiny from **Claude Code, Claude Desktop, Cursor, Kiro, or any MCP client** — all 14 Reachy tools become MCP tools (motion, emotions, camera, audio).
+
+```bash
+# from a clone (with requirements.txt installed in the venv):
+pip install -r requirements.txt strands-mcp-server
+claude mcp add tiny -- $(pwd)/.venv/bin/python $(pwd)/mcp_server_entry.py
+```
+
+Options:
+
+```bash
+python mcp_server_entry.py --tools reachy_express,reachy_camera   # expose a subset
+python mcp_server_entry.py --http --port 8090                     # HTTP mode, multi-client
+```
+
+> Tools connect to the robot lazily. The server starts without hardware — individual tool calls fail cleanly if the Reachy daemon (`:8000`) isn't running. Bring up the daemon first (real robot or `make sim`).
+
+---
+
 ## 🧬 the family
 
 | robot | body | control layer | this repo mirrors |
