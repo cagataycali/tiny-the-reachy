@@ -35,8 +35,22 @@ def reachy_camera(save_path: str = "", timeout: float = 10.0) -> dict:
     except ImportError:
         return err("opencv not installed — pip install reachy_mini[opencv]")
     out = Path(save_path) if save_path else SNAPSHOT
+    # 1) Preferred: the dashboard owns the camera (rpicam-vid on the Wireless CM4)
+    #    and serves a fresh JPEG at /api/snapshot.jpg. One owner, everyone else
+    #    reads the shared frame — no fight over /dev/video0.
+    dash = os.getenv("TINY_DASHBOARD_URL", "http://127.0.0.1:8097")
     try:
-        # Need a media-capable client for frame grab.
+        import urllib.request
+        with urllib.request.urlopen(f"{dash}/api/snapshot.jpg", timeout=min(timeout, 5.0)) as r:
+            data = r.read()
+        if data[:2] == b"\xff\xd8" and len(data) > 5000:
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_bytes(data)
+            return ok(f"saved frame → {out} (via dashboard)", path=str(out), source="dashboard")
+    except Exception:
+        pass  # dashboard down → fall through to the SDK path
+    try:
+        # 2) Fallback: a media-capable SDK client grabs the frame itself.
         mini = get_mini(media_backend=os.getenv("REACHY_CAMERA_BACKEND", "local"))
         frame = mini.media.get_frame()
         t0 = time.time()
