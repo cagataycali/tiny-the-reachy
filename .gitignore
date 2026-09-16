@@ -13,3 +13,9 @@ recorded_audio.wav
 
 # mkdocs build output
 site/
+
+# dashboard
+dashboard/frontend/node_modules/
+dashboard/frontend/dist/
+.reachy-auth/
+.reachy-dashboard.env

@@ -1,0 +1,19 @@
+# ~/.config/systemd/user/reachy-dashboard.service — the reachy.cagatay.my dashboard (FastAPI :8097)
+# secrets live in /home/pollen/.reachy-dashboard.env (REACHY_TOKEN, REACHY_RP_ID, REACHY_ORIGIN, REACHY_REG_TOKEN)
+[Unit]
+Description=Reachy Mini showcase dashboard (:8097 → reachy.cagatay.my)
+After=network-online.target reachy-mini-daemon.service
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/home/pollen/tiny-the-reachy
+EnvironmentFile=-/home/pollen/tiny-the-reachy/.env
+EnvironmentFile=-/home/pollen/.reachy-dashboard.env
+Environment=PYTHONUNBUFFERED=1 REACHY_HOST=127.0.0.1 REACHY_HTTP_PORT=8097
+ExecStart=/venvs/apps_venv/bin/python -m dashboard.server
+Restart=always
+RestartSec=3
+Nice=5
+
+[Install]
+WantedBy=default.target
