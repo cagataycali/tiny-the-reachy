@@ -79,3 +79,27 @@ def reachy_look_at(u: int, v: int, duration: float = 1.0) -> dict:
         return ok(f"looking at pixel ({u},{v})")
     except Exception as e:
         return err(f"reachy_look_at failed: {e}")
+
+
+@tool
+def capture_camera(question: str = "") -> dict:
+    """Grab a frame from TINY's head camera and RETURN IT AS AN IMAGE so you can SEE it.
+
+    Unlike reachy_camera (which only saves a file), this puts the JPEG straight
+    into the conversation as an image block. Use for "what do you see?",
+    "who's there?", "look at me". Optional question is echoed for context.
+    """
+    r = reachy_camera()
+    if r.get("status") != "success":
+        return r
+    try:
+        path = next(c["json"]["path"] for c in r["content"] if isinstance(c, dict) and "json" in c)
+        data = Path(path).read_bytes()
+    except Exception as e:  # noqa: BLE001
+        return err(f"capture_camera: frame saved but unreadable: {e}")
+    text = f"camera frame ({len(data)//1024} KB)"
+    if question:
+        text += f" — question: {question}"
+    return {"status": "success",
+            "content": [{"text": text},
+                        {"image": {"format": "jpeg", "source": {"bytes": data}}}]}
