@@ -83,11 +83,12 @@ def reachy_look_at(u: int, v: int, duration: float = 1.0) -> dict:
 
 @tool
 def capture_camera(question: str = "") -> dict:
-    """Grab a frame from TINY's head camera and RETURN IT AS AN IMAGE so you can SEE it.
+    """Grab a frame from TINY's head camera and return it as an IMAGE block (text personas only).
 
-    Unlike reachy_camera (which only saves a file), this puts the JPEG straight
-    into the conversation as an image block. Use for "what do you see?",
-    "who's there?", "look at me". Optional question is echoed for context.
+    For the telegram / thinker / shell personas (Bedrock Claude): the JPEG lands
+    in the conversation so the model can SEE it. NOT for the realtime VOICE
+    persona — OpenAI Realtime rejects image tool results and drops the session;
+    voice must use take_photo() instead. Optional question is echoed for context.
     """
     r = reachy_camera()
     if r.get("status") != "success":
