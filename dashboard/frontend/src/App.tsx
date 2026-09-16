@@ -56,7 +56,7 @@ export default function App() {
   const look = (yaw: number, pitch: number) => ctl('look', { yaw, pitch, roll, body_yaw: body, duration: 0.8 })
   const home = () => { setRoll(0); setBody(0); setAntR(0); setAntL(0); return ctl('home') }
   const doAsk = async () => { const t = ask.trim(); if (!t) return; setThoughts([]); const r = await ctl('ask', { text: t }); if (r) setAsk('') }
-  const doSay = async () => { const t = say.trim(); if (!t) return; const r = await ctl('say', { text: t }); if (r) { setSay(''); setToast('queued for the voice persona') } }
+  const doSay = async () => { const t = say.trim(); if (!t) return; const r = await ctl('say', { text: t }); if (r) { setSay(''); setToast(r.engine === 'piper-local' ? `speaking (${r.seconds}s)` : (r.warning || 'queued — no voice backend')) } }
 
   const s = state
   const playing = s?.now_playing ?? null

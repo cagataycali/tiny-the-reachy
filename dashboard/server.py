@@ -20,7 +20,7 @@ Gated WRITE (dashboard/auth.py — bearer REACHY_TOKEN or a passkey session; 5 P
   POST /api/control/wake | /sleep
   POST /api/control/motors    {mode: enabled|disabled|gravity_compensation}
   POST /api/control/volume    {level 0..100}
-  POST /api/control/say       {text}    → voice_bridge (the VOICE persona speaks it)
+  POST /api/control/say       {text}    → local Piper (tiny-tts) + daemon play_sound, head wobbling
   POST /api/control/ask       {text}    → ONE Strands agent turn, streamed over /ws as "agent" events (429 if busy)
   POST /api/control/reel      {action: start|abort}     the scripted 60–90 s showcase
 """

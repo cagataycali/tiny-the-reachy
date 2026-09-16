@@ -73,6 +73,39 @@ def daemon(method: str, path: str, body: Optional[dict] = None, timeout: float =
         raise RuntimeError(f"daemon unreachable ({path}): {e}") from None
 
 
+# ── local TTS (tiny-tts.service → Piper, offline) ────────────────────────────
+TTS_URL = os.getenv("REACHY_DASH_TTS_URL", os.getenv("TINY_TTS_URL", "http://127.0.0.1:5002")).rstrip("/")
+
+
+def _tts_synth(text: str, timeout: float = 30.0) -> str:
+    """Synthesize on the robot's Piper service; returns a local .wav path. Raises if unavailable."""
+    data = json.dumps({"text": text, "as": "path"}).encode()
+    req = request.Request(TTS_URL + "/tts", data=data, method="POST",
+                          headers={"Content-Type": "application/json"})
+    try:
+        with request.urlopen(req, timeout=timeout) as r:
+            out = json.loads(r.read() or b"{}")
+    except error.HTTPError as e:
+        raise RuntimeError(f"tiny-tts → {e.code}: {e.reason}") from None
+    except (error.URLError, TimeoutError, OSError) as e:
+        raise RuntimeError(f"tiny-tts unreachable at {TTS_URL}: {e}") from None
+    path = out.get("path")
+    if not path or not Path(path).is_file():
+        raise RuntimeError(f"tiny-tts returned {out!r}")
+    return str(path)
+
+
+def _wav_seconds(path: str) -> Optional[float]:
+    try:
+        import wave
+
+        with wave.open(path, "rb") as w:
+            return w.getnframes() / float(w.getframerate() or 1)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+
 class Cached:
     def __init__(self, fn: Callable[[], Any], ttl: float):
         self.fn, self.ttl = fn, ttl
@@ -277,13 +310,45 @@ class Robot:
         self.log("control", f"volume {level}", who)
         return {"ok": True, "result": r}
 
-    def say(self, text: str, who: str = "dashboard") -> Dict[str, Any]:
+    def say(self, text: str, who: str = "dashboard", wobble: bool = True) -> Dict[str, Any]:
+        """Speak text NOW: local Piper (tiny-tts) → daemon play_sound, head wobbling while it plays.
+
+        The voice persona (voice_bridge) is only a last-resort queue: it is disabled for the
+        showcase (invalid OpenAI key), so a queued line would never be spoken — we say so.
+        Audio goes out on a separate playbin → ALSA, so it does NOT need daemon media acquired
+        and never fights the rpicam camera.
+        """
         text = text.strip()[:500]
         if not text:
             raise ValueError("empty text")
-        rid = voice_bridge_push("dashboard", f"Say this out loud, verbatim: {text}", importance=2)
-        self.log("control", f"say: {text}", who, voice_bridge_id=rid)
-        return {"ok": True, "queued": rid}
+        try:
+            path = _tts_synth(text)
+        except Exception as e:  # noqa: BLE001 — any TTS failure falls back to the queue
+            rid = voice_bridge_push("dashboard", f"Say this out loud, verbatim: {text}", importance=2)
+            self.log("control", f"say QUEUED (local TTS down): {text}", who, voice_bridge_id=rid, error=str(e)[:200])
+            return {"ok": False, "engine": "voice_bridge", "queued": rid,
+                    "warning": f"local TTS unreachable ({e}); queued for the voice persona, which is disabled — "
+                               "nothing will be spoken until tiny-tts.service is back"}
+        secs = _wav_seconds(path) or max(1.5, len(text) * 0.06)
+        if wobble:
+            try:
+                daemon("POST", "/api/media/wobbling/enable")
+            except RuntimeError as e:
+                log.warning("wobbling enable: %s", e)
+                wobble = False
+        daemon("POST", "/api/media/play_sound", {"file": path}, timeout=8)
+        self.log("control", f"say ({secs:.1f}s): {text}", who, engine="piper-local", file=path)
+        if wobble:
+            t = threading.Timer(min(secs + 0.3, 30.0), self._wobble_off)
+            t.daemon = True
+            t.start()
+        return {"ok": True, "engine": "piper-local", "seconds": round(secs, 2), "file": path}
+
+    def _wobble_off(self) -> None:
+        try:
+            daemon("POST", "/api/media/wobbling/disable")
+        except RuntimeError as e:
+            log.warning("wobbling disable: %s", e)
 
     def home(self, who: str = "dashboard") -> Dict[str, Any]:
         return self.look(0, 0, 0, 0, 0, 0, body_yaw=0, antennas=[0, 0], duration=1.2, who=who)
