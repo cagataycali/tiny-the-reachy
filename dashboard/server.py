@@ -62,6 +62,18 @@ class Ask:
         self.history: List[Dict[str, Any]] = []
         self.last: Optional[Dict[str, Any]] = None
 
+    @staticmethod
+    def warm() -> None:
+        """Import the robot's agent stack once at startup so the first Ask isn't a 10 s cold import."""
+        try:
+            import sys  # noqa: PLC0415
+            if str(REPO) not in sys.path:
+                sys.path.insert(0, str(REPO))
+            import tiny  # noqa: F401, PLC0415
+            log.info("ask: tiny agent stack pre-warmed")
+        except Exception as e:  # noqa: BLE001
+            log.warning("ask: pre-warm failed (%s) — /api/control/ask will import lazily", e)
+
     def _build(self, emit):
         import sys  # noqa: PLC0415
         if str(REPO) not in sys.path:
@@ -69,11 +81,14 @@ class Ask:
         import tiny  # noqa: PLC0415  — the robot's own agent factory (repo root)
         from strands import Agent  # noqa: PLC0415
 
+        seen_tools: set = set()
+
         def cb(**kw: Any) -> None:
             if "data" in kw and kw["data"]:
                 emit({"type": "agent", "event": "text", "text": kw["data"]})
             tu = kw.get("current_tool_use")
-            if tu and tu.get("name") and kw.get("event", {}).get("contentBlockStart") is None and not kw.get("data"):
+            if tu and tu.get("name") and tu.get("toolUseId") not in seen_tools:   # once per tool call, not per delta
+                seen_tools.add(tu.get("toolUseId"))
                 emit({"type": "agent", "event": "tool", "name": tu.get("name"), "id": tu.get("toolUseId"),
                       "input": str(tu.get("input", ""))[:400]})
 
@@ -380,6 +395,8 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
     async def _start():
         robot.cam.start()
         threading.Thread(target=robot.emotions, daemon=True).start()   # warm the cache
+        if os.getenv("REACHY_ASK_PREWARM", "1") != "0":
+            threading.Thread(target=Ask.warm, daemon=True).start()
         robot.log("system", f"dashboard {__version__} up", "system")
 
     @app.on_event("shutdown")
