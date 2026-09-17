@@ -519,6 +519,7 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
     def _attach_tracker() -> None:
         from .tracking import Tracker  # noqa: PLC0415
         robot.tracker = Tracker(daemon_call, on_change=emit)
+        threading.Thread(target=robot.tracker.adopt, daemon=True).start()   # daemon already tracking (we restarted)? mirror it
         if os.getenv("REACHY_FACE_TRACKING", "0") == "1":
             def _boot_on() -> None:
                 for _ in range(20):                    # the daemon camera may still be coming up
@@ -576,7 +577,10 @@ def main() -> None:
     import uvicorn
     logging.basicConfig(level=os.getenv("REACHY_LOG", "INFO"), format="%(asctime)s %(name)s %(message)s")
     uvicorn.run("dashboard.server:app", host=os.getenv("REACHY_HOST", "127.0.0.1"),
-                port=int(os.getenv("REACHY_HTTP_PORT", "8097")), log_level="info", ws_ping_interval=20)
+                port=int(os.getenv("REACHY_HTTP_PORT", "8097")), log_level="info", ws_ping_interval=20,
+                # MJPEG/WS clients otherwise keep uvicorn draining until systemd's TimeoutStopSec SIGKILLs us — and a SIGKILL
+                # skips the shutdown hook that switches daemon face tracking off (incident 2026-09-17 03:05/03:33 BST).
+                timeout_graceful_shutdown=2)
 
 
 if __name__ == "__main__":

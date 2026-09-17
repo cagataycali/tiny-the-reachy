@@ -156,6 +156,35 @@ class Tracker:
                     "face_age_s": round(time.time() - self.face_seen_at, 1) if self.face_seen_at else None,
                     "since": self.since or None, "engine": "daemon-yunet", "poll_hz": FACE_POLL_HZ}
 
+    def adopt(self) -> bool:
+        """Startup: if the daemon is ALREADY tracking (we were restarted, or someone enabled it directly), mirror it
+        instead of pretending it is off. The daemon has no 'enabled' getter — its face `ts` is non-null iff the
+        detector is running. Returns True when adopted."""
+        try:
+            r = self._daemon("GET", "/api/media/tracking/face", None, timeout=3)
+        except RuntimeError as e:
+            self.error = str(e)[:300]
+            return False
+        ft = (r or {}).get("face_target") or {}
+        if ft.get("ts") is None:
+            return False
+        with self._lock:
+            if self.enabled:
+                return True
+            self.enabled, self.since, self.available = True, time.time(), True
+            self.weight = 1.0                       # unknown really; the first _apply() re-asserts from our holds
+            self.face = {"detected": bool(ft.get("detected")), "x": ft.get("x"), "y": ft.get("y"),
+                         "roll": ft.get("roll"), "ts": ft.get("ts")}
+            try:
+                self._set_weight(0.0 if self._live_holds() else 1.0)
+            except RuntimeError as e:
+                self.error = str(e)[:300]
+            self._start()
+            st = self.status()
+        log.info("tracking: adopted the daemon's running tracker")
+        self._emit(st, force=True)
+        return True
+
     def stop(self) -> None:
         """Persona/dashboard shutdown: stop tracking cleanly (Pollen moves.py ~661)."""
         self._stop.set()

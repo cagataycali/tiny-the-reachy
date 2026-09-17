@@ -177,3 +177,20 @@ def test_events_emitted_on_change(fd):
     t.hold("look", 5)
     assert len(evs) == n + 1 and evs[-1]["paused"] is True
     t.stop()
+
+
+def test_adopt_mirrors_a_daemon_that_is_already_tracking(fd):
+    fd.enabled, fd.weight = True, 1.0
+    fd.face = {"detected": True, "x": 0.1, "y": 0.0, "roll": 0.0, "ts": 55.0}   # ts set ⇔ daemon detector running
+    t = mk(fd)
+    assert t.adopt() is True
+    st = t.status()
+    assert st["enabled"] is True and st["detected"] is True and fd.weight == 1.0
+    t.stop()
+    assert fd.enabled is False
+
+
+def test_adopt_leaves_an_idle_daemon_alone(fd):
+    t = mk(fd)
+    assert t.adopt() is False
+    assert t.status()["enabled"] is False and fd.enables() == []
