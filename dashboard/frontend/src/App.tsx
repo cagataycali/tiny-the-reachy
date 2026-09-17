@@ -6,6 +6,7 @@ import { Camera } from './components/Camera'
 import { EmotionGrid } from './components/Emotions'
 import { HeadPad } from './components/Joystick'
 import { Live, Timeline } from './components/Timeline'
+import { LockCard, Telemetry } from './components/System'
 import { Login } from './components/Login'
 
 type Thought = Live
@@ -46,6 +47,29 @@ export default function App() {
   const refreshAuth = useCallback(() => { api.auth().then(setAuth).catch(() => {}) }, [])
   useEffect(() => { refreshAuth(); api.emotions().then(setEmotions).catch(() => {}) }, [refreshAuth])
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(''), 3500); return () => clearTimeout(t) }, [toast])
+  // PWA shortcuts (?action=ask|reel)
+  useEffect(() => {
+    const a = new URLSearchParams(location.search).get('action'); if (!a) return
+    history.replaceState(null, '', '/')
+    if (a === 'ask') setTimeout(() => (document.querySelector('[data-testid=ask-input]') as HTMLInputElement | null)?.focus(), 800)
+    if (a === 'reel') setTimeout(() => { if (can && confirm('Play the demo reel now?')) ctl('reel', { action: 'start' }) }, 1200)
+  }, [can])
+  // keyboard shortcuts (owner only; ignored while typing)
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.metaKey || e.ctrlKey) return
+      if (e.key === '/') { e.preventDefault(); (document.querySelector('[data-testid=ask-input]') as HTMLInputElement | null)?.focus(); return }
+      if (!can) return
+      const step = e.shiftKey ? 40 : 20
+      const map: Record<string, () => unknown> = {
+        ArrowLeft: () => look(step, 0), ArrowRight: () => look(-step, 0), ArrowUp: () => look(0, -step / 2), ArrowDown: () => look(0, step / 2),
+        ' ': () => ctl('stop'), h: () => home(), H: () => home(), d: () => ctl('demo', { on: !state?.demo }), D: () => ctl('demo', { on: !state?.demo }),
+      }
+      const fn = map[e.key]; if (fn) { e.preventDefault(); fn() }
+    }
+    window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h)
+  })
 
   const ctl = async (what: string, body: unknown = {}) => {
     try { const r = await api.control(what, body); return r } catch (e: any) {
@@ -72,6 +96,7 @@ export default function App() {
           <Login auth={auth} onChange={refreshAuth} />
         </div>
       </header>
+      <Telemetry s={s} />
       {!can && <div className="banner">👀 You're watching live. Controls unlock for the owner after sign-in.</div>}
 
       <main>
@@ -149,6 +174,11 @@ export default function App() {
             <button className="btn" disabled={!can} onClick={() => confirm('Disable motors? The head will go limp.') && ctl('motors', { mode: 'disabled' })}>motors off</button>
           </div>
           <Slider label="volume" v={vol ?? 70} min={0} max={100} set={(v) => setVol(v)} can={can} onDone={(v) => ctl('volume', { level: v })} unit="%" />
+        </section>
+
+        <section className="card wide2">
+          <h2>🔐 Lock &amp; demo <span className="muted small">who drives, passkeys, thinker pause</span></h2>
+          <LockCard auth={auth} can={can} demo={!!s?.demo} onDemo={(on) => ctl('demo', { on }).then((r) => { if (r) setToast(on ? 'demo mode ON — thinker paused' : 'thinker resumed') })} onToast={setToast} />
         </section>
 
         <section className="card wide2 mind" id="mind">

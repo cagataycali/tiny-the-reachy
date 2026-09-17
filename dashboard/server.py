@@ -23,6 +23,7 @@ Gated WRITE (dashboard/auth.py — bearer REACHY_TOKEN or a passkey session; 5 P
   POST /api/control/say       {text}    → local Piper (tiny-tts) + daemon play_sound, head wobbling
   POST /api/control/ask       {text}    → ONE Strands agent turn, streamed over /ws as "agent" events (429 if busy)
   POST /api/control/reel      {action: start|abort}     the scripted 60–90 s showcase
+  POST /api/control/demo      {on: bool}  pause/resume the tiny-thinker persona (demo mode); state.demo mirrors it
 """
 from __future__ import annotations
 
@@ -357,6 +358,13 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
             await asyncio.to_thread(_do, robot.stop, who)
             return robot.reel.status()
         return await asyncio.to_thread(_do, robot.reel.start, who)
+
+    @app.post("/api/control/demo")
+    async def demo(req: Request, body: Dict[str, Any] = Body(default={})):
+        """Demo mode: pause (on) / resume (off) the tiny-thinker persona so manual moves are not overlapped."""
+        who = _control(req)
+        on = bool(body.get("on", True))
+        return await asyncio.to_thread(_do, robot.demo_mode, on, who)
 
     # ── websocket ──
     @app.websocket("/ws")

@@ -121,6 +121,10 @@ class Cached:
                 self._t = now
             return self._v
 
+    def invalidate(self) -> None:
+        with self._lock:
+            self._t = 0.0
+
 
 def _emotions() -> List[str]:
     return sorted(daemon("GET", f"/api/move/recorded-move-datasets/list/{DATASET}", timeout=8))
@@ -145,6 +149,8 @@ class Robot:
         self._emotions = Cached(self._emotions_safe, 3600)
         self._state = Cached(self._state_uncached, float(os.getenv("REACHY_STATE_CACHE_S", "0.06")))
         self._wifi = Cached(self._wifi_safe, 30)
+        self._system = Cached(self._system_safe, 5)
+        self._services = Cached(self._services_safe, 4)
         self._daemon = Cached(self._daemon_safe, 5)
         self.cam = Camera()
         self.reel = DemoReel(self)
@@ -172,6 +178,64 @@ class Robot:
             return {"ssid": w.get("connected_network"), "mode": w.get("mode")}
         except RuntimeError:
             return {"ssid": None, "mode": None}
+
+    # ── host telemetry (CM4): cpu temp/load, memory, disk, wifi signal ──
+    def _system_safe(self) -> Dict[str, Any]:
+        out: Dict[str, Any] = {}
+        try:
+            out["cpu_c"] = round(int(Path("/sys/class/thermal/thermal_zone0/temp").read_text()) / 1000, 1)
+        except Exception:  # noqa: BLE001
+            out["cpu_c"] = None
+        try:
+            out["load1"] = round(os.getloadavg()[0], 2)
+            out["cores"] = os.cpu_count()
+        except Exception:  # noqa: BLE001
+            out["load1"] = None
+        try:
+            mem = {k: int(v.split()[0]) for k, v in (ln.split(":", 1) for ln in Path("/proc/meminfo").read_text().splitlines()[:5])}
+            out["mem_used_pct"] = round(100 * (1 - mem["MemAvailable"] / mem["MemTotal"]))
+        except Exception:  # noqa: BLE001
+            out["mem_used_pct"] = None
+        try:
+            du = shutil.disk_usage("/")
+            out["disk_free_gb"] = round(du.free / 1e9, 1)
+            out["disk_used_pct"] = round(100 * du.used / du.total)
+        except Exception:  # noqa: BLE001
+            out["disk_free_gb"] = None
+        try:
+            for ln in Path("/proc/net/wireless").read_text().splitlines()[2:]:
+                parts = ln.split()
+                out["wifi_signal_dbm"] = int(float(parts[3].rstrip(".")))
+                out["wifi_link"] = int(float(parts[2].rstrip(".")))
+                break
+        except Exception:  # noqa: BLE001
+            out["wifi_signal_dbm"] = None
+        try:
+            out["host_uptime_s"] = int(float(Path("/proc/uptime").read_text().split()[0]))
+        except Exception:  # noqa: BLE001
+            out["host_uptime_s"] = None
+        return out
+
+    SERVICES = ("tiny-voice", "tiny-telegram", "tiny-thinker", "tiny-mhs", "tiny-tts", "reachy-tunnel")
+
+    def _services_safe(self) -> Dict[str, str]:
+        try:
+            r = subprocess.run(["systemctl", "--user", "is-active", *self.SERVICES], capture_output=True, text=True, timeout=3)
+            states = r.stdout.split()
+            return dict(zip(self.SERVICES, states)) if len(states) == len(self.SERVICES) else {}
+        except Exception:  # noqa: BLE001
+            return {}
+
+    def demo_mode(self, on: bool, who: str = "dashboard") -> Dict[str, Any]:
+        """Demo mode = pause the thinker persona (it emotes every 30 s and overlaps manual moves)."""
+        verb = "stop" if on else "start"
+        try:
+            subprocess.run(["systemctl", "--user", verb, "tiny-thinker"], capture_output=True, text=True, timeout=15, check=True)
+        except Exception as e:  # noqa: BLE001
+            raise RuntimeError(f"systemctl {verb} tiny-thinker failed: {e}") from e
+        self._services.invalidate()
+        self.log("control", f"demo mode {'ON (thinker paused)' if on else 'OFF (thinker resumed)'}", who)
+        return {"ok": True, "demo": on, "services": self._services.get()}
 
     def _daemon_safe(self) -> Dict[str, Any]:
         try:
@@ -229,7 +293,8 @@ class Robot:
             self.now_playing = None
         out.update({"now_playing": self.now_playing, "daemon": self._daemon.get(), "wifi": self._wifi.get(),
                     "uptime_s": round(time.time() - self.boot, 1), "camera": self.cam.status(),
-                    "reel": self.reel.status(), "t": time.time()})
+                    "reel": self.reel.status(), "system": self._system.get(), "services": self._services.get(),
+                    "demo": self._services.get().get("tiny-thinker") not in ("active", "activating"), "t": time.time()})
         return out
 
     def state(self) -> Dict[str, Any]:

@@ -68,3 +68,15 @@ footer { margin-top:14px; text-align:center }
 .tl-live .tl-row { grid-template-columns:22px 1fr }
 .caret { color:#5eead4; animation:blink .9s infinite } @keyframes blink { 50% { opacity:.2 } }
 .tl-ask { display:flex; gap:8px } .tl-ask input { flex:1 }
+
+/* ── telemetry strip ── */
+.telemetry { display:flex; flex-wrap:wrap; gap:6px 14px; padding:6px 14px; margin:0 0 10px; background:#0e0e15; border-radius:10px; font:12px ui-monospace,monospace; color:#9a9ab0 }
+.tm.warn { color:var(--warn) } .tm.svcs { display:flex; gap:8px; flex-wrap:wrap; margin-left:auto }
+.svc { padding:0 6px; border-radius:6px; border:1px solid #23232f } .svc.on { color:var(--ok); border-color:rgba(74,222,128,.35) } .svc.off { color:var(--bad); border-color:rgba(248,113,113,.4) } .svc.unk { color:#55556a }
+/* ── lock card ── */
+.lock { display:flex; flex-direction:column; gap:10px; font-size:13px }
+.lockrow { display:flex; align-items:center; gap:6px; flex-wrap:wrap } .dot { width:9px; height:9px; border-radius:50%; background:#55556a; display:inline-block } .dot.on { background:var(--ok); box-shadow:0 0 8px var(--ok) }
+.switch { display:flex; align-items:center; gap:8px; cursor:pointer } .switch input { display:none } .switch .track { width:36px; height:20px; border-radius:999px; background:#2a2a3a; position:relative; transition:.2s } .switch .track::after { content:''; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#c8c8d4; transition:.2s } .switch input:checked + .track { background:var(--ok) } .switch input:checked + .track::after { left:18px; background:#0b0b10 } .switch input:disabled + .track { opacity:.4 }
+.creds { display:flex; flex-direction:column; gap:6px; background:#0e0e15; border-radius:10px; padding:8px 10px } .cred { display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center }
+.btn.small { padding:2px 8px; font-size:12px } kbd { font:11px ui-monospace,monospace; padding:1px 5px; border:1px solid #2a2a3a; border-bottom-width:2px; border-radius:4px; margin:0 1px; color:#c8c8d4 }
+@media (max-width:640px) { .tm.svcs { margin-left:0 } .keys { display:none } }

@@ -1,0 +1,20 @@
+{
+  "name": "TINY · Reachy Mini cockpit",
+  "short_name": "TINY",
+  "description": "Live camera, digital twin, controls and the shared mind of TINY the Reachy Mini.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0b10",
+  "theme_color": "#0b0b10",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Play the show", "url": "/?action=reel", "description": "Start the scripted demo reel" },
+    { "name": "Ask TINY", "url": "/?action=ask", "description": "Jump to the Ask box" }
+  ]
+}
