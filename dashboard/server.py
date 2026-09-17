@@ -78,7 +78,7 @@ class Ask:
         except Exception as e:  # noqa: BLE001
             log.warning("ask: pre-warm failed (%s) — /api/control/ask will import lazily", e)
 
-    def _build(self, emit):
+    def _build(self, emit, fleet: bool = False):
         import sys  # noqa: PLC0415
         if str(REPO) not in sys.path:
             sys.path.insert(0, str(REPO))
@@ -102,13 +102,18 @@ class Ask:
             handler = make_callback("dashboard", {"kind": "ask"}, chain=cb)
         except Exception:  # noqa: BLE001
             handler = cb
-        return Agent(model=tiny.MODEL_ID, tools=tiny.build_voice_tools(),
-                     system_prompt=tiny._shell_prompt()
-                     + "\n\nYou are being driven from the public web dashboard (reachy.cagatay.my) during a live "
-                       "showcase. Answer in 1–3 short sentences, use one expressive move when it fits, never sleep.",
+        # fleet=True → this turn came from another device via tiny.technology (POST /api/chat):
+        # no fleet tools, so cross-device chains stop at depth 1 (tools/tiny_mcp.py).
+        from tools import tiny_mcp  # noqa: PLC0415
+        origin = ("\n\nThis request was relayed from another of the owner's devices via tiny.technology; "
+                  "answer it directly and briefly." if fleet else
+                  "\n\nYou are being driven from the public web dashboard (reachy.cagatay.my) during a live "
+                  "showcase. Answer in 1–3 short sentences, use one expressive move when it fits, never sleep.")
+        return Agent(model=tiny.MODEL_ID, tools=tiny.build_voice_tools(persona="dashboard", fleet=fleet),
+                     system_prompt=tiny._shell_prompt() + origin + tiny_mcp.prompt_block("dashboard", fleet=fleet),
                      callback_handler=handler)
 
-    def run(self, text: str, who: str, emit, robot: Robot) -> Dict[str, Any]:
+    def run(self, text: str, who: str, emit, robot: Robot, *, fleet: bool = False) -> Dict[str, Any]:
         with self.lock:
             if self.busy:
                 raise HTTPException(429, {"error": "an ask is already running"})
@@ -121,7 +126,7 @@ class Ask:
         def work() -> None:
             result: Dict[str, Any] = {"ok": False}
             try:
-                agent = self._build(emit)                   # fresh agent per turn: no cross-visitor memory
+                agent = self._build(emit, fleet=fleet)      # fresh agent per turn: no cross-visitor memory
                 out = agent(text)
                 reply = str(out)
                 result = {"ok": True, "reply": reply, "seconds": round(time.time() - started, 1)}
@@ -313,7 +318,8 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
         text = str(body.get("prompt") or body.get("text") or "").strip()[:600]
         if not text:
             raise HTTPException(422, {"error": "prompt required"})
-        return app.state.ask.run(text, who, emit, robot)
+        # endpoint-proxy chat = a fleet turn: depth-capped (no use_device etc.), see docs/MCP.md
+        return app.state.ask.run(text, who, emit, robot, fleet=True)
 
     # ── control ──
     @app.post("/api/control/look")

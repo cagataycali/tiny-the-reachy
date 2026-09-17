@@ -106,6 +106,17 @@ def _wav_seconds(path: str) -> Optional[float]:
 
 
 
+def _fleet_status() -> Dict[str, Any]:
+    """tiny.technology fleet bridge state for the dashboard (never the token) — tools/tiny_mcp.py."""
+    try:
+        from tools import tiny_mcp  # noqa: PLC0415
+        st = tiny_mcp.status()
+        return {"enabled": st["enabled"], "running": st["running"], "token": st["token"],
+                "token_days_left": st["token_days_left"], "tools": st["tools"]}
+    except Exception:  # noqa: BLE001
+        return {"enabled": False, "running": False, "token": False, "token_days_left": None, "tools": []}
+
+
 class Cached:
     def __init__(self, fn: Callable[[], Any], ttl: float):
         self.fn, self.ttl = fn, ttl
@@ -294,6 +305,7 @@ class Robot:
         out.update({"now_playing": self.now_playing, "daemon": self._daemon.get(), "wifi": self._wifi.get(),
                     "uptime_s": round(time.time() - self.boot, 1), "camera": self.cam.status(),
                     "reel": self.reel.status(), "system": self._system.get(), "services": self._services.get(),
+                    "fleet": _fleet_status(),
                     "demo": self._services.get().get("tiny-thinker") not in ("active", "activating"), "t": time.time()})
         return out
 

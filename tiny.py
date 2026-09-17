@@ -40,6 +40,7 @@ from tools.manage_messages import manage_messages
 from tools.manage_tools import manage_tools as manage_tools_tool
 from tools.prompts import prompts, get_override as _prompt_override
 from tools.vision import take_photo
+from tools import tiny_mcp  # fleet bridge (tiny.technology MCP) — OFF unless TINY_MCP=1
 
 # Reachy robot tools imported individually for the slim voice toolset
 from tools.reachy_motion import (
@@ -47,7 +48,7 @@ from tools.reachy_motion import (
 )
 from tools.reachy_expression import reachy_express, reachy_list_emotions
 from tools.reachy_state import reachy_get_state, reachy_motors
-from tools.reachy_camera import reachy_camera, reachy_look_at
+from tools.reachy_camera import reachy_camera, reachy_look_at, capture_camera
 from tools.reachy_audio import reachy_play_sound, reachy_say, reachy_volume
 
 
@@ -63,8 +64,13 @@ use_spotify = _try_import("devduck.tools.use_spotify", "use_spotify")
 
 
 # ── canonical tool lists ────────────────────────────────────────────
-def build_tools(include_telegram: bool = True, include_robot: bool = True) -> list:
-    """Single source of truth for what TINY exposes (shell/telegram/thinker)."""
+def build_tools(include_telegram: bool = True, include_robot: bool = True, *,
+                persona: str = "shell", fleet: bool = False) -> list:
+    """Single source of truth for what TINY exposes (shell/telegram/thinker).
+
+    persona/fleet only steer the optional tiny.technology fleet tools (tools/tiny_mcp.py):
+    fleet=True marks a turn that ARRIVED from another device → no fleet tools (depth cap).
+    """
     t = [
         memory, shell, environment, image_reader,
         prompts, manage_messages, manage_tools_tool,
@@ -77,11 +83,16 @@ def build_tools(include_telegram: bool = True, include_robot: bool = True) -> li
     for extra in (use_github, use_spotify):
         if extra is not None:
             t.append(extra)
+    t.extend(tiny_mcp.get_tools(persona, fleet=fleet))   # [] unless TINY_MCP=1 + token + node
     return t
 
 
-def build_voice_tools() -> list:
-    """Slim tool list for the bidi voice agent (latency-critical for Realtime)."""
+def build_voice_tools(*, persona: str = "voice", fleet: bool = False) -> list:
+    """Slim tool list for the bidi voice agent (latency-critical for Realtime).
+
+    Also used by the dashboard Ask (persona="dashboard"). Fleet tools ride along only for
+    personas listed in TINY_MCP_PERSONAS (default excludes voice) and never for fleet turns.
+    """
     tools = [
         # cross-persona infra
         memory, shell, prompts, manage_messages, manage_tools_tool,
@@ -93,6 +104,7 @@ def build_voice_tools() -> list:
     ]
     if use_spotify is not None:
         tools.append(use_spotify)
+    tools.extend(tiny_mcp.get_tools(persona, fleet=fleet))
     return tools
 
 
@@ -311,8 +323,8 @@ def build_agent(persona: str, *, chat_id: Optional[str] = None,
     from tools.agent_log import make_callback
     meta = {"chat_id": chat_id} if chat_id else None
     return Agent(model=MODEL_ID,
-                 tools=build_tools(include_telegram=True, include_robot=True),
-                 system_prompt=prompt,
+                 tools=build_tools(include_telegram=True, include_robot=True, persona=persona),
+                 system_prompt=prompt + tiny_mcp.prompt_block(persona),
                  callback_handler=make_callback(persona, meta, chain=PrintingCallbackHandler()))
 
 
@@ -371,8 +383,8 @@ def build_voice_agent(provider: str = "openai", voice: Optional[str] = None):
     from strands.experimental.bidi.tools import stop_conversation
 
     model = _build_bidi_model(provider, voice)
-    tools = build_voice_tools() + [stop_conversation]
-    agent = BidiAgent(model=model, tools=tools, system_prompt=_voice_prompt())
+    tools = build_voice_tools(persona="voice") + [stop_conversation]
+    agent = BidiAgent(model=model, tools=tools, system_prompt=_voice_prompt() + tiny_mcp.prompt_block("voice"))
 
     # Reachy Mini's USB codec is locked to 16 kHz. OpenAI Realtime wants 24 kHz,
     # so we resample between the device (16k) and the model. Nova Sonic is 16k
