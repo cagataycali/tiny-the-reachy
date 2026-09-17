@@ -1,11 +1,10 @@
 // v3 shell — mobile-first, camera-first, agent-as-overlay (scout.cagatay.my pattern, ported to React).
-// Gate → Cockpit. Cockpit = topbar · full-bleed viewport (camera | twin) with the mind overlay · cmdbar · slide-up docks.
+// Gate → Cockpit. Cockpit = topbar · full-bleed viewport (camera + twin PiP, swappable) with the mind overlay · cmdbar · slide-up docks.
 // Desktop (≥ 960 px) shows the same components in two columns: viewport left, mind timeline + open dock right.
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AgentEvent, ApiError, AuthStatus, Emotions, LogRow, api, setToken } from './lib/api'
 import { useSocket } from './lib/socket'
-import Twin from './components/Twin'
-import { Camera } from './components/Camera'
+import { PiPViewport, usePiPPrefs } from './components/PiP'
 import { EmotionGrid } from './components/Emotions'
 import { HeadPad } from './components/Joystick'
 import { Live, PERSONA, Timeline } from './components/Timeline'
@@ -42,8 +41,9 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
   const [antL, setAntL] = useState(0)
   const [vol, setVol] = useState<number | null>(null)
   const [dock, setDock] = useState<Dock>(null)
-  const [view, setView] = useState<'cam' | 'twin'>('cam')
+  const [pip, setPip] = usePiPPrefs()                                  // twin ⇄ camera PiP (components/PiP.tsx)
   const [overlayOn, setOverlayOn] = useState(true)
+  const [lift, setLift] = useState(0)                                 // mind bubbles lift above a bottom-corner PiP
   const seq = useRef(0)
   const wide = useMedia('(min-width: 960px)')
 
@@ -76,14 +76,15 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
     if (a === 'ask') setTimeout(() => (document.querySelector('[data-testid=ask-input]') as HTMLInputElement | null)?.focus(), 800)
     if (a === 'reel') setTimeout(() => { if (can && confirm('Play the demo reel now?')) ctl('reel', { action: 'start' }) }, 1200)
   }, [can])
-  // keyboard shortcuts (ignored while typing): ← → ↑ ↓ look · Space STOP · H home · D demo · / ask · T twin · L look dock · E emotions · Esc close
+  // keyboard shortcuts (ignored while typing): ← → ↑ ↓ look · Space STOP · H home · D demo · / ask · T twin PiP · X swap · L look dock · E emotions · Esc close
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName
       if (e.key === 'Escape') { setDock(null); (document.activeElement as HTMLElement | null)?.blur(); return }
       if (tag === 'INPUT' || tag === 'TEXTAREA' || e.metaKey || e.ctrlKey) return
       if (e.key === '/') { e.preventDefault(); (document.querySelector('[data-testid=ask-input]') as HTMLInputElement | null)?.focus(); return }
-      if (e.key === 't' || e.key === 'T') { setView((v) => (v === 'cam' ? 'twin' : 'cam')); return }
+      if (e.key === 't' || e.key === 'T') { setPip((p) => (p.open ? { ...p, open: false, swapped: false } : { ...p, open: true })); return }
+      if (e.key === 'x' || e.key === 'X') { setPip((p) => ({ ...p, swapped: !p.swapped, open: true })); return }
       if (e.key === 'l' || e.key === 'L') { setDock((d) => (d === 'look' ? null : 'look')); return }
       if (e.key === 'e' || e.key === 'E') { setDock((d) => (d === 'emotions' ? null : 'emotions')); return }
       if (!can) return
@@ -188,7 +189,13 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
           <LockCard auth={auth} can={can} demo={!!s?.demo} onDemo={(on) => ctl('demo', { on }).then((r) => { if (r) setToast(on ? 'demo mode ON — thinker paused' : 'thinker resumed') })} onToast={setToast} />
           <div className="dock-sub">🖥 display</div>
           <label className="switch"><input type="checkbox" checked={overlayOn} onChange={(e) => setOverlayOn(e.target.checked)} /><span className="track" /> agent overlay on the camera</label>
-          <div className="muted small keys">shortcuts: <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> look · <kbd>space</kbd> STOP · <kbd>H</kbd> home · <kbd>D</kbd> demo · <kbd>F</kbd> face-track · <kbd>T</kbd> twin · <kbd>L</kbd> look · <kbd>E</kbd> emotions · <kbd>/</kbd> ask · <kbd>esc</kbd> close</div>
+          <label className="switch"><input type="checkbox" checked={pip.open} onChange={(e) => setPip((p) => (e.target.checked ? { ...p, open: true } : { ...p, open: false, swapped: false }))} data-testid="set-pip-open" /><span className="track" /> digital twin PiP</label>
+          <div className="btnrow" data-testid="set-pip-size">
+            <span className="muted small" style={{ alignSelf: 'center' }}>twin size</span>
+            {(wide ? ['S', 'M', 'L'] as const : ['S', 'M'] as const).map((z) => <button key={z} className={`btn small ${(pip.size ?? (wide ? 'M' : 'S')) === z ? 'primary' : ''}`} onClick={() => setPip((p) => ({ ...p, size: z, open: true }))}>{z === 'L' ? 'L · large' : z}</button>)}
+            <button className="btn small" onClick={() => setPip((p) => ({ ...p, corner: 'tr', size: null }))}>reset</button>
+          </div>
+          <div className="muted small keys">shortcuts: <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> look · <kbd>space</kbd> STOP · <kbd>H</kbd> home · <kbd>D</kbd> demo · <kbd>F</kbd> face-track · <kbd>T</kbd> twin PiP · <kbd>X</kbd> swap · <kbd>L</kbd> look · <kbd>E</kbd> emotions · <kbd>/</kbd> ask · <kbd>esc</kbd> close</div>
           <button className="btn ghost wide" onClick={onLock}>🔒 lock · sign out ({auth.who})</button>
           <div className="muted small">reachy.cagatay.my · dashboard {hello?.version ?? ''} · uptime {Math.round((s?.uptime_s ?? 0) / 60)} min · {s?.camera?.clients ?? 0} viewer{(s?.camera?.clients ?? 0) === 1 ? '' : 's'}</div>
         </div>
@@ -215,18 +222,16 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
 
       <main className="stage">
         <section className="viewport" data-testid="viewport">
-          {view === 'cam'
-            ? <Camera ok={!!s?.camera?.ok} fps={s?.camera?.fps ?? 0} error={s?.camera?.error ?? null} tracking={s?.tracking} />
-            : <TwinFill joints={s?.joints} />}
+          <PiPViewport s={s} pip={pip} setPip={setPip} onToast={setToast} onLift={setLift} />
           <div className="cam-overlay">
             <div className="overlay-top">
-              <span className="chip on">{view === 'cam' ? `● LIVE ${s?.camera?.fps?.toFixed(0) ?? 0} fps` : '🧊 twin · mirrors the real motors'}</span>
+              <span className="chip on">{!pip.swapped ? `● LIVE ${s?.camera?.fps?.toFixed(0) ?? 0} fps` : '🧊 twin · mirrors the real motors'}</span>
               {playing && <span className="chip playing">▶ {playing.name}</span>}
               {reel?.running && <span className="chip">🎬 reel {reel.step + 1}/{reel.steps.length} · {reel.elapsed}s</span>}
               {s?.moves_running ? <span className="chip">{s.moves_running} move{s.moves_running > 1 ? 's' : ''}</span> : null}
-              <button className="chip" onClick={() => setView((v) => (v === 'cam' ? 'twin' : 'cam'))} data-testid="view-toggle">{view === 'cam' ? '🧊 twin' : '📷 camera'}</button>
+              <button className="chip" onClick={() => setPip((p) => ({ ...p, swapped: !p.swapped, open: true }))} data-testid="view-toggle" title="swap camera ⇄ twin (X, or double-tap the PiP)">{!pip.swapped ? '⇄ 🧊 twin' : '⇄ 📷 camera'}</button>
             </div>
-            {overlayOn && !wide && <MindOverlay rows={rows} live={thoughts} onOpen={() => setDock('mind')} />}
+            {overlayOn && !wide && <MindOverlay rows={rows} live={thoughts} onOpen={() => setDock('mind')} lift={lift} />}
           </div>
           <button className="estop" disabled={!can} onClick={() => ctl('stop')} title="STOP every move (space)" data-testid="stop">■</button>
         </section>
@@ -269,16 +274,8 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
 
 const DOCK_TITLE: Record<Exclude<Dock, null>, string> = { look: '🕹 head & antennas', emotions: '🎭 emotions & reel', say: '🗣 say', settings: '⚙ settings', mind: "🧠 TINY's mind" }
 
-/** Twin that fills its parent (the viewport) — Twin sizes itself from the host element. */
-function TwinFill({ joints }: { joints: number[] | null | undefined }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [h, setH] = useState(360)
-  useLayoutEffect(() => { const el = ref.current; if (!el) return; const ro = new ResizeObserver(() => setH(el.clientHeight || 360)); ro.observe(el); setH(el.clientHeight || 360); return () => ro.disconnect() }, [])
-  return <div className="twin-fill" ref={ref}><Twin joints={joints} height={h} /></div>
-}
-
 /** The agent as an overlay: the last few mind rows as glass bubbles over the camera, auto-fading; tap → full timeline. */
-function MindOverlay({ rows, live, onOpen }: { rows: LogRow[]; live: Live[]; onOpen: () => void }) {
+function MindOverlay({ rows, live, onOpen, lift = 0 }: { rows: LogRow[]; live: Live[]; onOpen: () => void; lift?: number }) {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 2000); return () => clearInterval(t) }, [])
   const recent = rows.filter((r) => r.role !== 'system' && r.role !== 'reasoning' && r.text).slice(-3)
@@ -287,7 +284,7 @@ function MindOverlay({ rows, live, onOpen }: { rows: LogRow[]; live: Live[]; onO
   const liveTool = [...live].reverse().find((l) => l.kind === 'tool')
   const asking = live.length > 0
   return (
-    <div className="mind-overlay" onClick={onOpen} data-testid="mind-overlay">
+    <div className="mind-overlay" onClick={onOpen} data-testid="mind-overlay" style={lift ? { marginBottom: lift, transition: 'margin-bottom .28s' } : undefined}>
       {!asking && recent.map((r) => {
         const a = age(r.ts), p = PERSONA[r.persona] ?? { chip: '•', color: '#9ca3af', label: r.persona }
         const faded = a > 90 ? 'faded' : a > 30 ? 'dim' : ''

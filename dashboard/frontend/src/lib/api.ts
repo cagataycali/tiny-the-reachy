@@ -11,7 +11,13 @@ export type State = {
   system?: { cpu_c: number | null; load1: number | null; cores?: number; mem_used_pct: number | null; disk_free_gb: number | null; disk_used_pct?: number; wifi_signal_dbm: number | null; host_uptime_s: number | null }
   services?: Record<string, string>; camera: { ok: boolean; fps: number; error: string | null; clients: number }
   reel: Reel; t: number; tracking?: Tracking
+  /** perception (owned by the face-tracking/DoA/IMU lane; the dashboard renders nothing when absent/null) */
+  doa?: Doa | null; imu?: Imu | null
 }
+/** ReSpeaker direction of arrival passed through from the daemon's state: angle in rad (0 = front), speech_detected */
+export type Doa = { angle: number | null; speech_detected?: boolean | null }
+/** IMU summary — consumed fields: lifted|picked_up, tilted (booleans); anything else is ignored */
+export type Imu = { lifted?: boolean; picked_up?: boolean; tilted?: boolean; tilt_deg?: number | null; [k: string]: unknown }
 /** daemon face tracking (reachy-mini ≥ 1.10): x,y = face centre in the camera frame, normalised to [-1, 1] */
 export type Tracking = { enabled: boolean; paused?: boolean; holds?: string[]; detected: boolean; x: number | null; y: number | null
   roll?: number | null; weight?: number | null; available?: boolean | null; error?: string | null; face_age_s?: number | null; engine?: string }

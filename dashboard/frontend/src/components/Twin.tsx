@@ -7,8 +7,12 @@ import { MOTOR_JOINTS, ReachySim, TwinGeoms, mujocoSource, unpackMesh } from '..
 
 export type TwinStatus = { phase: 'loading' | 'ready' | 'error'; detail: string; fps?: number; lagDeg?: number; source?: string | null }
 
-export default function Twin({ joints, onStatus, height = 260 }: { joints: number[] | null | undefined; onStatus?: (s: TwinStatus) => void; height?: number }) {
+export default function Twin({ joints, onStatus, height = 260, paused = false, maxFps = 0, autoOrbit = true }: {
+  joints: number[] | null | undefined; onStatus?: (s: TwinStatus) => void; height?: number
+  /** paused = keep the sim mirroring but skip rendering (hidden PiP) · maxFps caps the render rate (PiP ≤ 30) · autoOrbit = slow idle spin */
+  paused?: boolean; maxFps?: number; autoOrbit?: boolean }) {
   const host = useRef<HTMLDivElement>(null)
+  const ctl = useRef({ paused, maxFps, autoOrbit }); ctl.current = { paused, maxFps, autoOrbit }
   const simRef = useRef<ReachySim | null>(null)
   const jointsRef = useRef<number[] | null>(null)
   const [status, setStatus] = useState<TwinStatus>({ phase: 'loading', detail: 'starting' })
@@ -42,7 +46,7 @@ export default function Twin({ joints, onStatus, height = 260 }: { joints: numbe
     floor.receiveShadow = true; floor.position.z = -0.0005; scene.add(floor)
     const grid = new THREE.PolarGridHelper(0.22, 8, 4, 48, 0x2a2a3a, 0x1e1e2a); grid.rotateX(Math.PI / 2); scene.add(grid)
 
-    const resize = () => { const w = el.clientWidth || 320, h = el.clientHeight || height; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix() }
+    const resize = () => { const w = el.clientWidth || 320, h = el.clientHeight || height; renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < h ? Math.min(58, 32 * (h / w) * 0.85) : 32; cam.updateProjectionMatrix() }   // portrait hosts widen the FOV so the antennas stay in frame
     resize(); const ro = new ResizeObserver(resize); ro.observe(el)
 
     const orbit = { yaw: 0.55, pitch: 0.32, dist: 0.62 }
@@ -95,7 +99,7 @@ export default function Twin({ joints, onStatus, height = 260 }: { joints: numbe
         }
         simRef.current = sim
         if (jointsRef.current) sim.setTargets(jointsRef.current)
-        ;(window as any).__reachyTwin = { sim, fps: () => lastFps, joints: () => sim!.joints(), head: () => sim!.headEuler(), lag: () => sim!.lag(), trace: () => sim!.trace, names: MOTOR_JOINTS, source: () => mujocoSource }
+        ;(window as any).__reachyTwin = { sim, fps: () => lastFps, paused: () => ctl.current.paused, joints: () => sim!.joints(), head: () => sim!.headEuler(), lag: () => sim!.lag(), trace: () => sim!.trace, names: MOTOR_JOINTS, source: () => mujocoSource }
         set({ phase: 'ready', detail: 'mirroring', source: mujocoSource })
       } catch (e: any) {
         console.error(e); set({ phase: 'error', detail: String(e?.message ?? e) })
@@ -108,11 +112,16 @@ export default function Twin({ joints, onStatus, height = 260 }: { joints: numbe
       const now = performance.now(); const dt = Math.min(0.1, (now - simLast) / 1000); simLast = now
       if (sim?.targets) sim.step(dt)
     }, 10)
-    let last = performance.now(), frames = 0, tHz = last, lastFps = 0
+    let last = performance.now(), frames = 0, tHz = last, lastFps = 0, lastRender = 0
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion()
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
     const tick = (now: number) => {
       if (!alive) return
       raf = requestAnimationFrame(tick)
+      const c = ctl.current
+      if (c.paused) { last = now; return }                                   // hidden: sim keeps mirroring, no GPU work
+      if (c.maxFps > 0 && now - lastRender < 1000 / c.maxFps - 1) return     // PiP: cap the render rate
+      lastRender = now
       const dt = Math.min(0.1, (now - last) / 1000); last = now
       if (sim) {
         const xp = sim.bodyXpos(), xm = sim.bodyXmat()
@@ -126,7 +135,7 @@ export default function Twin({ joints, onStatus, height = 260 }: { joints: numbe
         if (now - tHz > 1000) { set({ phase: 'ready', detail: sim.targets ? 'mirroring' : 'waiting for state', fps: frames, lagDeg: (sim.lag() * 180) / Math.PI, source: mujocoSource }); lastFps = frames; frames = 0; tHz = now }
       }
       const tgt = new THREE.Vector3(0, 0, 0.13)
-      if (!dragging) orbit.yaw += dt * 0.05
+      if (!dragging && c.autoOrbit && !reduced) orbit.yaw += dt * 0.05
       cam.position.set(tgt.x + orbit.dist * Math.cos(orbit.pitch) * Math.cos(orbit.yaw), tgt.y + orbit.dist * Math.cos(orbit.pitch) * Math.sin(orbit.yaw), tgt.z + orbit.dist * Math.sin(orbit.pitch))
       cam.lookAt(tgt)
       renderer.render(scene, cam)
