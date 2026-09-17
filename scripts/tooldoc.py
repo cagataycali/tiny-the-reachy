@@ -32,6 +32,7 @@ MODULES = {
     "reachy_camera": ("Camera", "grab a frame, look at a pixel, ask the vision model a question about what TINY sees"),
     "reachy_audio": ("Audio", "speak (Piper TTS on the CM4), play a sound, set the speaker volume — “silent” means 0"),
     "head_tracking": ("Head tracking", "toggle the daemon's face tracker (reachy-mini ≥ 1.10) through the dashboard's tracking controller"),
+    "turn_to_sound": ("Turn to sound", "turn toward whoever is talking (ReSpeaker direction of arrival) when face tracking has no lock — the dashboard's DoA turner"),
     "vision": ("Vision", "take_photo — a frame plus a question for the multimodal model, shared by every persona"),
     "voice_bridge": ("Voice bridge", "text → the voice persona's mouth (say/mute) from the text personas"),
     "dispatch": ("Dispatch", "hand a task to another persona (voice/telegram/thinker) through the shared brain"),

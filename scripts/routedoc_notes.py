@@ -1,7 +1,9 @@
 """One-line descriptions for scripts/routedoc.py, keyed "METHOD /path" — written from the handler code."""
 
 NOTES = {
-    "GET /api/health": "Liveness + daemon reachability, camera status, last error. The only public `/api/*` route.",
+    "GET /api/health": "Liveness + daemon reachability, camera status, last error, daemon pressure (fds/limit, CLOSE-WAIT on :8000) and the state-stream status. The only public `/api/*` route.",
+    "GET /api/doa": "Turn-toward-speaker controller status: enabled, last bearing (deg), why it is not turning, turns/windups, sign cross-check counters.",
+    "POST /api/doa": "`{enabled: bool}` — turn toward speech when face tracking has no lock (default on; `K` in the cockpit). Personas may call it from 127.0.0.1 without a key.",
     "GET /api/state": "Full robot state: head/body/antenna pose, motor mode, daemon loop Hz, CM4 system stats, service states, tracking/doa/imu when present.",
     "GET /api/telemetry": "State + camera status — the tiny.technology endpoint-device `telemetry` action.",
     "GET /api/emotions": "The recorded-move library the daemon exposes (81 moves on 1.10).",

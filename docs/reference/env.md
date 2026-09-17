@@ -51,15 +51,37 @@ Where the values live:
 | variable | default | read by | purpose |
 |---|---|---|---|
 | `REACHY_CAMERA_BACKEND` | `local` | `tools/reachy_camera.py` | Media backend used only while `reachy_camera`/`reachy_look_at` grab a frame through the SDK. |
+| `REACHY_CLOSE_WAIT_WARN` | `50` | `dashboard/daemonlink.py` | Warn when this many sockets on :8000 sit in CLOSE-WAIT (default 50; the incident had 614). |
 | `REACHY_CONNECTION_MODE` | `auto` | `tools/_reachy_common.py` | `auto` · `localhost_only` · `network` — passed to `ReachyMini(connection_mode=)`. The robot runs `localhost_only`. |
+| `REACHY_DAEMON_FALLBACK_HZ` | `4` | `dashboard/daemonlink.py` | Cap on REST `/api/state/full` polls while the stream is down (default 4 Hz). |
+| `REACHY_DAEMON_STREAM_HZ` | `10` | `dashboard/daemonlink.py` | Rate asked of the daemon's `/api/state/ws/full` WebSocket, the single state source for every dashboard consumer (default 10). |
+| `REACHY_DAEMON_STREAM_STALE_S` | `1.5` | `dashboard/daemonlink.py` | A stream frame older than this (default 1.5 s) triggers one REST fallback read. |
+| `REACHY_DOA_BODY_MAX_DEG` | `60` | `dashboard/doa.py` | Body yaw a DoA turn may reach (default ±60°). |
+| `REACHY_DOA_FACE_FRESH_S` | `1.5` | `dashboard/doa.py` | A tracked face younger than this blocks DoA turns — the face tracker wins (default 1.5 s). |
+| `REACHY_DOA_FRAME` | `head` | `dashboard/doa.py` | `head` (default: bearing is relative to the current head yaw) or `body` (absolute in the body frame). |
+| `REACHY_DOA_HEAD_MAX_DEG` | `45` | `dashboard/doa.py` | Head yaw the DoA turn may use before the body carries the rest (default 45°). |
+| `REACHY_DOA_MIN_CONSEC` | `6` | `dashboard/doa.py` | Consecutive speech frames (10 Hz) that must agree before a turn (default 6). |
+| `REACHY_DOA_MIN_DELTA_DEG` | `10` | `dashboard/doa.py` | Bearings closer than this to straight ahead do not move the head (default 10°). |
+| `REACHY_DOA_RAIL_DEG` | `3` | `dashboard/doa.py` | Bearings within this of 0/π are the array's rails (own speaker / no estimate) and are ignored (default 3°). |
+| `REACHY_DOA_RATE_S` | `3` | `dashboard/doa.py` | Minimum seconds between DoA turns (default 3). |
+| `REACHY_DOA_SIGN` | `1` | `dashboard/doa.py` | `1` (default, owner-confirmed) or `-1` if the head turns away from the speaker. |
+| `REACHY_DOA_SPEAK_TAIL_S` | `1.5` | `dashboard/doa.py` | Seconds after TINY stops speaking during which speech is still treated as its own voice (default 1.5). |
+| `REACHY_DOA_TOL_DEG` | `12` | `dashboard/doa.py` | How much those frames may disagree (default ±12°). |
+| `REACHY_DOA_TURN` | `1` | `dashboard/doa.py` | `1` (default) turns toward speech when face tracking has no lock; `0` starts with it off. |
+| `REACHY_DOA_TURN_DURATION_S` | `0.7` | `dashboard/doa.py` | Duration of the DoA goto (default 0.7 s). |
+| `REACHY_DOA_WINDUP_RATIO` | `0.6` | `dashboard/doa.py` | …“did not shrink” = new |delta| ≥ this × the previous one (default 0.6). |
+| `REACHY_DOA_WINDUP_S` | `10` | `dashboard/doa.py` | A same-direction turn within this window while the bearing did not shrink is refused (default 10 s). |
+| `REACHY_FD_WARN_FRACTION` | `0.6` | `dashboard/daemonlink.py` | Warn (health + cockpit pill) when the daemon's open fds exceed this fraction of its limit (default 0.6). |
 | `REACHY_HOST` | `127.0.0.1` | `dashboard/server.py`, `tools/_reachy_common.py`, `voice_listener.py` | Daemon host for the SDK client and the dashboard. |
 | `REACHY_MEDIA_BACKEND` | `no_media` | `tools/_reachy_common.py` | SDK media backend for the personas' shared client; `no_media` keeps the daemon owning mic + camera. |
+| `REACHY_MOVES_ACTIVE_HZ` | `5` | `dashboard/daemonlink.py` | `/api/move/running` probe rate right after the dashboard started a move (default 5 Hz). |
+| `REACHY_MOVES_IDLE_PROBE_S` | `3` | `dashboard/daemonlink.py` | Seconds between `/api/move/running` probes when nothing is in flight (default 3). |
 | `REACHY_PORT` | `8000` | `tools/_reachy_common.py`, `voice_listener.py` | Daemon HTTP port (Pollen daemon listens on :8000). |
 | `REACHY_SPAWN_DAEMON` | *(unset)* | `tools/_reachy_common.py` | `1` = let the SDK spawn a daemon if none answers (dev laptops only). |
 | `REACHY_USE_SIM` | *(unset)* | `tools/_reachy_common.py` | `1` = talk to the MuJoCo simulation instead of the robot (`make sim`). |
 | `TINY_CAMERA_SNAPSHOT` | `str(Path(tempfile.gettempdir()) / 'tiny_view.jpg')` | `tools/reachy_camera.py` | Where `reachy_camera` writes the frame it hands to the vision model. |
 | `TINY_DASHBOARD_TOKEN` | *(unset)* | `tools/head_tracking.py`, `tools/reachy_camera.py` | Bearer for those calls when not on loopback (falls back to `REACHY_TOKEN`). |
-| `TINY_DASHBOARD_URL` | `http://127.0.0.1:8097` | `tools/head_tracking.py`, `tools/reachy_camera.py` | Dashboard base URL the personas' tools call for snapshots and tracking holds (loopback allowance). |
+| `TINY_DASHBOARD_URL` | `http://127.0.0.1:8097` | `tools/head_tracking.py`, `tools/reachy_camera.py`, `tools/turn_to_sound.py` | Dashboard base URL the personas' tools call for snapshots and tracking holds (loopback allowance). |
 | `TINY_TTS_REF_AUDIO` | `https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav` | `tools/reachy_audio.py` | Reference voice clip for that Space fallback. |
 | `TINY_TTS_SPACE` | `ResembleAI/Chatterbox-Multilingual-TTS` | `tools/reachy_audio.py` | Legacy Hugging Face Space fallback for `reachy_say` when Piper is down (upstream answers 401 today). |
 | `TINY_TTS_URL` | `http://127.0.0.1:5002` | `dashboard/robot.py`, `tools/reachy_audio.py` | Piper TTS service (`tiny-tts.service`, 127.0.0.1:5002) used by `reachy_say` and the dashboard Say. |
@@ -84,10 +106,12 @@ Where the values live:
 
 | variable | default | read by | purpose |
 |---|---|---|---|
-| `REACHY_FACE_TRACKING` | `0` | `dashboard/server.py` | `1` enables the daemon face tracker at dashboard boot (default off — costs ~+1.5 load on the CM4). |
+| `REACHY_FACE_TRACKING` | `0` | `dashboard/server.py` | `1` enables the daemon face tracker at dashboard boot (legacy flag; see `REACHY_TRACK_AUTOSTART`). |
 | `REACHY_SPEAK_TAIL_S` | `0.8` | `tools/head_tracking.py` | Extra seconds the voice persona keeps the `speaking` hold after the last audio chunk. |
+| `REACHY_TRACK_AUTOSTART` | `1` | `dashboard/server.py` | `1` (default) turns the daemon face tracker on at dashboard boot and re-enables it after a daemon restart; `0` = manual only. |
 | `REACHY_TRACK_HOLD_TTL` | `20` | `dashboard/tracking.py` | Seconds after which an unreleased tracking hold (speaking/emotion/look) expires. |
-| `REACHY_TRACK_POLL_HZ` | `5` | `dashboard/tracking.py` | How often the dashboard polls the daemon's tracked face (≤ 5 Hz). |
+| `REACHY_TRACK_POLL_HZ` | `2` | `dashboard/tracking.py` | How often the dashboard polls the daemon's tracked face (default 2 Hz — daemon pressure). |
+| `REACHY_TRACK_REASSERT_MISSES` | `2` | `dashboard/tracking.py` | Consecutive face polls with `ts: null` (while weight 1, no holds) before the dashboard re-enables the daemon tracker (default 2). |
 
 ### Dashboard
 
@@ -96,7 +120,7 @@ Where the values live:
 | `REACHY_ASK_PREWARM` | `1` | `dashboard/server.py`, `dashboard/tests/test_gate.py` | `0` skips building the Ask agent at startup. |
 | `REACHY_ASK_TIMEOUT` | `60` | `dashboard/server.py` | Seconds a dashboard Ask turn may run. |
 | `REACHY_CAMERA_SOCKET` | `/tmp/reachymini_camera_socket` | `dashboard/robot.py` | Path of the daemon's camera IPC socket. |
-| `REACHY_DAEMON_URL` | `http://localhost:8000` | `dashboard/robot.py` | Daemon base URL the dashboard talks to. |
+| `REACHY_DAEMON_URL` | `http://127.0.0.1:8000` | `dashboard/daemonlink.py`, `dashboard/robot.py` | Daemon base URL the dashboard talks to. |
 | `REACHY_DASH_CAMERA` | `'ipc' if _gst_ipc_possible() else 'rpicam' if shutil.which('rpicam-vid') else 'cv2'` | `dashboard/robot.py` | `ipc` (daemon camera socket — default when GStreamer can) · `rpicam` · `cv2`. Only `ipc` coexists with face tracking. |
 | `REACHY_DASH_CAMERA_INDEX` | `0` | `dashboard/robot.py` | V4L2 index for the `cv2` backend. |
 | `REACHY_DASH_CAMERA_OFF` | *(unset)* | `dashboard/robot.py`, `dashboard/tests/test_gate.py`, `dashboard/tests/test_tracking.py` | Any value disables the dashboard camera entirely. |
@@ -144,5 +168,5 @@ Where the values live:
 | `TINY_TOKEN` | *(unset)* | `tools/tiny_mcp.py` | tiny.technology CLI JWT for the MCP server (`TINY_TOKEN_FILE` wins if both are set). |
 | `TINY_TOKEN_FILE` | *(unset)* | `tools/tiny_mcp.py` | Mode-600 file holding that token. Never logged. |
 
-_73 variables, scanned from every `os.getenv` / `os.environ` in the repo._
+_97 variables, scanned from every `os.getenv` / `os.environ` in the repo._
 <!-- /gen:env -->

@@ -177,6 +177,11 @@ MuJoCo **digital twin as a picture-in-picture card** (drag to a corner, double-t
 body yaw · antennas · loop Hz · motor mode), TINY's mind as bubbles over the picture, look/emotions/say/settings docks,
 STOP always in reach. → [`docs/DASHBOARD.md`](docs/DASHBOARD.md) · [`dashboard/README.md`](dashboard/README.md)
 
+**Perception.** Face tracking (daemon YuNet, on by default, survives daemon restarts), **turn toward whoever is
+talking** (ReSpeaker DoA → head/body yaw when no face is locked — own-voice and windup guarded), IMU badge, and a
+daemon fd/CLOSE-WAIT gauge — all riding one state WebSocket so the dashboard never pressures the daemon again.
+→ [`docs/PERCEPTION.md`](docs/PERCEPTION.md)
+
 ## 🚦 status
 
 | component | status | notes |

@@ -29,6 +29,7 @@ nav:
       - Expression: showcase/expression.md
       - Personas: showcase/personas.md
       - Dashboard (twin PiP): DASHBOARD.md
+      - Perception (tracking · DoA · pressure): PERCEPTION.md
   - Tools:
       - Catalog: tools/catalog.md
       - Motion: tools/motion.md
