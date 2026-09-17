@@ -65,6 +65,7 @@ export const api = {
   logout: () => req('POST', '/api/auth/logout', {}),
   control: (what: string, body: unknown = {}) => req<any>('POST', `/api/control/${what}`, body),
   tracking: (enabled: boolean) => req<{ ok: boolean; tracking: Tracking }>('POST', '/api/tracking', { enabled }),
+  doaTurn: (enabled: boolean) => req<{ ok: boolean; result: DoaTurn }>('POST', '/api/doa', { enabled }),
   credentials: () => req<{ credentials: { id: string; label: string; created: string; sign_count: number }[] }>('GET', '/api/auth/credentials'),
   deleteCredential: (id: string) => req('DELETE', `/api/auth/credentials/${id}`),
 }

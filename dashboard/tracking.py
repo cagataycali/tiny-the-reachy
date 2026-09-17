@@ -62,6 +62,7 @@ class Tracker:
         self._thread: Optional[threading.Thread] = None
         self._last_emit: Optional[tuple] = None
         self._misses = 0                             # consecutive face polls with ts:null while enabled
+        self.speaking_until = 0.0                    # monotonic; set by hold("speaking") even when no face is locked
         self.reasserts = 0
 
     # ── daemon calls ──
@@ -127,6 +128,9 @@ class Tracker:
         """Pause tracking (weight 0) while `name` is held. Speaking holds only bite once a face is locked
         (Pollen: 'pause only once a face is locked, else speech blocks acquisition')."""
         with self._lock:
+            if name == SPEAK_HOLD:
+                # remembered independently of the weight rule below: the DoA turner must never chase TINY's own voice
+                self.speaking_until = time.monotonic() + max(0.5, min(float(ttl), 120.0))
             if name == SPEAK_HOLD and not self.face.get("detected") and not self._holds.get(name):
                 return self.status()
             self._holds[name] = time.monotonic() + max(0.5, min(float(ttl), 120.0))
@@ -138,8 +142,14 @@ class Tracker:
         self._emit(st)
         return st
 
+    def is_speaking(self, tail_s: float = 0.0) -> bool:
+        """True while a 'speaking' hold is live (or within tail_s after it ended) — regardless of face lock."""
+        return time.monotonic() < self.speaking_until + tail_s
+
     def release(self, name: str, who: str = "dashboard") -> Dict[str, Any]:
         with self._lock:
+            if name == SPEAK_HOLD:
+                self.speaking_until = min(self.speaking_until, time.monotonic())
             self._holds.pop(name, None)
             try:
                 self._apply()

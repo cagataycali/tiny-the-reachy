@@ -447,6 +447,18 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
             raise HTTPException(422, {"error": "enabled must be a boolean"})
         return await asyncio.to_thread(_do, robot.set_tracking, on, who)
 
+    @app.get("/api/doa")
+    async def doa_get():
+        return await asyncio.to_thread(robot.doa_status)
+
+    @app.post("/api/doa")
+    async def doa_set(req: Request, body: Dict[str, Any] = Body(default={})):
+        who = _track_control(req)
+        on = body.get("enabled", True)
+        if not isinstance(on, bool):
+            raise HTTPException(422, {"error": "enabled must be a boolean"})
+        return await asyncio.to_thread(_do, robot.set_doa_turn, on, who)
+
     @app.post("/api/tracking/hold")
     async def tracking_hold(req: Request, body: Dict[str, Any] = Body(default={})):
         who = _track_control(req)
@@ -551,10 +563,20 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
             robot._emotions.invalidate()
         robot.stream.on_connect = _on_stream_up
 
+    def _attach_doa() -> None:
+        from .doa import Turner  # noqa: PLC0415
+        robot.doa = Turner(look=robot.look, tracker=robot.tracker,
+                           moves_running=lambda: len(robot.moves._running),  # noqa: SLF001 — last probe, no request
+                           now_playing=lambda: robot.now_playing is not None,
+                           lifted=lambda: bool((robot.imu or {}).get("lifted")),
+                           on_change=emit)
+        robot.stream.listeners.append(robot.doa.on_frame)     # DoA rides the state WS — no extra daemon requests
+
     @app.on_event("startup")
     async def _start():
-        robot.stream.start()                           # one WS to the daemon; everything reads from it
         _attach_tracker()
+        _attach_doa()
+        robot.stream.start()                           # one WS to the daemon; everything reads from it
         robot.cam.start()
         threading.Thread(target=robot.emotions, daemon=True).start()   # warm the cache
         if os.getenv("REACHY_ASK_PREWARM", "1") != "0":

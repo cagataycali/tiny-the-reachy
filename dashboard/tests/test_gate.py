@@ -3,6 +3,7 @@
 Run: cd dashboard && REACHY_NO_AUTOAPP=1 python -m pytest tests -q
 """
 import os
+import time
 import sys
 from pathlib import Path
 
@@ -151,3 +152,21 @@ def test_tracking_loopback_write_allowance_is_narrow():
     assert not auth.loopback_write(req("/api/tracking", extra=[("cf-connecting-ip", "1.2.3.4")]))
     assert not auth.loopback_write(req("/api/tracking", client=("192.168.1.9", 1)))
     assert not auth.loopback_write(req("/api/tracking", method="GET"))
+
+
+# ── /api/doa (turn toward the speaker): same gate, same narrow loopback-write allowance ──
+def test_doa_gated_and_validated(client):
+    assert client.get("/api/doa").status_code == 401
+    assert client.post("/api/doa", json={"enabled": True}).status_code == 401
+    h = {"Authorization": f"Bearer {TOKEN}"}
+    r = client.get("/api/doa", headers=h)
+    assert r.status_code == 200 and "enabled" in r.json()
+    r = client.post("/api/doa", json={"enabled": "yes"}, headers=h)
+    assert r.status_code == 422
+    time.sleep(1.1)                                                      # control rate limit (per second)
+    r = client.post("/api/doa", json={"enabled": True}, headers=h)   # startup hooks never ran → turner not attached
+    assert r.status_code == 502 and "not attached" in r.json()["detail"]["error"]
+    from starlette.requests import Request as _R
+    scope = {"type": "http", "method": "POST", "path": "/api/doa", "headers": [(b"host", b"127.0.0.1:8097")],
+             "client": ("127.0.0.1", 1), "query_string": b"", "scheme": "http", "server": ("127.0.0.1", 8097)}
+    assert auth.loopback_write(_R(scope))

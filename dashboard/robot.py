@@ -156,6 +156,7 @@ class Robot:
         self.stream = StateStream()       # the daemon's 10 Hz state WS, shared by every consumer
         self.moves = MovesProbe()         # /api/move/running only while something can be in flight
         self.doa: Any = None              # dashboard.doa.Turner, attached by server.create_app (P1)
+        self.imu: Optional[Dict[str, Any]] = None   # {lifted, tilted, ...} from the state stream (P2)
 
     # ── reads ──
     def _emotions_safe(self) -> List[str]:
@@ -461,6 +462,17 @@ class Robot:
         st = self.tracker.set_enabled(bool(on), who)
         self.log("control", f"face tracking {'ON' if on else 'OFF'} (daemon)", who, tracking=bool(on))
         return {"ok": True, "tracking": st}
+
+    def doa_status(self) -> Dict[str, Any]:
+        return self.doa.status() if self.doa is not None else {"enabled": False, "error": "doa turner not attached"}
+
+    def set_doa_turn(self, on: bool, who: str = "dashboard") -> Dict[str, Any]:
+        if self.doa is None:
+            raise RuntimeError("doa turner not attached")
+        st = self.doa.set_enabled(on, who)
+        self.log("control", f"turn-to-sound {'ON' if on else 'OFF'}", who)
+        self._state.invalidate()
+        return st
 
     def _track_hold(self, name: str, ttl: float) -> None:
         if self.tracker is not None and self.tracker.enabled:

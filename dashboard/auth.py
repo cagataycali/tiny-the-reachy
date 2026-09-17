@@ -293,7 +293,7 @@ def who_read(request: Request) -> Optional[str]:
 # Writes the personas on the robot may do without a key — ONLY the face-tracking toggle/hold. Same proof as
 # loopback_read (client 127.0.0.1, loopback Host, no Cloudflare headers), listed explicitly so nothing else
 # under /api/* ever inherits it. REACHY_LOOPBACK_READS=0 switches this off as well.
-LOOPBACK_WRITE_PATHS = {"/api/tracking", "/api/tracking/hold"}
+LOOPBACK_WRITE_PATHS = {"/api/tracking", "/api/tracking/hold", "/api/doa"}
 
 
 def loopback_write(request: Request) -> bool:

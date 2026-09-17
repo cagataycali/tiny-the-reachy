@@ -51,6 +51,7 @@ from tools.reachy_state import reachy_get_state, reachy_motors
 from tools.reachy_camera import reachy_camera, reachy_look_at, capture_camera
 from tools.reachy_audio import reachy_play_sound, reachy_say, reachy_volume
 from tools.head_tracking import head_tracking, head_tracking_status
+from tools.turn_to_sound import turn_to_sound, turn_to_sound_status
 
 
 def _try_import(modpath: str, name: str):
@@ -102,7 +103,7 @@ def build_voice_tools(*, persona: str = "voice", fleet: bool = False) -> list:
         reachy_look, reachy_antennas, reachy_body_turn, reachy_home, reachy_wake,
         reachy_express, reachy_list_emotions,
         reachy_get_state, reachy_look_at, reachy_camera,
-        head_tracking, head_tracking_status,
+        head_tracking, head_tracking_status, turn_to_sound, turn_to_sound_status,
         reachy_volume,   # "silent" → 0 before replying; TINY keeps listening at 0
     ]
     if use_spotify is not None:
@@ -244,6 +245,7 @@ turns toward voices when no face is locked; your gestures ride on top of that.
   reachy_home, reachy_wake, reachy_list_emotions — SIMULTANEOUSLY with speech.
 - See: take_photo(question) → the image lands in your own context; reachy_look_at(u, v).
 - Follow faces: head_tracking(True/False), head_tracking_status().
+- Turn toward whoever is talking when no face is locked: turn_to_sound(True/False), turn_to_sound_status().
 - Hear itself: reachy_volume(level). "silent"/"shush" → reachy_volume(0) FIRST,
   then one short whispered-length line; "you can talk again" → reachy_volume(60).
   Volume 0 mutes the speaker only — TINY still hears, so it can be un-silenced by voice.

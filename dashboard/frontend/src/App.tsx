@@ -98,6 +98,7 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
         ArrowLeft: () => look(step, 0), ArrowRight: () => look(-step, 0), ArrowUp: () => look(0, -step / 2), ArrowDown: () => look(0, step / 2),
         ' ': () => ctl('stop'), h: () => home(), H: () => home(), d: () => ctl('demo', { on: !state?.demo }), D: () => ctl('demo', { on: !state?.demo }),
         f: () => track(!state?.tracking?.enabled), F: () => track(!state?.tracking?.enabled),
+        k: () => doaTurn(!state?.doa_turn?.enabled), K: () => doaTurn(!state?.doa_turn?.enabled),
       }
       const fn = map[e.key]; if (fn) { e.preventDefault(); fn() }
     }
@@ -114,6 +115,12 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
   const look = (yaw: number, pitch: number) => ctl('look', { yaw, pitch, roll, body_yaw: body, duration: 0.8 })
   const track = async (on: boolean) => {
     try { const r = await api.tracking(on); setToast(on ? (r.tracking?.detected ? 'following your face' : 'tracking ON — looking for a face') : 'tracking OFF'); return r } catch (e: any) {
+      if (e instanceof ApiError && e.status === 401) { onLock(); return null }
+      setToast(e instanceof ApiError ? e.message : String(e)); return null
+    }
+  }
+  const doaTurn = async (on: boolean) => {
+    try { await api.doaTurn(on); setToast(on ? 'turn-to-sound ON — TINY turns toward speech when no face is locked' : 'turn-to-sound OFF'); return true } catch (e: any) {
       if (e instanceof ApiError && e.status === 401) { onLock(); return null }
       setToast(e instanceof ApiError ? e.message : String(e)); return null
     }
@@ -221,6 +228,9 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
           <button className={`pill ${s?.tracking?.enabled ? (s?.tracking?.detected ? 'on' : 'warn') : ''}`} disabled={!can || s?.tracking?.available === false} data-testid="track-pill" onClick={() => track(!s?.tracking?.enabled)}
             title={s?.tracking?.available === false ? `face tracking unavailable: ${s?.tracking?.error ?? 'daemon has no camera'}` : 'follow the closest face (daemon face tracking, F)'}>
             👁 {s?.tracking?.enabled ? (s?.tracking?.paused ? 'paused' : (s?.tracking?.detected ? 'face' : 'track')) : 'track'}</button>
+          <button className={`pill ${s?.doa_turn?.enabled ? (s?.doa_turn?.speech ? 'on' : '') : ''}`} disabled={!can} data-testid="doa-pill" onClick={() => doaTurn(!s?.doa_turn?.enabled)}
+            title={s?.doa_turn?.enabled ? `turn toward whoever is talking (K) — ${s.doa_turn.turns ?? 0} turns${s.doa_turn.why ? ` · ${s.doa_turn.why}` : ''}${s.doa_turn.angle_deg != null ? ` · last sound ${Math.round(s.doa_turn.angle_deg)}°` : ''}` : 'turn toward whoever is talking when no face is locked (K)'}>
+            🔊 {s?.doa_turn?.enabled ? (s?.doa_turn?.speech ? 'speech' : 'sound') : 'sound'}</button>
           {(s?.pressure?.warn || (s?.stream && !s.stream.connected)) && (
             <span className={`pill ${s?.pressure?.warn ? 'crit' : 'warn'}`} data-testid="pressure-pill"
               title={s?.pressure?.warn ? `daemon under pressure: ${s.pressure.warn} — the systemd watchdog restarts it if /api/daemon/status stops answering` : `daemon state stream down: ${s?.stream?.error ?? 'reconnecting'} — falling back to slow polling`}>

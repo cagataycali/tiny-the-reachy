@@ -112,6 +112,7 @@ class StateStream:
         self.session = session
         self.on_frame = on_frame
         self.on_connect: Optional[Callable[[], None]] = None   # fired (in a helper thread) after every (re)connect
+        self.listeners: list = []                             # extra per-frame consumers (DoA turner, IMU watch)
         self._frame: Optional[dict] = None
         self._at = 0.0                      # monotonic time of the last frame (stream or fallback)
         self._lock = threading.Lock()
@@ -164,11 +165,11 @@ class StateStream:
                         with self._lock:
                             self._frame, self._at = frame, time.monotonic()
                             self.frames += 1
-                        if self.on_frame:
+                        for fn in ([self.on_frame] if self.on_frame else []) + list(self.listeners):
                             try:
-                                self.on_frame(frame)
+                                fn(frame)
                             except Exception as e:  # noqa: BLE001
-                                log.debug("on_frame: %s", e)
+                                log.debug("frame listener %s: %s", getattr(fn, "__qualname__", fn), e)
             except Exception as e:  # noqa: BLE001 — connection refused / timeout / daemon restart
                 if self.connected:
                     self.reconnects += 1

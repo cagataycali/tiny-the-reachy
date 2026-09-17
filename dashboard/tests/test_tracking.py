@@ -194,3 +194,26 @@ def test_adopt_leaves_an_idle_daemon_alone(fd):
     t = mk(fd)
     assert t.adopt() is False
     assert t.status()["enabled"] is False and fd.enables() == []
+
+
+def test_speaking_is_remembered_without_a_face_lock():
+    """hold('speaking') with no face → weight untouched (Pollen rule) but is_speaking() is True so the DoA turner
+    never chases TINY's own voice; release ends it."""
+    from dashboard.tracking import Tracker
+    calls = []
+
+    def fake(method, path, body=None, timeout=4.0):
+        calls.append((method, path, body))
+        if path.endswith("/face"):
+            return {"face_target": {"detected": False, "ts": 1.0}}
+        return {"enabled": True}
+
+    tr = Tracker(fake)
+    tr.set_enabled(True)
+    assert not tr.is_speaking()
+    tr.hold("speaking", ttl=5.0)
+    assert tr.is_speaking() and tr.is_speaking(1.0)
+    assert not [c for c in calls if c[0] == "POST" and c[2] == {"weight": 0.0}]   # no face → weight stays 1
+    tr.release("speaking")
+    assert not tr.is_speaking() and tr.is_speaking(2.0)                          # tail still covers echo
+    tr.stop()
