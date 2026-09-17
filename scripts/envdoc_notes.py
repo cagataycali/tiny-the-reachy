@@ -42,6 +42,7 @@ NOTES = {
     "THINKER_INTERVAL": "Seconds between thinker cycles (robot: 30).",
     "THINKER_DISABLED": "`1` makes the thinker loop a no-op.",
     # perception
+    "REACHY_BOOT_VOLUME_MIN": "Minimum speaker volume tiny-wake enforces at boot (default 60) — alsa-state can persist a muted mixer across a power cycle, which boots the robot deaf.",
     "REACHY_FACE_TRACKING": "`1` enables the daemon face tracker at dashboard boot (legacy flag; see `REACHY_TRACK_AUTOSTART`).",
     "REACHY_TRACK_AUTOSTART": "`1` (default) turns the daemon face tracker on at dashboard boot and re-enables it after a daemon restart; `0` = manual only.",
     "REACHY_TRACK_POLL_HZ": "How often the dashboard polls the daemon's tracked face (default 2 Hz — daemon pressure).",
