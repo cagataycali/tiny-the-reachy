@@ -41,7 +41,13 @@ def reachy_camera(save_path: str = "", timeout: float = 10.0) -> dict:
     dash = os.getenv("TINY_DASHBOARD_URL", "http://127.0.0.1:8097")
     try:
         import urllib.request
-        with urllib.request.urlopen(f"{dash}/api/snapshot.jpg", timeout=min(timeout, 5.0)) as r:
+        # The dashboard is login-gated (v3). From the robot itself 127.0.0.1 → 127.0.0.1:8097 GETs are allowed
+        # (auth.loopback_read); anywhere else set REACHY_TOKEN / TINY_DASHBOARD_TOKEN and it is sent as a bearer.
+        rq = urllib.request.Request(f"{dash}/api/snapshot.jpg")
+        tok = os.getenv("TINY_DASHBOARD_TOKEN") or os.getenv("REACHY_TOKEN")
+        if tok:
+            rq.add_header("Authorization", f"Bearer {tok}")
+        with urllib.request.urlopen(rq, timeout=min(timeout, 5.0)) as r:
             data = r.read()
         if data[:2] == b"\xff\xd8" and len(data) > 5000:
             out.parent.mkdir(parents=True, exist_ok=True)

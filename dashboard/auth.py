@@ -222,6 +222,7 @@ def _pop_challenge(request: Request) -> Optional[bytes]:
 
 
 # ── the gate ─────────────────────────────────────────────────────────────────
+LOOPBACK_READS = os.getenv("REACHY_LOOPBACK_READS", "1") != "0"   # see loopback_read()
 _LOOPBACK_HOSTS = {"localhost", "127.0.0.1", "[::1]", "::1"}
 
 
@@ -266,6 +267,35 @@ def who(request: Request) -> Optional[str]:
         if _host_is_loopback(request.headers.get("host", "")) and _origin_is_self(request.headers):
             return "loopback"
     return None
+
+
+def loopback_read(request: Request) -> bool:
+    """Documented allowance for READS from the robot itself (REACHY_LOOPBACK_READS=0 disables).
+
+    The personas' `tools/reachy_camera.py` fetches `/api/snapshot.jpg` from 127.0.0.1:8097 without a key.
+    cloudflared ALSO connects from 127.0.0.1, so loopback alone proves nothing: tunnel requests carry the public
+    Host (reachy.cagatay.my) and a `cf-connecting-ip` header — both are refused here. Never grants writes.
+    """
+    if not LOOPBACK_READS or request.method != "GET":
+        return False
+    if not request.client or request.client.host not in ("127.0.0.1", "::1"):
+        return False
+    if "cf-connecting-ip" in request.headers or "cf-ray" in request.headers:
+        return False
+    return _host_is_loopback(request.headers.get("host", ""))
+
+
+def who_read(request: Request) -> Optional[str]:
+    """Gate for reads: any control key, or the loopback read allowance."""
+    return who(request) or ("loopback-read" if loopback_read(request) else None)
+
+
+def require_read(request: Request) -> str:
+    v = who_read(request)
+    if not v:
+        raise HTTPException(401, {"error": "login required", "login": "/api/auth/status",
+                                  "how": "passkey session, Authorization: Bearer <REACHY_TOKEN> or ?token="})
+    return v
 
 
 def require(request: Request) -> str:

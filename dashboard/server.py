@@ -2,8 +2,11 @@
 
     /venvs/apps_venv/bin/python -m dashboard.server        # on the robot, cwd = repo root
 
-Public READ
+PUBLIC (no key): GET /api/health, /api/auth/*, the SPA shell + /assets + /model. EVERYTHING ELSE under /api/* and /ws
+is login-gated (v3): passkey session cookie, `Authorization: Bearer <REACHY_TOKEN>` or `?token=` (img/ws), plus the
+documented loopback-read allowance for the personas on the robot (auth.loopback_read). Anonymous → 401 / ws close 4401.
   GET  /api/health           liveness + auth summary
+Gated READ
   GET  /api/state            daemon state/full (deg/mm) + motors + daemon + wifi + camera + reel, cached 150 ms
   GET  /api/emotions         the ~80 recorded moves grouped by family, + now_playing
   GET  /api/stream           MJPEG (multipart/x-mixed-replace), one capture thread shared by every viewer
@@ -157,6 +160,20 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
     app.include_router(auth.router)
     app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=1)
 
+    # ── the gate: EVERYTHING under /api/* needs a key, except health + the auth routes themselves ──
+    # (the SPA shell + /assets + /model stay public so the login card can render — like scout.cagatay.my)
+    PUBLIC_API = {"/api/health"}
+
+    @app.middleware("http")
+    async def _gate(req: Request, call_next):
+        p = req.url.path
+        if p.startswith("/api/") and p not in PUBLIC_API and not p.startswith("/api/auth/"):
+            if auth.who_read(req) is None:
+                return JSONResponse({"error": "login required", "login": "/api/auth/status",
+                                     "how": "passkey session, Authorization: Bearer <REACHY_TOKEN> or ?token="},
+                                    status_code=401, headers={"Cache-Control": "no-store"})
+        return await call_next(req)
+
     @app.middleware("http")
     async def _headers(req: Request, call_next):
         resp = await call_next(req)
@@ -223,7 +240,7 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
             robot.log("error", str(e)[:300], "daemon")
             raise HTTPException(502, {"error": str(e)[:400]})
 
-    # ── public reads ──
+    # ── reads (gated by _gate; only /api/health is public) ──
     @app.get("/api/health")
     async def health():
         return {"ok": True, "name": "reachy", "version": __version__, "t": time.time(),
@@ -394,8 +411,13 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
         who = auth.who_ws(sock.headers, sock.client.host if sock.client else None, sock.cookies,
                           sock.query_params.get("token"))
         await sock.accept()
+        if who is None:                                  # gated like /api/*: say why, then close
+            await sock.send_json({"type": "hello", "who": None, "can_control": False, "version": __version__,
+                                  "error": "login required"})
+            await sock.close(code=4401)
+            return
         app.state.clients.add(sock)
-        await sock.send_json({"type": "hello", "who": who, "can_control": who is not None, "version": __version__})
+        await sock.send_json({"type": "hello", "who": who, "can_control": True, "version": __version__})
         rows = await asyncio.to_thread(agent_log_tail, 200, 0)
         last_id = rows[-1]["id"] if rows else 0
         await sock.send_json({"type": "log", "rows": rows})
