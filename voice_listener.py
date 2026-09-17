@@ -41,13 +41,16 @@ async def run_once():
     agent, audio_io = build_voice_agent(provider=PROVIDER, voice=VOICE or None)
     # transcripts (what was heard / what TINY said) + tool calls → shared agent_log for the dashboard feed
     from tools.agent_log import BidiTranscriptSink
+    from tools.head_tracking import SpeakingHandoff
     sink = BidiTranscriptSink("voice")
+    # face tracking (daemon, 1.10+): weight 0 while TINY speaks, 1 afterwards — Pollen's set_speaking handoff
+    handoff = SpeakingHandoff()
     model_id = getattr(agent.model, "model_id", "default")
     print(f"🎙 TINY voice up (provider={PROVIDER}, model={model_id}, "
           f"voice={VOICE or 'default'})", file=sys.stderr)
     print("   live mute: memory kv 'voice.muted' (true/false); /mute /unmute on Telegram.",
           file=sys.stderr)
-    await agent.run(inputs=[audio_io.input()], outputs=[audio_io.output(), sink])
+    await agent.run(inputs=[audio_io.input()], outputs=[audio_io.output(), sink, handoff])
 
 
 def main():
@@ -67,6 +70,11 @@ def main():
             if stop["flag"]:
                 break
             time.sleep(RESTART_DELAY)
+    try:                                   # Pollen moves.py ~661: never leave the daemon tracking headless
+        from tools.head_tracking import stop_head_tracking
+        stop_head_tracking()
+    except Exception:  # noqa: BLE001
+        pass
     print("👋 TINY voice listener stopped", file=sys.stderr)
 
 

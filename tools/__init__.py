@@ -18,6 +18,7 @@ from .reachy_expression import reachy_express, reachy_list_emotions
 from .reachy_state import reachy_get_state, reachy_motors
 from .reachy_camera import reachy_camera, reachy_look_at, capture_camera
 from .reachy_audio import reachy_play_sound, reachy_say, reachy_volume
+from .head_tracking import head_tracking, head_tracking_status
 
 # ── Cross-persona infra (shared brain — copied from neon) ─────────────
 from .memory import memory
@@ -58,7 +59,7 @@ TINY_MOTION_TOOLS = [
 ]
 TINY_EXPRESSION_TOOLS = [reachy_express, reachy_list_emotions]
 TINY_STATE_TOOLS = [reachy_get_state, reachy_motors]
-TINY_SENSING_TOOLS = [reachy_camera, reachy_look_at, capture_camera]
+TINY_SENSING_TOOLS = [reachy_camera, reachy_look_at, capture_camera, head_tracking, head_tracking_status]
 TINY_AUDIO_TOOLS = [reachy_play_sound, reachy_say, reachy_volume]
 
 # Full robot toolset

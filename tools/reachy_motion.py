@@ -16,6 +16,21 @@ from ._reachy_common import (
 )
 
 
+def _hold_tracking(name: str, on: bool, ttl: float = 12.0) -> None:
+    try:
+        from .head_tracking import tracking_hold  # noqa: PLC0415
+        tracking_hold(name, on, ttl)
+    except Exception:  # noqa: BLE001 — never let tracking plumbing break a move
+        pass
+
+
+def _release_tracking_later(name: str, after: float) -> None:
+    import threading  # noqa: PLC0415
+    t = threading.Timer(after, _hold_tracking, args=(name, False))
+    t.daemon = True
+    t.start()
+
+
 @tool
 def reachy_look(
     x: float = 0.0, y: float = 0.0, z: float = 0.0,
@@ -60,8 +75,11 @@ def reachy_look(
                 return err("antennas must be [right_deg, left_deg]")
             ant = [np.deg2rad(antennas[0]), np.deg2rad(antennas[1])]
         body_rad = None if body_yaw is None else np.deg2rad(body_yaw)
+        # an explicit look wins over daemon face tracking (1.10) for its duration + 2 s, then tracking resumes
+        _hold_tracking("look", True, ttl=max(0.1, duration) + 3.0)
         mini.goto_target(head=head, antennas=ant, duration=max(0.1, duration),
                          method=method, body_yaw=body_rad)
+        _release_tracking_later("look", 2.0)
         return ok(f"head→(r{roll:.0f} p{pitch:.0f} y{yaw:.0f}) "
                   f"body_yaw={body_yaw} antennas={antennas} in {duration}s")
     except Exception as e:

@@ -10,8 +10,11 @@ export type State = {
   wifi: { ssid: string | null }; uptime_s: number; demo?: boolean
   system?: { cpu_c: number | null; load1: number | null; cores?: number; mem_used_pct: number | null; disk_free_gb: number | null; disk_used_pct?: number; wifi_signal_dbm: number | null; host_uptime_s: number | null }
   services?: Record<string, string>; camera: { ok: boolean; fps: number; error: string | null; clients: number }
-  reel: Reel; t: number
+  reel: Reel; t: number; tracking?: Tracking
 }
+/** daemon face tracking (reachy-mini ≥ 1.10): x,y = face centre in the camera frame, normalised to [-1, 1] */
+export type Tracking = { enabled: boolean; paused?: boolean; holds?: string[]; detected: boolean; x: number | null; y: number | null
+  roll?: number | null; weight?: number | null; available?: boolean | null; error?: string | null; face_age_s?: number | null; engine?: string }
 export type LogRow = { id: number; persona: string; role: string; text: string; meta: any; ts: string }
 export type Event = { t: number; kind: string; who: string; text: string; seq?: number }
 export type AgentEvent = { type: 'agent'; event: 'start' | 'text' | 'tool' | 'end' | 'timeout'; text?: string; name?: string
@@ -48,6 +51,7 @@ export const api = {
   auth: () => req<AuthStatus>('GET', '/api/auth/status'),
   logout: () => req('POST', '/api/auth/logout', {}),
   control: (what: string, body: unknown = {}) => req<any>('POST', `/api/control/${what}`, body),
+  tracking: (enabled: boolean) => req<{ ok: boolean; tracking: Tracking }>('POST', '/api/tracking', { enabled }),
   credentials: () => req<{ credentials: { id: string; label: string; created: string; sign_count: number }[] }>('GET', '/api/auth/credentials'),
   deleteCredential: (id: string) => req('DELETE', `/api/auth/credentials/${id}`),
 }

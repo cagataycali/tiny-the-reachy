@@ -27,6 +27,11 @@ Gated WRITE (dashboard/auth.py — bearer REACHY_TOKEN or a passkey session; 5 P
   POST /api/control/ask       {text}    → ONE Strands agent turn, streamed over /ws as "agent" events (429 if busy)
   POST /api/control/reel      {action: start|abort}     the scripted 60–90 s showcase
   POST /api/control/demo      {on: bool}  pause/resume the tiny-thinker persona (demo mode); state.demo mirrors it
+  GET  /api/tracking          face-tracking state {enabled,paused,holds,detected,x,y,roll,weight} (also state.tracking + WS {type:"tracking"})
+  POST /api/tracking          {enabled: bool}  follow the closest face — the DAEMON's YuNet tracker (reachy-mini ≥ 1.10),
+                             dashboard/tracking.py only toggles/pauses it. ALSO allowed from 127.0.0.1 without a key
+                             (auth.loopback_write) so the personas' tools/head_tracking.py works.
+  POST /api/tracking/hold     {name, on: bool, ttl?}  pause (weight 0) / resume (weight 1) while a persona speaks or moves
 """
 from __future__ import annotations
 
@@ -47,6 +52,7 @@ from starlette.middleware.gzip import GZipMiddleware
 
 from . import __version__, auth
 from .robot import Robot, agent_log_record, agent_log_tail
+from .robot import daemon as daemon_call
 
 log = logging.getLogger("reachy.dash")
 REPO = Path(__file__).resolve().parent.parent
@@ -184,7 +190,7 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
     async def _gate(req: Request, call_next):
         p = req.url.path
         if p.startswith("/api/") and p not in PUBLIC_API and not p.startswith("/api/auth/"):
-            if auth.who_read(req) is None:
+            if auth.who_read(req) is None and not auth.loopback_write(req):
                 return JSONResponse({"error": "login required", "login": "/api/auth/status",
                                      "how": "passkey session, Authorization: Bearer <REACHY_TOKEN> or ?token="},
                                     status_code=401, headers={"Cache-Control": "no-store"})
@@ -415,6 +421,46 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
             return robot.reel.status()
         return await asyncio.to_thread(_do, robot.reel.start, who)
 
+    # ── face tracking (daemon-side; POST also allowed from loopback for the personas) ──
+    def _track_control(req: Request) -> str:
+        who = auth.who_write(req)
+        if not who:
+            raise HTTPException(401, {"error": "control requires auth"})
+        if not _rate_ok(req):
+            raise HTTPException(429, {"error": f"rate limit {RATE_LIMIT_PER_S}/s"})
+        if not auth._origin_is_self(req.headers):
+            raise HTTPException(403, {"error": "cross-origin control refused"})
+        return who
+
+    @app.get("/api/tracking")
+    async def tracking_get():
+        return await asyncio.to_thread(robot.tracking_status)
+
+    @app.post("/api/tracking")
+    async def tracking_set(req: Request, body: Dict[str, Any] = Body(default={})):
+        who = _track_control(req)
+        on = body.get("enabled", True)
+        if not isinstance(on, bool):
+            raise HTTPException(422, {"error": "enabled must be a boolean"})
+        return await asyncio.to_thread(_do, robot.set_tracking, on, who)
+
+    @app.post("/api/tracking/hold")
+    async def tracking_hold(req: Request, body: Dict[str, Any] = Body(default={})):
+        who = _track_control(req)
+        name = str(body.get("name", ""))[:40]
+        if not name:
+            raise HTTPException(422, {"error": "name required (speaking|emotion:<n>|look|…)"})
+        on = body.get("on", True)
+        if not isinstance(on, bool):
+            raise HTTPException(422, {"error": "on must be a boolean"})
+        if robot.tracker is None:
+            raise HTTPException(502, {"error": "tracker not attached"})
+        ttl = body.get("ttl", 20.0)
+        if isinstance(ttl, bool) or not isinstance(ttl, (int, float)):
+            raise HTTPException(422, {"error": "ttl must be a number"})
+        fn = (lambda: robot.tracker.hold(name, float(ttl), who)) if on else (lambda: robot.tracker.release(name, who))
+        return {"ok": True, "tracking": await asyncio.to_thread(fn)}
+
     @app.post("/api/control/demo")
     async def demo(req: Request, body: Dict[str, Any] = Body(default={})):
         """Demo mode: pause (on) / resume (off) the tiny-thinker persona so manual moves are not overlapped."""
@@ -470,8 +516,23 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
         finally:
             app.state.clients.discard(sock)
 
+    def _attach_tracker() -> None:
+        from .tracking import Tracker  # noqa: PLC0415
+        robot.tracker = Tracker(daemon_call, on_change=emit)
+        if os.getenv("REACHY_FACE_TRACKING", "0") == "1":
+            def _boot_on() -> None:
+                for _ in range(20):                    # the daemon camera may still be coming up
+                    try:
+                        robot.set_tracking(True, "boot")
+                        return
+                    except RuntimeError as e:
+                        log.warning("boot tracking: %s", e)
+                        time.sleep(3)
+            threading.Thread(target=_boot_on, daemon=True).start()
+
     @app.on_event("startup")
     async def _start():
+        _attach_tracker()
         robot.cam.start()
         threading.Thread(target=robot.emotions, daemon=True).start()   # warm the cache
         if os.getenv("REACHY_ASK_PREWARM", "1") != "0":
@@ -481,6 +542,8 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
     @app.on_event("shutdown")
     async def _stop():
         robot.reel.abort("shutdown")
+        if robot.tracker is not None:
+            robot.tracker.stop()                       # Pollen moves.py ~661: never leave the daemon tracking headless
         robot.cam.stop()
 
     # ── SPA ──

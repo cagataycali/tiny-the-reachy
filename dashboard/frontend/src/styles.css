@@ -152,3 +152,10 @@ kbd { font:11px ui-monospace, monospace; padding:1px 5px; border:1px solid var(-
 .auth-foot { margin:16px 0 0; font-size:11px; color:rgba(255,255,255,.35) }
 
 .side-mind .tl-ask { display:none }   /* the cmdbar already has the Ask box on desktop */
+
+/* face tracking (daemon) — marker + state badge over the camera */
+.face-box { position:absolute; width:22%; aspect-ratio:1; transform:translate(-50%,-50%); border:2px solid var(--acc); border-radius:14px; box-shadow:0 0 0 2px rgba(0,0,0,.35), 0 0 18px var(--acc); transition:left .18s linear, top .18s linear; pointer-events:none }
+.face-box::after { content:''; position:absolute; left:50%; top:50%; width:6px; height:6px; transform:translate(-50%,-50%); border-radius:50%; background:var(--acc) }
+.face-box.paused { border-color:var(--warn); box-shadow:0 0 0 2px rgba(0,0,0,.35) } .face-box.paused::after { background:var(--warn) }
+.face-state { position:absolute; left:10px; bottom:10px; background:var(--glass-strong); border:1px solid var(--glass-brd); border-radius:999px; padding:4px 9px; font:600 11px ui-monospace, monospace; color:var(--fg); pointer-events:none }
+.face-state.on { border-color:var(--acc) } .face-state.paused { border-color:var(--warn); color:var(--warn) }

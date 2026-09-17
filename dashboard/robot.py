@@ -27,6 +27,7 @@ MEM_DB = Path(os.getenv("REACHY_MEM_DB", str(REPO / ".memory" / "mem.db")))
 DATASET = "pollen-robotics/reachy-mini-emotions-library"
 CAMERA_INDEX = int(os.getenv("REACHY_DASH_CAMERA_INDEX", "0"))
 CAM_W, CAM_H, CAM_FPS = 640, 360, int(os.getenv("REACHY_DASH_CAM_FPS", "12"))
+CAMERA_SOCKET = os.getenv("REACHY_CAMERA_SOCKET", "/tmp/reachymini_camera_socket")   # daemon GstMediaServer IPC branch
 
 # safety envelope (degrees) — mirrors tools/_reachy_common.py
 LIM_HEAD_PITCH = (-40.0, 40.0)
@@ -165,6 +166,7 @@ class Robot:
         self._daemon = Cached(self._daemon_safe, 5)
         self.cam = Camera()
         self.reel = DemoReel(self)
+        self.tracker: Any = None          # dashboard.tracking.Tracker, attached by server.create_app
 
     # ── reads ──
     def _emotions_safe(self) -> List[str]:
@@ -305,7 +307,7 @@ class Robot:
         out.update({"now_playing": self.now_playing, "daemon": self._daemon.get(), "wifi": self._wifi.get(),
                     "uptime_s": round(time.time() - self.boot, 1), "camera": self.cam.status(),
                     "reel": self.reel.status(), "system": self._system.get(), "services": self._services.get(),
-                    "fleet": _fleet_status(),
+                    "fleet": _fleet_status(), "tracking": self.tracking_status(),
                     "demo": self._services.get().get("tiny-thinker") not in ("active", "activating"), "t": time.time()})
         return out
 
@@ -338,7 +340,9 @@ class Robot:
             body["body_yaw"] = math.radians(clamp(body_yaw, *LIM_BODY_YAW))
         if antennas is not None:
             body["antennas"] = [math.radians(clamp(a, *LIM_ANTENNA)) for a in antennas[:2]]
+        self._track_hold("look", ttl=duration + 3.0)       # explicit look wins over tracking, then tracking resumes
         r = daemon("POST", "/api/move/goto", body)
+        self._track_release_later("look", duration + 2.0)
         self.log("control", f"look roll={roll:.0f} pitch={pitch:.0f} yaw={yaw:.0f} body={body_yaw} d={duration}s", who)
         return {"ok": True, "move": r, "sent": body}
 
@@ -353,8 +357,10 @@ class Robot:
         names = self._emotions.get()
         if name not in names:
             raise ValueError(f"unknown emotion {name!r}")
+        self._track_hold(f"emotion:{name}", ttl=12.0)      # daemon tracking at weight 1 would override the move
         r = daemon("POST", f"/api/move/play/recorded-move-dataset/{DATASET}/{name}", timeout=8)
         self.now_playing = {"name": name, "started": time.time(), "family": family_of(name), "uuid": (r or {}).get("uuid")}
+        self._track_release_later(f"emotion:{name}", 10.0)
         self.log("control", f"express {name}", who, emotion=name)
         return {"ok": True, "move": r, "name": name}
 
@@ -425,7 +431,9 @@ class Robot:
             except RuntimeError as e:
                 log.warning("wobbling enable: %s", e)
                 wobble = False
+        self._track_hold("speaking", ttl=min(secs + 1.0, 31.0))   # Pollen: weight 0 while speaking (only if a face is locked)
         daemon("POST", "/api/media/play_sound", {"file": path}, timeout=8)
+        self._track_release_later("speaking", min(secs + 0.3, 30.0))
         self.log("control", f"say ({secs:.1f}s): {text}", who, engine="piper-local", file=path)
         if wobble:
             t = threading.Timer(min(secs + 0.3, 30.0), self._wobble_off)
@@ -441,6 +449,33 @@ class Robot:
 
     def home(self, who: str = "dashboard") -> Dict[str, Any]:
         return self.look(0, 0, 0, 0, 0, 0, body_yaw=0, antennas=[0, 0], duration=1.2, who=who)
+
+    # ── face tracking (dashboard/tracking.py; the daemon does the detection) ──
+    def tracking_status(self) -> Dict[str, Any]:
+        if self.tracker is None:
+            return {"enabled": False, "available": False, "error": "tracker not attached"}
+        return self.tracker.status()
+
+    def set_tracking(self, on: bool, who: str = "dashboard") -> Dict[str, Any]:
+        if self.tracker is None:
+            raise RuntimeError("face tracking unavailable: tracker not attached")
+        st = self.tracker.set_enabled(bool(on), who)
+        self.log("control", f"face tracking {'ON' if on else 'OFF'} (daemon)", who, tracking=bool(on))
+        return {"ok": True, "tracking": st}
+
+    def _track_hold(self, name: str, ttl: float) -> None:
+        if self.tracker is not None and self.tracker.enabled:
+            try:
+                self.tracker.hold(name, ttl)
+            except Exception as e:  # noqa: BLE001
+                log.debug("track hold %s: %s", name, e)
+
+    def _track_release_later(self, name: str, after: float) -> None:
+        if self.tracker is None or not self.tracker.enabled:
+            return
+        t = threading.Timer(max(0.1, after), lambda: self.tracker and self.tracker.release(name))
+        t.daemon = True
+        t.start()
 
 
 # ── shared SQLite (personas) ─────────────────────────────────────────────────
@@ -508,6 +543,20 @@ def voice_bridge_push(source: str, text: str, importance: int = 1) -> int:
 # The Wireless CM4 camera (imx708) is a CSI sensor behind libcamera: plain V4L2 reads of /dev/video0 return nothing,
 # so we pipe `rpicam-vid --codec mjpeg` (present on the robot) and split the stream on JPEG SOI/EOI markers.
 # REACHY_DASH_CAMERA=cv2 uses cv2.VideoCapture (UVC webcams, dev laptops).
+def _gst_ipc_possible() -> bool:
+    """True when this machine can read the daemon's IPC camera feed (Linux, gi+GStreamer, unixfdsrc)."""
+    if os.name != "posix" or not os.path.exists("/dev/media0") and not os.path.exists(CAMERA_SOCKET):
+        return False
+    try:
+        import gi  # noqa: PLC0415
+        gi.require_version("Gst", "1.0")
+        from gi.repository import Gst  # noqa: PLC0415
+        Gst.init(None)
+        return Gst.ElementFactory.find("unixfdsrc") is not None and Gst.ElementFactory.find("jpegenc") is not None
+    except Exception:  # noqa: BLE001
+        return False
+
+
 class Camera:
     def __init__(self) -> None:
         self.frame: Optional[bytes] = None
@@ -515,7 +564,11 @@ class Camera:
         self.fps = 0.0
         self.error: Optional[str] = None
         self.clients = 0
-        self.backend = os.getenv("REACHY_DASH_CAMERA", "rpicam" if shutil.which("rpicam-vid") else "cv2")
+        # ipc = the daemon's own camera feed (GstMediaServer unixfdsink, 10 fps) — the daemon keeps the sensor, so its
+        # 1.10 face tracking works. rpicam/cv2 grab the sensor directly and make daemon tracking impossible.
+        self.backend = os.getenv("REACHY_DASH_CAMERA", "ipc" if _gst_ipc_possible() else
+                                 ("rpicam" if shutil.which("rpicam-vid") else "cv2"))
+        self.acquires = 0                                     # times we re-acquired daemon media (ipc backend)
         self._cv = threading.Condition()
         self._stop = threading.Event()
         self._thread: Optional[threading.Thread] = None
@@ -552,7 +605,12 @@ class Camera:
         backoff = 2.0
         while not self._stop.is_set():
             try:
-                ok = self._run_rpicam() if self.backend == "rpicam" else self._run_cv2()
+                if self.backend == "ipc":
+                    ok = self._run_ipc()
+                elif self.backend == "rpicam":
+                    ok = self._run_rpicam()
+                else:
+                    ok = self._run_cv2()
             except Exception as e:  # noqa: BLE001
                 self.error = f"camera: {e}"
                 ok = False
@@ -596,6 +654,68 @@ class Camera:
             self._proc.terminate()
         if not got_any:
             self.error = f"rpicam-vid produced no frames (rc={rc}) — camera busy? try POST daemon /api/media/release"
+        return got_any
+
+    def _run_ipc(self) -> bool:
+        """Daemon-owned camera over its IPC socket → hardware-scaled 640x360 → jpegenc → our frame buffer.
+        If the socket is missing (an SDK no_media client or voice_listener released media) we re-acquire it."""
+        import gi  # noqa: PLC0415
+        gi.require_version("Gst", "1.0")
+        gi.require_version("GstApp", "1.0")
+        from gi.repository import Gst, GstApp  # noqa: PLC0415,F401 — GstApp gives appsink.try_pull_sample
+        Gst.init(None)
+        if not os.path.exists(CAMERA_SOCKET):
+            try:
+                daemon("POST", "/api/media/acquire", timeout=15)
+                self.acquires += 1
+                log.info("camera: daemon media re-acquired (#%d)", self.acquires)
+            except RuntimeError as e:
+                self.error = f"daemon media acquire failed: {e}"
+                return False
+            for _ in range(40):                         # the media server needs a moment to open the sensor
+                if os.path.exists(CAMERA_SOCKET) or self._stop.is_set():
+                    break
+                time.sleep(0.25)
+            if not os.path.exists(CAMERA_SOCKET):
+                self.error = f"daemon camera socket {CAMERA_SOCKET} did not appear (sensor busy? rpicam-vid running?)"
+                return False
+        conv = "v4l2convert" if Gst.ElementFactory.find("v4l2convert") else "videoscale ! videoconvert"
+        desc = (f"unixfdsrc socket-path={CAMERA_SOCKET} ! queue leaky=2 max-size-buffers=1 ! {conv} ! "
+                f"video/x-raw,format=I420,width={CAM_W},height={CAM_H} ! jpegenc quality=70 ! "
+                f"appsink name=s drop=true max-buffers=1 sync=false")
+        pipe = Gst.parse_launch(desc)
+        sink = pipe.get_by_name("s")
+        bus = pipe.get_bus()
+        pipe.set_state(Gst.State.PLAYING)
+        stats = [0, time.monotonic()]
+        got_any, idle_since = False, time.monotonic()
+        try:
+            while not self._stop.is_set():
+                msg = bus.pop_filtered(Gst.MessageType.ERROR)
+                if msg is not None:
+                    err_, _dbg = msg.parse_error()
+                    self.error = f"ipc camera: {err_.message}"
+                    break
+                smp = sink.try_pull_sample(300 * Gst.MSECOND)
+                if smp is None:
+                    if time.monotonic() - idle_since > 6.0:        # feed died (media released under us)
+                        self.error = "ipc camera: no frames for 6 s (daemon media released?)"
+                        break
+                    continue
+                buf = smp.get_buffer()
+                ok, mi = buf.map(Gst.MapFlags.READ)
+                if not ok:
+                    continue
+                try:
+                    jpg = bytes(mi.data)
+                finally:
+                    buf.unmap(mi)
+                idle_since = time.monotonic()
+                self.error = None
+                got_any = True
+                self._publish(jpg, stats)
+        finally:
+            pipe.set_state(Gst.State.NULL)
         return got_any
 
     def _run_cv2(self) -> bool:

@@ -114,3 +114,40 @@ def test_loopback_read_allowance():
     assert not auth.loopback_read(req({"host": "127.0.0.1:8097", "cf-connecting-ip": "1.2.3.4"}))
     assert not auth.loopback_read(req({"host": "127.0.0.1:8097"}, host="192.168.1.7"))
     assert not auth.loopback_read(req({"host": "127.0.0.1:8097"}, method="POST"))
+
+
+# ── /api/tracking: gated like every /api route, plus the documented loopback WRITE allowance ──
+def test_tracking_anonymous_401(client):
+    assert client.get("/api/tracking").status_code == 401
+    assert client.post("/api/tracking", json={"enabled": True}).status_code == 401
+    assert client.post("/api/tracking/hold", json={"name": "speaking", "on": True}).status_code == 401
+
+
+def test_tracking_bearer_reads_and_validates(client):
+    h = {"Authorization": f"Bearer {TOKEN}"}
+    r = client.get("/api/tracking", headers=h)
+    assert r.status_code == 200 and "enabled" in r.json()
+    # startup hooks never ran in tests → tracker not attached → 502 with a clear reason, never a crash
+    r = client.post("/api/tracking", json={"enabled": True}, headers=h)
+    assert r.status_code == 502 and "unavailable" in r.json()["detail"]["error"]
+    r = client.post("/api/tracking", json={"enabled": "yes"}, headers=h)
+    assert r.status_code == 422
+    r = client.post("/api/tracking/hold", json={"on": True}, headers=h)
+    assert r.status_code == 422
+
+
+def test_tracking_loopback_write_allowance_is_narrow():
+    from starlette.requests import Request as _R
+
+    def req(path, method="POST", host="127.0.0.1:8097", client=("127.0.0.1", 1), extra=()):
+        headers = [(b"host", host.encode())] + [(k.encode(), v.encode()) for k, v in extra]
+        return _R({"type": "http", "method": method, "path": path, "headers": headers, "client": client,
+                   "query_string": b"", "scheme": "http", "server": ("127.0.0.1", 8097)})
+
+    assert auth.loopback_write(req("/api/tracking"))
+    assert auth.loopback_write(req("/api/tracking/hold"))
+    assert not auth.loopback_write(req("/api/control/look"))                        # only the tracking routes
+    assert not auth.loopback_write(req("/api/tracking", host="reachy.cagatay.my"))  # tunnel Host
+    assert not auth.loopback_write(req("/api/tracking", extra=[("cf-connecting-ip", "1.2.3.4")]))
+    assert not auth.loopback_write(req("/api/tracking", client=("192.168.1.9", 1)))
+    assert not auth.loopback_write(req("/api/tracking", method="GET"))

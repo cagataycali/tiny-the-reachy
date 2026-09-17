@@ -290,6 +290,27 @@ def who_read(request: Request) -> Optional[str]:
     return who(request) or ("loopback-read" if loopback_read(request) else None)
 
 
+# Writes the personas on the robot may do without a key — ONLY the face-tracking toggle/hold. Same proof as
+# loopback_read (client 127.0.0.1, loopback Host, no Cloudflare headers), listed explicitly so nothing else
+# under /api/* ever inherits it. REACHY_LOOPBACK_READS=0 switches this off as well.
+LOOPBACK_WRITE_PATHS = {"/api/tracking", "/api/tracking/hold"}
+
+
+def loopback_write(request: Request) -> bool:
+    if request.url.path not in LOOPBACK_WRITE_PATHS or request.method not in ("POST", "PUT"):
+        return False
+    if not LOOPBACK_READS or not request.client or request.client.host not in ("127.0.0.1", "::1"):
+        return False
+    if "cf-connecting-ip" in request.headers or "cf-ray" in request.headers:
+        return False
+    return _host_is_loopback(request.headers.get("host", ""))
+
+
+def who_write(request: Request) -> Optional[str]:
+    """Gate for the loopback-writable routes: any control key, or the loopback write allowance."""
+    return who(request) or ("loopback-write" if loopback_write(request) else None)
+
+
 def require_read(request: Request) -> str:
     v = who_read(request)
     if not v:

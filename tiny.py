@@ -50,6 +50,7 @@ from tools.reachy_expression import reachy_express, reachy_list_emotions
 from tools.reachy_state import reachy_get_state, reachy_motors
 from tools.reachy_camera import reachy_camera, reachy_look_at, capture_camera
 from tools.reachy_audio import reachy_play_sound, reachy_say, reachy_volume
+from tools.head_tracking import head_tracking, head_tracking_status
 
 
 def _try_import(modpath: str, name: str):
@@ -101,6 +102,7 @@ def build_voice_tools(*, persona: str = "voice", fleet: bool = False) -> list:
         reachy_look, reachy_antennas, reachy_body_turn, reachy_home, reachy_wake,
         reachy_express, reachy_list_emotions,
         reachy_get_state, reachy_look_at, reachy_camera,
+        head_tracking, head_tracking_status,
     ]
     if use_spotify is not None:
         tools.append(use_spotify)

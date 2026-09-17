@@ -91,6 +91,7 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
       const map: Record<string, () => unknown> = {
         ArrowLeft: () => look(step, 0), ArrowRight: () => look(-step, 0), ArrowUp: () => look(0, -step / 2), ArrowDown: () => look(0, step / 2),
         ' ': () => ctl('stop'), h: () => home(), H: () => home(), d: () => ctl('demo', { on: !state?.demo }), D: () => ctl('demo', { on: !state?.demo }),
+        f: () => track(!state?.tracking?.enabled), F: () => track(!state?.tracking?.enabled),
       }
       const fn = map[e.key]; if (fn) { e.preventDefault(); fn() }
     }
@@ -105,6 +106,12 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
     }
   }
   const look = (yaw: number, pitch: number) => ctl('look', { yaw, pitch, roll, body_yaw: body, duration: 0.8 })
+  const track = async (on: boolean) => {
+    try { const r = await api.tracking(on); setToast(on ? (r.tracking?.detected ? 'following your face' : 'tracking ON — looking for a face') : 'tracking OFF'); return r } catch (e: any) {
+      if (e instanceof ApiError && e.status === 401) { onLock(); return null }
+      setToast(e instanceof ApiError ? e.message : String(e)); return null
+    }
+  }
   const home = () => { setRoll(0); setBody(0); setAntR(0); setAntL(0); return ctl('home') }
   const doSay = async () => { const t = say.trim(); if (!t) return; const r = await ctl('say', { text: t }); if (r) { setSay(''); setToast(r.engine === 'piper-local' ? `speaking (${r.seconds}s)` : (r.warning || 'queued — no voice backend')) } }
   const doAsk = async (text: string) => { setThoughts([]); const r = await ctl('ask', { text }); return !!r }
@@ -181,7 +188,7 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
           <LockCard auth={auth} can={can} demo={!!s?.demo} onDemo={(on) => ctl('demo', { on }).then((r) => { if (r) setToast(on ? 'demo mode ON — thinker paused' : 'thinker resumed') })} onToast={setToast} />
           <div className="dock-sub">🖥 display</div>
           <label className="switch"><input type="checkbox" checked={overlayOn} onChange={(e) => setOverlayOn(e.target.checked)} /><span className="track" /> agent overlay on the camera</label>
-          <div className="muted small keys">shortcuts: <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> look · <kbd>space</kbd> STOP · <kbd>H</kbd> home · <kbd>D</kbd> demo · <kbd>T</kbd> twin · <kbd>L</kbd> look · <kbd>E</kbd> emotions · <kbd>/</kbd> ask · <kbd>esc</kbd> close</div>
+          <div className="muted small keys">shortcuts: <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> look · <kbd>space</kbd> STOP · <kbd>H</kbd> home · <kbd>D</kbd> demo · <kbd>F</kbd> face-track · <kbd>T</kbd> twin · <kbd>L</kbd> look · <kbd>E</kbd> emotions · <kbd>/</kbd> ask · <kbd>esc</kbd> close</div>
           <button className="btn ghost wide" onClick={onLock}>🔒 lock · sign out ({auth.who})</button>
           <div className="muted small">reachy.cagatay.my · dashboard {hello?.version ?? ''} · uptime {Math.round((s?.uptime_s ?? 0) / 60)} min · {s?.camera?.clients ?? 0} viewer{(s?.camera?.clients ?? 0) === 1 ? '' : 's'}</div>
         </div>
@@ -199,6 +206,9 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
           <span className={`pill ${(sys?.wifi_signal_dbm ?? 0) < -75 ? 'warn' : ''}`} title={`Wi-Fi ${s?.wifi?.ssid ?? ''}`}>📶 {sys?.wifi_signal_dbm ?? '—'}</span>
           <span className={`pill ${(sys?.cpu_c ?? 0) >= 70 ? 'crit' : ''}`} title="CM4 CPU temperature">🌡 {sys?.cpu_c != null ? `${Math.round(sys.cpu_c)}°` : '—'}</span>
           <button className={`pill ${s?.demo ? 'on' : ''}`} disabled={!can} onClick={() => ctl('demo', { on: !s?.demo }).then((r) => { if (r) setToast(!s?.demo ? 'demo mode ON — thinker paused' : 'thinker resumed') })} title="demo mode = pause the thinker persona">{s?.demo ? '🎬 demo' : '🧠 thinker'}</button>
+          <button className={`pill ${s?.tracking?.enabled ? (s?.tracking?.detected ? 'on' : 'warn') : ''}`} disabled={!can || s?.tracking?.available === false} data-testid="track-pill" onClick={() => track(!s?.tracking?.enabled)}
+            title={s?.tracking?.available === false ? `face tracking unavailable: ${s?.tracking?.error ?? 'daemon has no camera'}` : 'follow the closest face (daemon face tracking, F)'}>
+            👁 {s?.tracking?.enabled ? (s?.tracking?.paused ? 'paused' : (s?.tracking?.detected ? 'face' : 'track')) : 'track'}</button>
         </div>
         <button className="icon-btn" onClick={onLock} title="lock — sign out" data-testid="lock-btn">🔒</button>
       </header>
@@ -206,7 +216,7 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
       <main className="stage">
         <section className="viewport" data-testid="viewport">
           {view === 'cam'
-            ? <Camera ok={!!s?.camera?.ok} fps={s?.camera?.fps ?? 0} error={s?.camera?.error ?? null} />
+            ? <Camera ok={!!s?.camera?.ok} fps={s?.camera?.fps ?? 0} error={s?.camera?.error ?? null} tracking={s?.tracking} />
             : <TwinFill joints={s?.joints} />}
           <div className="cam-overlay">
             <div className="overlay-top">

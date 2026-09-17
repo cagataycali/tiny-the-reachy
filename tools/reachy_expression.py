@@ -31,6 +31,14 @@ def _load_moves():
     return _MOVES
 
 
+def _hold_tracking(name: str, on: bool, ttl: float = 12.0) -> None:
+    try:
+        from .head_tracking import tracking_hold  # noqa: PLC0415
+        tracking_hold(name, on, ttl)
+    except Exception:  # noqa: BLE001 — never let tracking plumbing break an emotion
+        pass
+
+
 @tool
 def reachy_express(emotion: str = "happy", initial_goto_duration: float = 1.0,
                    sound: bool = True) -> dict:
@@ -62,7 +70,10 @@ def reachy_express(emotion: str = "happy", initial_goto_duration: float = 1.0,
             avail = ", ".join(_MOVE_NAMES[:40]) if _MOVE_NAMES else "(unknown)"
             return err(f"emotion '{emotion}' not found. Available: {avail}")
         mini = get_mini()
+        # daemon face tracking (1.10) at weight 1 overrides moves → pause it for the move, resume after
+        _hold_tracking(f"emotion:{emotion}", True, ttl=12.0)
         mini.play_move(move, initial_goto_duration=initial_goto_duration, sound=sound)
+        _hold_tracking(f"emotion:{emotion}", False)
         return ok(f"expressed '{emotion}'")
     except Exception as e:
         return err(f"reachy_express failed: {e}")
