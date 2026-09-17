@@ -10,7 +10,7 @@ if gradio_client / network is unavailable.
 import os
 import time
 from strands import tool
-from ._reachy_common import get_mini, ok, err
+from ._reachy_common import get_mini, ok, err, HOST, PORT
 
 TTS_SPACE = os.getenv("TINY_TTS_SPACE", "ResembleAI/Chatterbox-Multilingual-TTS")
 # Offline Piper TTS service (tiny-tts.service on the CM4, see docs/SHOWCASE-RUNBOOK.md).
@@ -119,16 +119,52 @@ def reachy_say(text: str, lang: str = "en", wobble: bool = True) -> dict:
 
 
 @tool
-def reachy_volume(level: int = -1) -> dict:
-    """Get or set TINY's speaker volume (0-100). Omit level to just read it."""
+def reachy_volume(level: str = "") -> dict:
+    """Read or set TINY's SPEAKER volume via the daemon (0-100). Call with no level to read.
+
+    level: a number 0-100, or a word: "silent"/"mute"/"shush"/"quiet" -> 0,
+    "quieter" -> half of current, "low" -> 25, "normal" -> 60, "louder" -> +20, "max" -> 100.
+    "silent" is IMMEDIATE — call it BEFORE replying so the confirmation is not shouted.
+    Volume 0 mutes the speaker only: TINY still hears, so "speak up" can restore it.
+    """
+    import json as _json
+    import urllib.request as _rq
+    base = f"http://{HOST}:{PORT}"
+
+    def _get() -> int | None:
+        try:
+            with _rq.urlopen(f"{base}/api/volume/current", timeout=3) as r:
+                return int(_json.load(r).get("volume"))
+        except Exception:
+            return None
+
+    cur = _get()
+    lvl = str(level).strip().lower()
+    if lvl in ("", "-1", "none", "read", "get", "status"):
+        if cur is None:
+            return err("reachy_volume: daemon did not answer /api/volume/current")
+        return ok(f"volume = {cur}", volume=cur)
+    words = {"silent": 0, "mute": 0, "muted": 0, "shush": 0, "quiet": 0, "off": 0,
+             "low": 25, "normal": 60, "default": 60, "loud": 80, "max": 100, "full": 100}
+    if lvl in words:
+        target = words[lvl]
+    elif lvl == "quieter":
+        target = (cur or 60) // 2
+    elif lvl == "louder":
+        target = min(100, (cur or 60) + 20)
+    else:
+        try:
+            target = int(float(lvl.rstrip("%")))
+        except ValueError:
+            return err(f"reachy_volume: unknown level {level!r} (0-100 or silent/quieter/normal/louder/max)")
+    target = max(0, min(100, target))
     try:
-        mini = get_mini()
-        if level < 0:
-            v = mini.media.get_volume() if hasattr(mini.media, "get_volume") else None
-            return ok(f"volume = {v}", volume=v)
-        if hasattr(mini.media, "set_volume"):
-            mini.media.set_volume(int(level))
-            return ok(f"volume set to {level}")
-        return err("set_volume not supported by this media backend")
+        req = _rq.Request(f"{base}/api/volume/set", data=_json.dumps({"volume": target}).encode(),
+                          headers={"content-type": "application/json"}, method="POST")
+        with _rq.urlopen(req, timeout=3) as r:
+            got = _json.load(r).get("volume", target)
     except Exception as e:
         return err(f"reachy_volume failed: {e}")
+    note = " (speaker muted; TINY still listens)" if got == 0 else ""
+    return ok(f"volume {cur} -> {got}{note}", volume=got, previous=cur)
+
