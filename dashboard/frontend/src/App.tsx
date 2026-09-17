@@ -64,7 +64,12 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
     })
   }, [])
 
-  const { state, hello, rows, connected } = useSocket(onAgent)
+  const { state, hello, rows, connected, stateAt } = useSocket(onAgent)
+  // staleness: no state frame for > 2.5 s (Wi-Fi hiccup, daemon restart) → the LIVE chip + readout say so instead of freezing silently
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t) }, [])
+  const staleS = stateAt ? Math.floor((now - stateAt) / 1000) : 0
+  const stale = stateAt > 0 && now - stateAt > 2500
   const can = !!(hello?.can_control)
   useEffect(() => { api.emotions().then(setEmotions).catch(() => {}) }, [])
   useEffect(() => { if (hello?.error) onLock() }, [hello, onLock])            // gated hello (4401) = session gone
@@ -222,10 +227,10 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
 
       <main className="stage">
         <section className="viewport" data-testid="viewport">
-          <PiPViewport s={s} pip={pip} setPip={setPip} onToast={setToast} onLift={setLift} />
+          <PiPViewport s={s} pip={pip} setPip={setPip} onToast={setToast} onLift={setLift} stale={stale} />
           <div className="cam-overlay">
             <div className="overlay-top">
-              <span className="chip on">{!pip.swapped ? `● LIVE ${s?.camera?.fps?.toFixed(0) ?? 0} fps` : '🧊 twin · mirrors the real motors'}</span>
+              <span className={`chip ${stale ? 'warn' : 'on'}`} data-testid="live-chip">{stale ? `● state stale ${staleS}s` : !pip.swapped ? `● LIVE ${s?.camera?.fps?.toFixed(0) ?? 0} fps` : '🧊 twin · mirrors the real motors'}</span>
               {playing && <span className="chip playing">▶ {playing.name}</span>}
               {reel?.running && <span className="chip">🎬 reel {reel.step + 1}/{reel.steps.length} · {reel.elapsed}s</span>}
               {s?.moves_running ? <span className="chip">{s.moves_running} move{s.moves_running > 1 ? 's' : ''}</span> : null}

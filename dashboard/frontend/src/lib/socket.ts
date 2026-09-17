@@ -9,6 +9,7 @@ export function useSocket(onAgent: (e: AgentEvent) => void) {
   const [rows, setRows] = useState<LogRow[]>([])
   const [events, setEvents] = useState<Event[]>([])
   const [connected, setConnected] = useState(false)
+  const [stateAt, setStateAt] = useState(0)          // wall-clock ms of the last state frame (staleness UI)
   const onAgentRef = useRef(onAgent); onAgentRef.current = onAgent
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export function useSocket(onAgent: (e: AgentEvent) => void) {
         let d: any; try { d = JSON.parse(m.data) } catch { return }
         switch (d.type) {
           case 'hello': setHello(d); if (d.error) closed = true; break   // gated (4401): stop reconnecting until sign-in
-          case 'state': setState(d); break
+          case 'state': setState(d); setStateAt(Date.now()); break
           case 'log': setRows((r) => [...r, ...d.rows].slice(-400)); break
           case 'event': setEvents((e) => [...e, d].slice(-100)); break
           case 'agent': onAgentRef.current(d); break
@@ -32,5 +33,5 @@ export function useSocket(onAgent: (e: AgentEvent) => void) {
     const ping = setInterval(() => { if (sock?.readyState === 1) sock.send('{"ping":1}') }, 15000)
     return () => { closed = true; clearTimeout(timer); clearInterval(ping); sock?.close() }
   }, [])
-  return { state, hello, rows, events, connected }
+  return { state, hello, rows, events, connected, stateAt }
 }

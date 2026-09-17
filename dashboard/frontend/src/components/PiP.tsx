@@ -17,9 +17,11 @@ export function usePiPPrefs(): [PiPPrefs, Dispatch<SetStateAction<PiPPrefs>>] {
 
 const SHORT_MODE: Record<string, string> = { enabled: 'on', disabled: 'off', gravity_compensation: 'g-comp' }
 
-export function PiPViewport({ s, pip, setPip, onToast, onLift }: { s: State | null; pip: PiPPrefs; setPip: Dispatch<SetStateAction<PiPPrefs>>; onToast?: (t: string) => void
+export function PiPViewport({ s, pip, setPip, onToast, onLift, stale = false }: { s: State | null; pip: PiPPrefs; setPip: Dispatch<SetStateAction<PiPPrefs>>; onToast?: (t: string) => void
   /** px the mind bubbles must lift so a bottom-corner card never covers them */
-  onLift?: (px: number) => void }) {
+  onLift?: (px: number) => void
+  /** true when the WS state is > 2.5 s old — the readout dims so frozen numbers are not mistaken for live ones */
+  stale?: boolean }) {
   const host = useRef<HTMLDivElement>(null)
   const [dim, setDim] = useState({ w: 0, h: 0 })
   const [drag, setDrag] = useState<{ dx: number; dy: number } | null>(null)
@@ -89,7 +91,7 @@ export function PiPViewport({ s, pip, setPip, onToast, onLift }: { s: State | nu
                   <button className="pip-btn" onPointerDown={(e) => e.stopPropagation()} onClick={close} title="close (T)" data-testid="pip-close">✕</button>
                 </div>
               </div>
-              <Readout s={s} box={card} split={split} dragging={!!drag} size={size} />
+              <Readout s={s} box={card} split={split} dragging={!!drag} size={size} stale={stale} />
             </>
           )}
           {!pip.open && (
@@ -102,12 +104,12 @@ export function PiPViewport({ s, pip, setPip, onToast, onLift }: { s: State | nu
 }
 
 /** Detail strip under the card: head roll/pitch/yaw, body yaw, antennas, control-loop Hz, motor mode — straight from /api/state. */
-function Readout({ s, box, split, dragging, size }: { s: State | null; box: Box; split: boolean; dragging: boolean; size: PiPSize }) {
+function Readout({ s, box, split, dragging, size, stale }: { s: State | null; box: Box; split: boolean; dragging: boolean; size: PiPSize; stale: boolean }) {
   const h = s?.head, a = s?.antennas, hz = s?.daemon?.loop_hz, rh = readoutH(size)
   const st: CSSProperties = split ? { left: box.x + 8, top: box.y + box.h - rh - 8, width: box.w - 16 } : { left: box.x, top: box.y + box.h, width: box.w, height: rh }
   const mode = SHORT_MODE[s?.control_mode ?? ''] ?? (s?.control_mode ?? '—')
   return (
-    <div className={`pip-readout ${size === 'S' ? 'two-rows' : ''} ${dragging ? 'dragging' : ''} ${split ? 'split' : ''}`} style={st} data-testid="pip-readout"
+    <div className={`pip-readout ${size === 'S' ? 'two-rows' : ''} ${dragging ? 'dragging' : ''} ${split ? 'split' : ''} ${stale ? 'stale' : ''}`} style={st} data-testid="pip-readout" data-stale={stale}
       data-roll={h?.roll?.toFixed(1)} data-pitch={h?.pitch?.toFixed(1)} data-yaw={h?.yaw?.toFixed(1)} data-body={s?.body_yaw?.toFixed(1)}>
       <div className="ro-row"><span title="head roll">R {deg(h?.roll)}</span><span title="head pitch">P {deg(h?.pitch)}</span><span title="head yaw">Y {deg(h?.yaw)}</span></div>
       <div className="ro-row">

@@ -21,7 +21,7 @@ const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h 
 // ── phone portrait 390×844 ──
 {
   const { ctx, page, errors, streams } = await session({ width: 390, height: 844 }, true)
-  await page.evaluate(() => localStorage.removeItem('reachy.pip.v1')); await page.reload({ waitUntil: 'domcontentloaded' }); await page.waitForSelector('[data-testid=pip-card]', { timeout: 15000 }); streams.length = 0
+  await page.evaluate(() => localStorage.removeItem('reachy.pip.v1')); streams.length = 0; await page.reload({ waitUntil: 'domcontentloaded' }); await page.waitForSelector('[data-testid=pip-card]', { timeout: 15000 })
   await page.waitForFunction(() => document.querySelector('[data-testid=twin]')?.getAttribute('data-phase') === 'ready', null, { timeout: 40000 }).catch(() => {})
   await page.waitForTimeout(2500)
   let a = await attrs(page); ok('phone: PiP open, not swapped, corner tr, size S', a.open === 'true' && a.swapped === 'false' && a.corner === 'tr' && a.size === 'S', JSON.stringify(a))

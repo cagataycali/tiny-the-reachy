@@ -178,6 +178,8 @@ kbd { font:11px ui-monospace, monospace; padding:1px 5px; border:1px solid var(-
 .pip-btn:active { transform:scale(.9) }
 .pip-readout { position:absolute; z-index:5; pointer-events:none; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:0 10px; padding:2px 6px; background:rgba(8,10,18,.78); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid var(--glass-brd); border-top:none; border-radius:0 0 12px 12px; font:600 10px ui-monospace, monospace; color:#c8d0e6; line-height:13px; white-space:nowrap; overflow:hidden; transition:left .28s cubic-bezier(.2,.8,.2,1), top .28s cubic-bezier(.2,.8,.2,1), width .28s cubic-bezier(.2,.8,.2,1) }
 .pip-readout span.warn { color:var(--warn) }
+.pip-readout.stale { color:var(--muted); border-color:var(--warn) } .pip-readout.stale .ro-row:first-child::before { content:'⏸ '; color:var(--warn) }
+.chip.warn { border-color:var(--warn); color:var(--warn); background:rgba(251,191,36,.12) }
 .ro-row { display:flex; gap:0 7px; white-space:nowrap } .pip-readout.two-rows { flex-direction:column; gap:1px; justify-content:center } .pip-readout.two-rows .ro-row { gap:0 6px; font-size:9.5px }
 .pip-readout.split { border:1px solid var(--glass-brd); border-radius:10px; height:auto; padding:4px 8px }
 .pip-chip { position:absolute; pointer-events:auto; z-index:4 }
