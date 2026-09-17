@@ -80,3 +80,22 @@ footer { margin-top:14px; text-align:center }
 .creds { display:flex; flex-direction:column; gap:6px; background:#0e0e15; border-radius:10px; padding:8px 10px } .cred { display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center }
 .btn.small { padding:2px 8px; font-size:12px } kbd { font:11px ui-monospace,monospace; padding:1px 5px; border:1px solid #2a2a3a; border-bottom-width:2px; border-radius:4px; margin:0 1px; color:#c8c8d4 }
 @media (max-width:640px) { .tm.svcs { margin-left:0 } .keys { display:none } }
+
+/* ── auth gate (full-screen, scout-style glass card) ── */
+.auth-gate { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;
+  padding-top:max(16px, env(safe-area-inset-top)); padding-bottom:max(16px, env(safe-area-inset-bottom));
+  background: radial-gradient(120% 90% at 50% -10%, #12102a 0%, transparent 55%), radial-gradient(100% 80% at 100% 100%, #061a22 0%, transparent 50%), linear-gradient(160deg, #05050c 0%, #0a0a16 50%, #04060a 100%) }
+.glass { background:rgba(255,255,255,.06); backdrop-filter:blur(26px) saturate(160%); -webkit-backdrop-filter:blur(26px) saturate(160%); border:1px solid rgba(160,200,255,.16); box-shadow:0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.10) }
+.auth-card { width:min(420px, 92vw); padding:34px 30px 26px; border-radius:22px; text-align:center; box-shadow:0 24px 70px rgba(0,0,0,.55), 0 0 40px rgba(94,234,212,.08); animation:authIn .35s cubic-bezier(.2,.8,.2,1) }
+@keyframes authIn { from { opacity:0; transform:translateY(14px) scale(.98) } to { opacity:1; transform:none } }
+.auth-logo { font-size:44px; line-height:1; margin-bottom:10px; filter:drop-shadow(0 4px 18px rgba(94,234,212,.35)) }
+.auth-card h2 { margin:4px 0 8px; font-size:24px; letter-spacing:.5px; font-weight:700 }
+.auth-sub { margin:0 auto 20px; max-width:34ch; color:rgba(255,255,255,.62); font-size:13.5px; line-height:1.5; min-height:20px }
+.auth-field { text-align:left; margin:0 0 14px } .auth-field label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:rgba(255,255,255,.5); margin-bottom:6px }
+.auth-field input { width:100%; padding:12px 13px; border-radius:12px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14); color:#fff; font-size:15px; outline:none }
+.auth-field input:focus { border-color:rgba(94,234,212,.6); box-shadow:0 0 0 3px rgba(94,234,212,.12) }
+.auth-btn { width:100%; padding:15px; border:none; border-radius:14px; cursor:pointer; font-size:15px; font-weight:600; letter-spacing:.3px; color:#04201c; background:linear-gradient(135deg, #7ff5e2, #34c9b4); box-shadow:0 10px 30px rgba(52,201,180,.32); transition:transform .12s, box-shadow .12s, opacity .12s; min-height:50px }
+.auth-btn:hover { transform:translateY(-1px); box-shadow:0 14px 38px rgba(52,201,180,.42) } .auth-btn:active { transform:none } .auth-btn:disabled { opacity:.55; cursor:progress; transform:none }
+.auth-msg { min-height:18px; margin-top:14px; font-size:13px; color:rgba(127,245,226,.9) } .auth-msg.err { color:#ff5d6c }
+.auth-links { display:flex; justify-content:center; gap:16px; margin-top:12px; font-size:12.5px } .auth-links a { color:rgba(255,255,255,.55); cursor:pointer; text-decoration:underline dotted } .auth-links a:hover { color:#7ff5e2 }
+.auth-foot { margin:16px 0 0; font-size:11px; color:rgba(255,255,255,.35) }

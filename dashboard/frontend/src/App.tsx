@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AgentEvent, ApiError, AuthStatus, Emotions, api } from './lib/api'
+import { AgentEvent, ApiError, AuthStatus, Emotions, api, setToken } from './lib/api'
 import { useSocket } from './lib/socket'
 import Twin from './components/Twin'
 import { Camera } from './components/Camera'
@@ -7,12 +7,19 @@ import { EmotionGrid } from './components/Emotions'
 import { HeadPad } from './components/Joystick'
 import { Live, Timeline } from './components/Timeline'
 import { LockCard, Telemetry } from './components/System'
-import { Login } from './components/Login'
+import { Gate } from './components/Gate'
 
 type Thought = Live
 
+// Nothing renders until the gate lets us through; the cockpit unmounts again on lock / 401 / expired session.
 export default function App() {
   const [auth, setAuth] = useState<AuthStatus | null>(null)
+  const lock = useCallback(async () => { setToken(''); try { await api.logout() } catch {} setAuth(null) }, [])
+  if (!auth?.authenticated) return <Gate onAuth={setAuth} />
+  return <Cockpit auth={auth} onLock={lock} />
+}
+
+function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
   const [emotions, setEmotions] = useState<Emotions | null>(null)
   const [toast, setToast] = useState<string>('')
   const [thoughts, setThoughts] = useState<Thought[]>([])
@@ -44,8 +51,8 @@ export default function App() {
 
   const { state, hello, rows, connected } = useSocket(onAgent)
   const can = !!(hello?.can_control)
-  const refreshAuth = useCallback(() => { api.auth().then(setAuth).catch(() => {}) }, [])
-  useEffect(() => { refreshAuth(); api.emotions().then(setEmotions).catch(() => {}) }, [refreshAuth])
+  useEffect(() => { api.emotions().then(setEmotions).catch(() => {}) }, [])
+  useEffect(() => { if (hello?.error) onLock() }, [hello, onLock])            // gated hello (4401) = session gone
   useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(''), 3500); return () => clearTimeout(t) }, [toast])
   // PWA shortcuts (?action=ask|reel)
   useEffect(() => {
@@ -73,7 +80,8 @@ export default function App() {
 
   const ctl = async (what: string, body: unknown = {}) => {
     try { const r = await api.control(what, body); return r } catch (e: any) {
-      setToast(e instanceof ApiError ? (e.status === 401 ? 'sign in to drive' : e.status === 429 ? 'slow down (or an ask is running)' : e.message) : String(e))
+      if (e instanceof ApiError && e.status === 401) { onLock(); return null }
+      setToast(e instanceof ApiError ? (e.status === 429 ? 'slow down (or an ask is running)' : e.message) : String(e))
       return null
     }
   }
@@ -93,11 +101,10 @@ export default function App() {
           <div className="sub">{online ? <span className="ok">● live</span> : <span className="bad">● daemon offline</span>} · {connected ? 'ws' : 'ws reconnecting'} · {s?.wifi?.ssid ?? '—'} · daemon {s?.daemon?.version ?? '?'} @ {s?.daemon?.loop_hz ?? 0} Hz · motors {s?.control_mode ?? '?'}{s?.moves_running ? ` · ${s.moves_running} move${s.moves_running > 1 ? 's' : ''} running` : ''}</div></div></div>
         <div className="actions">
           <button className="btn stop" disabled={!can} onClick={() => ctl('stop')}>■ STOP</button>
-          <Login auth={auth} onChange={refreshAuth} />
+          <button className="btn ghost" onClick={onLock} title="lock — sign out" data-testid="lock">🔒 {auth.who}</button>
         </div>
       </header>
       <Telemetry s={s} />
-      {!can && <div className="banner">👀 You're watching live. Controls unlock for the owner after sign-in.</div>}
 
       <main>
         <section className="card cam">
@@ -188,7 +195,7 @@ export default function App() {
 
       </main>
 
-      <footer className="muted small">reachy.cagatay.my · dashboard {hello?.version ?? ''} · uptime {Math.round((s?.uptime_s ?? 0) / 60)} min · {s?.camera?.clients ?? 0} viewer{(s?.camera?.clients ?? 0) === 1 ? '' : 's'} · public read-only, owner drives</footer>
+      <footer className="muted small">reachy.cagatay.my · dashboard {hello?.version ?? ''} · uptime {Math.round((s?.uptime_s ?? 0) / 60)} min · {s?.camera?.clients ?? 0} viewer{(s?.camera?.clients ?? 0) === 1 ? '' : 's'} · signed in as {auth.who} · every read and write is login-gated</footer>
       {toast && <div className="toast">{toast}</div>}
     </div>
   )

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AgentEvent, Event, LogRow, State, wsUrl } from './api'
 
-export type Hello = { who: string | null; can_control: boolean; version: string }
+export type Hello = { who: string | null; can_control: boolean; version: string; error?: string }
 
 export function useSocket(onAgent: (e: AgentEvent) => void) {
   const [state, setState] = useState<State | null>(null)
@@ -20,7 +20,7 @@ export function useSocket(onAgent: (e: AgentEvent) => void) {
       sock.onmessage = (m) => {
         let d: any; try { d = JSON.parse(m.data) } catch { return }
         switch (d.type) {
-          case 'hello': setHello(d); break
+          case 'hello': setHello(d); if (d.error) closed = true; break   // gated (4401): stop reconnecting until sign-in
           case 'state': setState(d); break
           case 'log': setRows((r) => [...r, ...d.rows].slice(-400)); break
           case 'event': setEvents((e) => [...e, d].slice(-100)); break

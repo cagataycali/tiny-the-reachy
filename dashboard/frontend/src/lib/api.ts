@@ -52,6 +52,12 @@ export const api = {
   deleteCredential: (id: string) => req('DELETE', `/api/auth/credentials/${id}`),
 }
 
+/** URL for <img>/<video>-style loads that cannot set headers: the passkey cookie rides along by itself, a bearer goes as ?token=. */
+export function streamUrl(path = '/api/stream', extra = ''): string {
+  const t = getToken()
+  return `${path}?${extra}${extra ? '&' : ''}${t ? `token=${encodeURIComponent(t)}` : 'c=1'}`
+}
+
 export function wsUrl(): string {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws'
   const t = getToken()
