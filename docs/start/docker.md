@@ -2,6 +2,11 @@
 
 <span class="read-badge">⏱ 90s · full stack</span>
 
+!!! note "Not what the robot runs"
+    The Wireless CM4 has **no Docker** and no room for it (disk 89 %). Compose is for a laptop next to a
+    Reachy Mini **Lite**, or a dev box pointed at the robot over the network. The robot itself runs the
+    personas bare-metal — see [Systemd](systemd.md).
+
 The recommended deploy: three always-on personas as containers, sharing one
 SQLite brain, all connecting to the Reachy daemon over host networking. The
 image is **light** — no DDS, no CycloneDDS, no librealsense build (unlike

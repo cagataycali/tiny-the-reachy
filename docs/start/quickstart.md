@@ -1,6 +1,6 @@
 # quickstart
 
-<span class="read-badge">⏱ 60s to first wobble</span>
+<span class="read-badge">⏱ 3 min to first wobble · commands verified 2026-09-17</span>
 
 ## 1 · clone & run
 
@@ -62,12 +62,15 @@ The **Reachy Mini daemon** owns the hardware and exposes an HTTP/WS API on
 <div class="terminal" markdown>
 <span class="p">&gt;</span> check state
 
-<span class="ok">head=(0,0,0) · antennas=(0,0) · body_yaw=0 · motors=enabled</span>
+<span class="ok">reachy_state → head pitch/roll/yaw 0/0/0 · antennas 0/0 · body_yaw 0 · imu ok</span>
 
 <span class="p">&gt;</span> show me you're happy to meet me
 
-<span class="ok">reachy_wake · reachy_express('happy') · antennas wiggle · rc=0</span>
+<span class="ok">reachy_express("cheerful1") · reachy_antennas(wiggle) — there is no "happy" in the library; TINY picks the closest of 81</span>
 </div>
+
+The REPL is a Strands agent with the same tools as the personas — [all 26, with signatures](../reference/tools/index.md).
+`reachy_list_emotions` prints the recorded-move names the daemon actually has.
 
 ## safe first commands
 
@@ -87,5 +90,11 @@ The **Reachy Mini daemon** owns the hardware and exposes an HTTP/WS API on
 make ask Q="say hi and wobble your antennas"
 ```
 
-[Meet the four personas →](../showcase/personas.md){ .md-button .md-button--primary }
-[Tool catalog →](../tools/catalog.md){ .md-button }
+## on the real robot
+
+The Wireless Reachy Mini runs all of this **on its own CM4** as systemd units — voice, Telegram, the
+thinker, the cockpit and the tunnel — so nothing on your laptop needs to stay up.
+
+[How TINY boots (systemd) →](systemd.md){ .md-button .md-button--primary }
+[Deploying to the robot →](robot.md){ .md-button }
+[Meet the four personas →](../showcase/personas.md){ .md-button }

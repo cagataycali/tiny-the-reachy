@@ -23,8 +23,9 @@ nav:
   - Home: index.md
   - Start:
       - Quickstart: start/quickstart.md
-      - Docker: start/docker.md
-      - Systemd: start/systemd.md
+      - Systemd (how TINY boots): start/systemd.md
+      - Deploying to the robot: start/robot.md
+      - Docker (laptop + Lite): start/docker.md
   - Showcase:
       - Expression: showcase/expression.md
       - Personas: showcase/personas.md
