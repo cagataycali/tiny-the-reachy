@@ -88,7 +88,12 @@ try {
     } else {
       await page.getByPlaceholder('Search').click();
     }
-    await page.getByPlaceholder('Search').fill('tracking');
+    const search = page.getByPlaceholder('Search');
+    await search.fill('');
+    // Exercise actual typing: a single synthetic fill event can race the
+    // search worker subscription after history navigation on a loaded host.
+    await search.pressSequentially('tracking', {delay: 80});
+    assert.equal(await search.inputValue(), 'tracking');
     await page.waitForFunction(() => document.querySelector('#__search').checked && document.querySelector('.md-search-result__item')?.getBoundingClientRect().height > 0).catch(async error => {
       console.error(await page.evaluate(() => ({width: innerWidth, checked: document.querySelector('#__search').checked, active: document.activeElement.outerHTML, meta: document.querySelector('.md-search-result__meta')?.textContent})));
       throw error;
