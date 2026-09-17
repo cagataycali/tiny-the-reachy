@@ -474,8 +474,10 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
         async def spa(path: str):
             f = DIST / path
             if path and f.is_file() and ".." not in path:
-                return FileResponse(f)
-            return FileResponse(DIST / "index.html")
+                # sw.js / manifest must never be edge-cached (Cloudflare caches *.js by default) — the shell must pick up deploys
+                hdr = {"Cache-Control": "no-cache"} if path in ("sw.js", "manifest.webmanifest") else None
+                return FileResponse(f, headers=hdr, media_type="application/javascript" if path == "sw.js" else None)
+            return FileResponse(DIST / "index.html", headers={"Cache-Control": "no-cache"})
     else:
         @app.get("/", include_in_schema=False)
         async def placeholder():

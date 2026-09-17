@@ -22,3 +22,22 @@ Camera: the Wireless camera is a CSI sensor behind libcamera; `cv2.VideoCapture(
 (`POST :8000/api/media/release`) — the voice persona normally does this.
 Routes: see the docstring at the top of `server.py`. Every control write is logged to the personas' shared `agent_log`
 as persona `dashboard`.
+
+## Frontend v3 (2026-09-17) — mobile-first cockpit, the agent as an overlay
+
+`Gate` → `Cockpit`. Nothing but the passkey card renders until `/api/auth/status` says `authenticated` (TOFU first
+enrol → passkey login → "use a token" fallback → "enrol another device" with `REACHY_REG_TOKEN`). The cockpit unmounts on
+🔒 lock, on any 401 and on a gated WebSocket hello, so a lost session goes straight back to the card.
+
+Layout (`src/App.tsx`, `src/styles.css`): glass **topbar** (state pills: motors · Wi-Fi dBm · CM4 °C · demo/thinker
+toggle · 🔒) · full-bleed **viewport** = live camera or MuJoCo twin (`T`) · **agent overlay** = the last mind rows as
+glass bubbles over the picture, dimming with age, the live Ask stream with a caret (tap → the full timeline sheet) ·
+**STOP** always visible in the viewport corner (`space`) · bottom **cmdbar** = Ask box + 🕹 look pad / 🎭 emotions & reel
+/ 🗣 say / 🧠 mind / ⚙ settings as slide-up sheets. ≥960 px: viewport left, mind timeline (or the open dock) right.
+Keys: `←→↑↓` look · `space` STOP · `H` home · `D` demo · `T` twin · `L` look · `E` emotions · `/` ask · `esc` close.
+
+PWA: `public/manifest.webmanifest` (standalone, icons, shortcuts `?action=ask|reel`) + `public/sw.js` (app shell only:
+`/assets/*` cache-first, `/` network-first with offline fallback; never `/api`, `/ws`, `/model`, `/mujoco`). The server
+sends `Cache-Control: no-cache` for `index.html`, `sw.js` and the manifest so Cloudflare never pins an old shell.
+`<img /api/stream>` carries `?token=` in bearer mode (`api.streamUrl()`); in passkey mode the session cookie rides along.
+Proof scripts live in `~/.tiny/reachy-v3-20260917/*.mjs` (Playwright, 390×844 + 1280×800).
