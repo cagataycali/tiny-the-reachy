@@ -170,6 +170,13 @@ share `.memory/mem.db` — voice can pick up where telegram left off.
 The SDK clamps automatically; our wrappers also clamp + surface the limits.
 Gentle collisions with the body are safe.
 
+## 🖥 dashboard — reachy.cagatay.my
+
+Passkey-gated cockpit that runs **on the robot** (`dashboard/`, FastAPI :8097 behind cloudflared): live camera with the
+MuJoCo **digital twin as a picture-in-picture card** (drag to a corner, double-tap to swap, readout of head R/P/Y ·
+body yaw · antennas · loop Hz · motor mode), TINY's mind as bubbles over the picture, look/emotions/say/settings docks,
+STOP always in reach. → [`docs/DASHBOARD.md`](docs/DASHBOARD.md) · [`dashboard/README.md`](dashboard/README.md)
+
 ## 🚦 status
 
 | component | status | notes |

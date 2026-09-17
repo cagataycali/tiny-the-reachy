@@ -27,6 +27,7 @@ nav:
   - Showcase:
       - Expression: showcase/expression.md
       - Personas: showcase/personas.md
+      - Dashboard (twin PiP): DASHBOARD.md
   - Tools:
       - Catalog: tools/catalog.md
       - Motion: tools/motion.md

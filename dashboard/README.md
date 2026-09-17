@@ -30,14 +30,15 @@ enrol → passkey login → "use a token" fallback → "enrol another device" wi
 🔒 lock, on any 401 and on a gated WebSocket hello, so a lost session goes straight back to the card.
 
 Layout (`src/App.tsx`, `src/styles.css`): glass **topbar** (state pills: motors · Wi-Fi dBm · CM4 °C · demo/thinker
-toggle · 🔒) · full-bleed **viewport** = live camera or MuJoCo twin (`T`) · **agent overlay** = the last mind rows as
+toggle · 🔒) · full-bleed **viewport** = live camera **with the MuJoCo twin as a picture-in-picture card** (v4, see `docs/DASHBOARD.md`: drag/snap, double-tap or `X` to swap, `T` to hide, readout of head R/P/Y · body · antennas · Hz · mode under it) · **agent overlay** = the last mind rows as
 glass bubbles over the picture, dimming with age, the live Ask stream with a caret (tap → the full timeline sheet) ·
 **STOP** always visible in the viewport corner (`space`) · bottom **cmdbar** = Ask box + 🕹 look pad / 🎭 emotions & reel
 / 🗣 say / 🧠 mind / ⚙ settings as slide-up sheets. ≥960 px: viewport left, mind timeline (or the open dock) right.
-Keys: `←→↑↓` look · `space` STOP · `H` home · `D` demo · `T` twin · `L` look · `E` emotions · `/` ask · `esc` close.
+Keys: `←→↑↓` look · `space` STOP · `H` home · `D` demo · `F` face-track · `T` twin PiP · `X` swap · `L` look · `E` emotions · `/` ask · `esc` close.
 
 PWA: `public/manifest.webmanifest` (standalone, icons, shortcuts `?action=ask|reel`) + `public/sw.js` (app shell only:
 `/assets/*` cache-first, `/` network-first with offline fallback; never `/api`, `/ws`, `/model`, `/mujoco`). The server
 sends `Cache-Control: no-cache` for `index.html`, `sw.js` and the manifest so Cloudflare never pins an old shell.
 `<img /api/stream>` carries `?token=` in bearer mode (`api.streamUrl()`); in passkey mode the session cookie rides along.
-Proof scripts live in `~/.tiny/reachy-v3-20260917/*.mjs` (Playwright, 390×844 + 1280×800).
+Proof scripts live in `~/.tiny/reachy-v3-20260917/*.mjs` (Playwright, 390×844 + 1280×800); the v4 PiP proof is in-repo:
+`BASE=… TOKEN=… node scripts/pip-proof.mjs` (25 checks at 390×844, 844×390, 1440×900).
