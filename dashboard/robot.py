@@ -355,7 +355,15 @@ class Robot:
     def express(self, name: str, who: str = "dashboard") -> Dict[str, Any]:
         names = self._emotions.get()
         if name not in names:
-            raise ValueError(f"unknown emotion {name!r}")
+            # accept the same plain names the personas use (happy → cheerful1 …); iOS/fleet callers send those
+            try:
+                from tools.reachy_expression import resolve_emotion  # noqa: PLC0415
+                resolved = resolve_emotion(name, names)
+            except Exception:  # noqa: BLE001
+                resolved = None
+            if not resolved:
+                raise ValueError(f"unknown emotion {name!r}")
+            name = resolved
         self._track_hold(f"emotion:{name}", ttl=12.0)      # daemon tracking at weight 1 would override the move
         r = daemon("POST", f"/api/move/play/recorded-move-dataset/{DATASET}/{name}", timeout=8)
         self.moves.arm(15.0)

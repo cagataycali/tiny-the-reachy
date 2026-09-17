@@ -29,6 +29,8 @@ This is the primary way TINY shows personality — a full head+antenna+body
 choreography (optionally with synced sound). Call it alongside speaking,
 just like neon fires arm gestures.
 
+Plain names resolve to library moves: happy→cheerful1, curious→curious1, yes→yes1, no→no1,
+surprised→surprised1, sad→sad1, angry→rage1 … (alias table + name+"1" + prefix match).
 Common emotion names (varies by library version — use reachy_list_emotions
 to see the live catalogue): happy, sad, curious, surprised, angry, yes,
 no, dance1, confused, excited, sleepy, greeting.
@@ -47,7 +49,7 @@ reachy_express("curious")        # someone new appeared
 reachy_express("no", sound=False) # silent head-shake
 ```
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_expression.py#L43">tools/reachy_expression.py:43</a></small>
+<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_expression.py#L85">tools/reachy_expression.py:85</a></small>
 
 ## `reachy_list_emotions`
 
@@ -57,4 +59,4 @@ reachy_list_emotions() -> dict
 
 List all emotion/move names available in TINY's recorded-move library.
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_expression.py#L83">tools/reachy_expression.py:83</a></small>
+<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_expression.py#L129">tools/reachy_expression.py:129</a></small>
