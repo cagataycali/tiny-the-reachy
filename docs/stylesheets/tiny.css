@@ -1154,3 +1154,7 @@ html { scroll-behavior: smooth; }
 [data-md-color-scheme="slate"] .md-typeset .rh-card { background: var(--md-code-bg-color); }
 .md-typeset .rh-hero .headerlink { display: none; }
 .md-typeset .mermaid svg { max-width: 100%; height: auto; }
+
+/* inline code inside prose must wrap on phones — long paths/commands were forcing a 1900 px page */
+.md-typeset li code, .md-typeset td code, .md-typeset p code { white-space: normal; overflow-wrap: anywhere; }
+.md-typeset .tabbed-labels { overflow-x: auto; scrollbar-width: none; }

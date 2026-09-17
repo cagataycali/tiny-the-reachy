@@ -16,7 +16,7 @@ description: "speak (Piper TTS on the CM4), play a sound, set the speaker volume
 |---|---|
 | [`reachy_play_sound`](#reachy_play_sound) | Play a local/daemon sound file through TINY's speaker. |
 | [`reachy_say`](#reachy_say) | Make TINY SPEAK text aloud via TTS, with synced head-wobble. |
-| [`reachy_volume`](#reachy_volume) | Get or set TINY's speaker volume (0-100). |
+| [`reachy_volume`](#reachy_volume) | Read or set TINY's SPEAKER volume via the daemon (0-100). |
 
 ## `reachy_play_sound`
 
@@ -64,9 +64,14 @@ reachy_say("Bonjour tout le monde", lang="fr")
 ## `reachy_volume`
 
 ```python
-reachy_volume(level: int = -1) -> dict
+reachy_volume(level: str = '') -> dict
 ```
 
-Get or set TINY's speaker volume (0-100). Omit level to just read it.
+Read or set TINY's SPEAKER volume via the daemon (0-100). Call with no level to read.
+
+level: a number 0-100, or a word: "silent"/"mute"/"shush"/"quiet" -> 0,
+"quieter" -> half of current, "low" -> 25, "normal" -> 60, "louder" -> +20, "max" -> 100.
+"silent" is IMMEDIATE — call it BEFORE replying so the confirmation is not shouted.
+Volume 0 mutes the speaker only: TINY still hears, so "speak up" can restore it.
 
 <small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_audio.py#L122">tools/reachy_audio.py:122</a></small>

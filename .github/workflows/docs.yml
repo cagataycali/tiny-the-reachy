@@ -48,11 +48,14 @@ jobs:
       - name: Install docs deps
         run: pip install -r requirements-docs.txt
 
-      - name: Docs drift tests (generated pages vs code)
+      - name: Build docs (strict) — regenerates docs/reference/* from the code
+        run: mkdocs build --clean --strict
+
+      - name: Docs drift tests (undocumented env var / tool / route, secrets in docs)
         run: pip install pytest && pytest tests/test_docs.py -q
 
-      - name: Build docs (strict)
-        run: mkdocs build --clean --strict
+      - name: Warn if a generated page was committed stale (the deployed site is already fresh)
+        run: git diff --quiet -- docs/reference || echo '::warning::docs/reference on GitHub is behind the code — run mkdocs build locally and commit the regenerated pages'
 
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'

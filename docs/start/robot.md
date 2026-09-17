@@ -88,7 +88,12 @@ curl -s https://reachy.cagatay.my/api/health | jq '{daemon: .daemon.state, camer
 
 1. Flash Pollen's image, join Wi-Fi via their app, confirm `curl localhost:8000/api/daemon/status`.
 2. `ssh-copy-id pollen@reachy-mini.local` (factory password — change it).
-3. `sudo mkdir -p /etc/systemd/system/reachy-mini-daemon.service.d && printf '[Service]\nLimitNOFILE=65536\n' | sudo tee …/nofile.conf && sudo systemctl daemon-reload && sudo systemctl restart reachy-mini-daemon`
+3. Raise the daemon's file-descriptor limit before it bites:
+   ```bash
+   sudo mkdir -p /etc/systemd/system/reachy-mini-daemon.service.d
+   printf '[Service]\nLimitNOFILE=65536\n' | sudo tee /etc/systemd/system/reachy-mini-daemon.service.d/nofile.conf
+   sudo systemctl daemon-reload && sudo systemctl restart reachy-mini-daemon
+   ```
 4. rsync the repo (above); `/venvs/apps_venv/bin/pip install -r requirements-robot.txt`.
 5. `cp scripts/systemd/robot/*.service ~/.config/systemd/user/` + `tiny-wake.service`; `loginctl enable-linger pollen`; `systemctl --user enable --now tiny-wake tiny-voice tiny-telegram tiny-thinker`.
 6. Dashboard: create `~/.reachy-dashboard.env`, run `dashboard/deploy/sync.sh`, enrol your passkey at the gate (first enrol is open — TOFU).
