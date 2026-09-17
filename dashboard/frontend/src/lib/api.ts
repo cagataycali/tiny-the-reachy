@@ -5,6 +5,7 @@ export type Reel = { running: boolean; step: number; steps: string[]; elapsed: n
 export type State = {
   ok: boolean; error?: string; control_mode: string | null; head: Head | null; body_yaw: number | null
   antennas: [number, number] | null; moves_running: number; now_playing: NowPlaying
+  joints: number[] | null; target: number[] | null; head_rad: Record<string, number> | null
   daemon: { state?: string; version?: string; loop_hz?: number; media_released?: boolean }
   wifi: { ssid: string | null }; uptime_s: number; camera: { ok: boolean; fps: number; error: string | null; clients: number }
   reel: Reel; t: number

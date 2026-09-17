@@ -17,7 +17,11 @@ main { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); g
 .badge { position:absolute; font:11px ui-monospace,monospace; padding:3px 7px; border-radius:6px; background:rgba(0,0,0,.6); border:1px solid #333 } .tl{ top:8px; left:8px; color:var(--ok) }
 .nowplaying { position:absolute; bottom:8px; left:8px; background:rgba(0,0,0,.7); border:1px solid var(--acc); color:var(--acc); padding:4px 10px; border-radius:8px; font-family:ui-monospace,monospace; animation:pulse 1.2s infinite }
 @keyframes pulse { 50%{ opacity:.6 } }
-.avatar-card { display:grid; grid-template-columns:150px 1fr; gap:10px; align-items:center } .avatar { width:150px; height:150px } .eye{ transition:r .2s }
+.avatar-card { display:grid; grid-template-columns:1fr; gap:10px; align-items:start }
+.twin { position:relative; width:100%; border-radius:12px; overflow:hidden; background:radial-gradient(ellipse at 50% 70%, #171724 0%, #0b0b10 75%); touch-action:none; cursor:grab }
+.twin canvas { display:block; width:100% !important; height:100% !important }
+.twin-badge { position:absolute; left:8px; top:8px; font:11px ui-monospace,monospace; padding:3px 8px; border-radius:999px; background:rgba(0,0,0,.55); color:#9aa; pointer-events:none }
+.twin-badge.ready { color:#7ee787 } .twin-badge.error { color:#ff7b72 } .twin-badge.loading { color:#e3b341 }
 .gauges { display:grid; gap:5px } .gauge { display:grid; grid-template-columns:44px 1fr 44px; gap:6px; align-items:center; font-size:12px; font-family:ui-monospace,monospace }
 .g-label{color:var(--muted)} .g-val{text-align:right} .g-bar{ position:relative; height:8px; background:#1c1c28; border-radius:4px; overflow:hidden } .g-mid{ position:absolute; left:50%; top:0; bottom:0; width:1px; background:#3a3a4d } .g-fill{ position:absolute; top:0; bottom:0; background:var(--acc); transition:all .12s linear }
 .btn { background:#1c1c28; border:1px solid #2c2c3a; border-radius:10px; padding:9px 13px; cursor:pointer; min-height:40px } .btn:hover{ border-color:#44445a } .btn:disabled{ opacity:.4; cursor:not-allowed }

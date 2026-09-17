@@ -48,7 +48,7 @@ log = logging.getLogger("reachy.dash")
 REPO = Path(__file__).resolve().parent.parent
 DIST = Path(os.getenv("REACHY_DIST", str(REPO / "dashboard" / "frontend" / "dist")))
 RATE_LIMIT_PER_S = int(os.getenv("REACHY_RATE_LIMIT", "5"))
-WS_HZ = float(os.getenv("REACHY_WS_HZ", "10"))
+WS_HZ = float(os.getenv("REACHY_WS_HZ", "15"))
 ASK_TIMEOUT = float(os.getenv("REACHY_ASK_TIMEOUT", "60"))
 
 
@@ -152,8 +152,11 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
     @app.middleware("http")
     async def _headers(req: Request, call_next):
         resp = await call_next(req)
-        if req.url.path.startswith("/assets/"):
-            resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        p = req.url.path
+        if p.startswith("/assets/") or p.startswith("/mujoco/") or (p.startswith("/model/") and "v=" in str(req.url.query)):
+            resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"   # hashed / versioned (?v=sha)
+        elif p.startswith("/model/"):
+            resp.headers["Cache-Control"] = "public, max-age=60, must-revalidate"   # geoms.json carries the shas
         elif req.url.path.startswith("/api/"):
             resp.headers.setdefault("Cache-Control", "no-store")
         return resp

@@ -19,3 +19,4 @@ dashboard/frontend/node_modules/
 dashboard/frontend/dist/
 .reachy-auth/
 .reachy-dashboard.env
+dashboard/frontend/public/mujoco/

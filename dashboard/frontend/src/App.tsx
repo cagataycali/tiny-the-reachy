@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AgentEvent, ApiError, AuthStatus, Emotions, api } from './lib/api'
 import { useSocket } from './lib/socket'
-import { Avatar } from './components/Avatar'
+import Twin from './components/Twin'
 import { Camera } from './components/Camera'
 import { EmotionGrid } from './components/Emotions'
 import { HeadPad } from './components/Joystick'
@@ -82,7 +82,7 @@ export default function App() {
         </section>
 
         <section className="card avatar-card">
-          <Avatar head={s?.head ?? null} antennas={s?.antennas ?? null} bodyYaw={s?.body_yaw ?? null} playing={playing?.name ?? null} />
+          <Twin joints={s?.joints} height={280} />
           <div className="gauges">
             {(['roll', 'pitch', 'yaw'] as const).map((k) => (
               <Gauge key={k} label={k} value={s?.head?.[k] ?? 0} max={k === 'yaw' ? 180 : 40} />

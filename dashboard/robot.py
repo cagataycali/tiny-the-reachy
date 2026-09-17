@@ -143,7 +143,7 @@ class Robot:
         self.now_playing: Optional[Dict[str, Any]] = None  # {name, started, duration?}
         self.last_error: Optional[str] = None
         self._emotions = Cached(self._emotions_safe, 3600)
-        self._state = Cached(self._state_uncached, 0.15)
+        self._state = Cached(self._state_uncached, float(os.getenv("REACHY_STATE_CACHE_S", "0.06")))
         self._wifi = Cached(self._wifi_safe, 30)
         self._daemon = Cached(self._daemon_safe, 5)
         self.cam = Camera()
@@ -186,9 +186,18 @@ class Robot:
 
     def _state_uncached(self) -> Dict[str, Any]:
         try:
-            s = daemon("GET", "/api/state/full", timeout=2) or {}
+            # with_head_joints → head_joints = [yaw_body, stewart_1..6] (rad): the twin's motor targets.
+            # with_target_* → what the daemon is currently commanding (the twin's "ghost").
+            s = daemon("GET", "/api/state/full?with_head_joints=true&with_target_head_pose=true"
+                              "&with_target_head_joints=true&with_target_body_yaw=true&with_target_antenna_positions=true",
+                       timeout=2) or {}
             hp = s.get("head_pose") or {}
             ant = s.get("antennas_position") or [0.0, 0.0]
+            hj = s.get("head_joints") or []
+            tj = s.get("target_head_joints") or []
+            tant = s.get("target_antennas_position") or s.get("target_antenna_positions") or []
+            joints = [float(v) for v in hj] + [float(v) for v in ant] if len(hj) == 7 else None
+            target = ([float(v) for v in tj] + [float(v) for v in (tant if len(tant) == 2 else ant)]) if len(tj) == 7 else None
             try:
                 running = daemon("GET", "/api/move/running", timeout=2) or []
             except RuntimeError:
@@ -203,6 +212,9 @@ class Robot:
                 "body_yaw": math.degrees(s.get("body_yaw") or 0),
                 "antennas": [math.degrees(ant[0]), math.degrees(ant[1])],
                 "doa": s.get("doa"),
+                "joints": joints,                      # rad: yaw_body, stewart_1..6, right_antenna, left_antenna
+                "target": target,                      # rad, same order — daemon's commanded pose (ghost), or null
+                "target_head_rad": s.get("target_head_pose"),
                 "moves_running": len(running),
                 "ts": s.get("timestamp"),
             }
