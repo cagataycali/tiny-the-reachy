@@ -1,0 +1,104 @@
+"""Purpose notes for scripts/envdoc.py — one line per variable, written from the code that reads it.
+
+Keep each note true to the reading site (grep the file in the table before editing).
+A variable missing here still appears in the generated table with purpose "—".
+"""
+
+NOTES = {
+    # models
+    "AWS_REGION": "Bedrock region for the text model (tiny.py) and Nova Sonic voice.",
+    "OPENAI_API_KEY": "OpenAI Realtime key for the voice persona (`VOICE_PROVIDER=openai`).",
+    "GEMINI_API_KEY": "Gemini Live key (`VOICE_PROVIDER=gemini`); `GOOGLE_API_KEY` is the fallback name.",
+    "GOOGLE_API_KEY": "Fallback for `GEMINI_API_KEY`.",
+    "TINY_MODEL_ID": "Bedrock model id for the text personas (shell/telegram/thinker/dashboard Ask).",
+    # voice
+    "VOICE_PROVIDER": "`openai` (Realtime) · `nova_sonic` · `gemini` — which bidi model voice_listener builds.",
+    "VOICE_NAME": "Voice inside the provider; code default per provider is alloy/tiffany/Kore (`_DEFAULT_VOICES`). The robot's `.env` sets `shimmer`.",
+    "VOICE_MODEL": "OpenAI Realtime model id override (robot `.env`: `gpt-realtime-2`); unset = strands' default.",
+    "VOICE_RESTART_DELAY": "Seconds voice_listener waits before rebuilding the session after a crash.",
+    "REACHY_AUDIO_RATE": "PyAudio device sample rate; resampled to the model's rate (24 kHz OpenAI, 16 kHz Nova).",
+    # robot / SDK
+    "REACHY_HOST": "Daemon host for the SDK client and the dashboard.",
+    "REACHY_PORT": "Daemon HTTP port (Pollen daemon listens on :8000).",
+    "REACHY_CONNECTION_MODE": "`auto` · `localhost_only` · `network` — passed to `ReachyMini(connection_mode=)`. The robot runs `localhost_only`.",
+    "REACHY_MEDIA_BACKEND": "SDK media backend for the personas' shared client; `no_media` keeps the daemon owning mic + camera.",
+    "REACHY_CAMERA_BACKEND": "Media backend used only while `reachy_camera`/`reachy_look_at` grab a frame through the SDK.",
+    "REACHY_USE_SIM": "`1` = talk to the MuJoCo simulation instead of the robot (`make sim`).",
+    "REACHY_SPAWN_DAEMON": "`1` = let the SDK spawn a daemon if none answers (dev laptops only).",
+    "TINY_CAMERA_SNAPSHOT": "Where `reachy_camera` writes the frame it hands to the vision model.",
+    "TINY_DASHBOARD_URL": "Dashboard base URL the personas' tools call for snapshots and tracking holds (loopback allowance).",
+    "TINY_DASHBOARD_TOKEN": "Bearer for those calls when not on loopback (falls back to `REACHY_TOKEN`).",
+    "TINY_TTS_URL": "Piper TTS service (`tiny-tts.service`, 127.0.0.1:5002) used by `reachy_say` and the dashboard Say.",
+    "TINY_TTS_SPACE": "Legacy Hugging Face Space fallback for `reachy_say` when Piper is down (upstream answers 401 today).",
+    "TINY_TTS_REF_AUDIO": "Reference voice clip for that Space fallback.",
+    # telegram
+    "TELEGRAM_BOT_TOKEN": "Bot token for the telegram persona and the `telegram` tool.",
+    "TELEGRAM_ALLOWED_USERS": "Comma-separated usernames/ids allowed to talk to TINY on Telegram (`(any)` = everyone).",
+    "TELEGRAM_DEFAULT_CHAT_ID": "Chat that receives unsolicited messages (thinker notes, photos).",
+    "TELEGRAM_HISTORY_LIMIT": "Recent messages injected per chat as context (default 20).",
+    # thinker
+    "THINKER_INTERVAL": "Seconds between thinker cycles (robot: 30).",
+    "THINKER_DISABLED": "`1` makes the thinker loop a no-op.",
+    # perception
+    "REACHY_FACE_TRACKING": "`1` enables the daemon face tracker at dashboard boot (default off — costs ~+1.5 load on the CM4).",
+    "REACHY_TRACK_POLL_HZ": "How often the dashboard polls the daemon's tracked face (≤ 5 Hz).",
+    "REACHY_TRACK_HOLD_TTL": "Seconds after which an unreleased tracking hold (speaking/emotion/look) expires.",
+    "REACHY_SPEAK_TAIL_S": "Extra seconds the voice persona keeps the `speaking` hold after the last audio chunk.",
+    # dashboard
+    "REACHY_HTTP_PORT": "Dashboard listen port (8097, fronted by the Cloudflare tunnel).",
+    "REACHY_DAEMON_URL": "Daemon base URL the dashboard talks to.",
+    "REACHY_DIST": "Built frontend directory served as the SPA shell.",
+    "REACHY_LOG": "Dashboard log level.",
+    "REACHY_WS_HZ": "State frames per second pushed on `/ws`.",
+    "REACHY_STATE_CACHE_S": "Coalesces `/api/state` reads so many viewers cost the daemon one request per window.",
+    "REACHY_RATE_LIMIT": "Control POSTs per second per client before 429.",
+    "REACHY_ASK_TIMEOUT": "Seconds a dashboard Ask turn may run.",
+    "REACHY_ASK_PREWARM": "`0` skips building the Ask agent at startup.",
+    "REACHY_DASH_CAMERA": "`ipc` (daemon camera socket — default when GStreamer can) · `rpicam` · `cv2`. Only `ipc` coexists with face tracking.",
+    "REACHY_DASH_CAMERA_INDEX": "V4L2 index for the `cv2` backend.",
+    "REACHY_DASH_CAM_FPS": "MJPEG frame-rate cap.",
+    "REACHY_DASH_CAMERA_OFF": "Any value disables the dashboard camera entirely.",
+    "REACHY_DASH_TTS_URL": "TTS endpoint for the dashboard Say (defaults to `TINY_TTS_URL`).",
+    "REACHY_CAMERA_SOCKET": "Path of the daemon's camera IPC socket.",
+    "REACHY_MEM_DB": "SQLite brain the dashboard reads for the mind feed.",
+    "REACHY_NO_AUTOAPP": "Set in tests so importing `dashboard.server` does not build the app.",
+    # auth
+    "REACHY_TOKEN": "Owner bearer token — full access to `/api/*` and `/ws` (`Authorization: Bearer` or `?token=`).",
+    "REACHY_REG_TOKEN": "Registration token required to enrol additional passkeys after the first (TOFU).",
+    "REACHY_RP_ID": "WebAuthn relying-party id (`reachy.cagatay.my`).",
+    "REACHY_RP_NAME": "Display name shown by the passkey prompt.",
+    "REACHY_ORIGIN": "Expected WebAuthn origin(s), comma-separated (default `https://<RP_ID>`).",
+    "REACHY_AUTH_STORE": "Passkey credential store path.",
+    "REACHY_SESSION_STORE": "Session cookie store path (next to the credential store).",
+    "REACHY_SESSION_TTL": "Passkey session lifetime in seconds (12 h).",
+    "REACHY_USER_NAME": "User handle the passkeys are registered under.",
+    "REACHY_LOOPBACK_READS": "`0` disables the documented allowance that lets the robot's own processes read without a key.",
+    # fleet
+    "TINY_MCP": "`1` mounts the tiny.technology fleet tools (use_device, tiny_recall, …) via the tiny-tech MCP server.",
+    "TINY_MCP_PERSONAS": "Personas that get fleet tools (code default `telegram,dashboard,shell`; the robot adds `voice`).",
+    "TINY_TOKEN": "tiny.technology CLI JWT for the MCP server (`TINY_TOKEN_FILE` wins if both are set).",
+    "TINY_TOKEN_FILE": "Mode-600 file holding that token. Never logged.",
+    "TINY_MCP_HOME": "Isolated `TINY_HOME` for the MCP server process.",
+    "TINY_MCP_NODE": "Path to the node binary if not on PATH.",
+    "TINY_MCP_TINY_TECH": "Path to a tiny-tech package dir (`…/node_modules/tiny-tech`).",
+    "TINY_MCP_COMMAND": "Full command to run the server instead of the auto-detected one.",
+    "TINY_MCP_MESH": "`1` lets the server join the zenoh mesh (off by default: CPU on the CM4).",
+    "TINY_MCP_STARTUP_TIMEOUT": "Seconds to wait for the MCP handshake before starting without fleet tools.",
+    "TINY_MCP_TIMEOUT": "Per-call timeout for fleet tools.",
+    "TINY_SELF_DEVICE_IDS": "This robot's tiny.technology device ids — `use_device` refuses to invoke itself.",
+    "TINY_SELF_NAME": "Name prefixed to fleet prompts: `[fleet depth=1 from <name>]`.",
+}
+
+GROUPS = {
+    "REACHY_TOKEN": "Auth", "REACHY_REG_TOKEN": "Auth", "REACHY_RP_ID": "Auth", "REACHY_RP_NAME": "Auth",
+    "REACHY_ORIGIN": "Auth", "REACHY_AUTH_STORE": "Auth", "REACHY_SESSION_STORE": "Auth",
+    "REACHY_SESSION_TTL": "Auth", "REACHY_USER_NAME": "Auth", "REACHY_LOOPBACK_READS": "Auth",
+    "REACHY_HTTP_PORT": "Dashboard", "REACHY_DAEMON_URL": "Dashboard", "REACHY_DIST": "Dashboard",
+    "REACHY_LOG": "Dashboard", "REACHY_WS_HZ": "Dashboard", "REACHY_STATE_CACHE_S": "Dashboard",
+    "REACHY_RATE_LIMIT": "Dashboard", "REACHY_ASK_TIMEOUT": "Dashboard", "REACHY_ASK_PREWARM": "Dashboard",
+    "REACHY_CAMERA_SOCKET": "Dashboard", "REACHY_MEM_DB": "Dashboard", "REACHY_NO_AUTOAPP": "Dashboard",
+    "REACHY_SPEAK_TAIL_S": "Perception", "REACHY_AUDIO_RATE": "Voice",
+    "TINY_TTS_URL": "Robot", "TINY_TTS_SPACE": "Robot", "TINY_TTS_REF_AUDIO": "Robot",
+    "TINY_CAMERA_SNAPSHOT": "Robot", "TINY_DASHBOARD_URL": "Robot", "TINY_DASHBOARD_TOKEN": "Robot",
+    "TINY_MODEL_ID": "Models",
+}

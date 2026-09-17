@@ -10,6 +10,7 @@ copyright: "🤖 tiny · Expression · Language · Presence — on the desk"
 exclude_docs: |
   *.bak
   LIVE_DEPLOY.md
+  hooks/
 
 extra_css:
   - stylesheets/tiny.css?v=1
@@ -40,9 +41,27 @@ nav:
       - Extending: guide/extending.md
       - Troubleshooting: guide/troubleshooting.md
   - Reference:
-      - The family: reference/family.md
-      - Daemon API: reference/daemon.md
+      - Tools:
+          - reference/tools/index.md
+          - Motion: reference/tools/reachy_motion.md
+          - Expression: reference/tools/reachy_expression.md
+          - State: reference/tools/reachy_state.md
+          - Camera: reference/tools/reachy_camera.md
+          - Audio: reference/tools/reachy_audio.md
+          - Head tracking: reference/tools/head_tracking.md
+          - Vision: reference/tools/vision.md
+          - Voice bridge: reference/tools/voice_bridge.md
+          - Dispatch: reference/tools/dispatch.md
+          - Memory: reference/tools/memory.md
+          - Telegram: reference/tools/telegram.md
+          - Prompts: reference/tools/prompts.md
+          - Manage messages: reference/tools/manage_messages.md
+          - Manage tools: reference/tools/manage_tools.md
+          - Fleet (use_device): reference/tools/tiny_mcp.md
+      - Dashboard API: reference/api.md
       - Env vars: reference/env.md
+      - Daemon API: reference/daemon.md
+      - The family: reference/family.md
 
 theme:
   name: material
@@ -123,6 +142,9 @@ markdown_extensions:
 plugins:
   - search:
       lang: en
+
+hooks:
+  - docs/hooks/gen.py   # regenerates reference/tools/*, reference/env.md, reference/api.md from the code
 
 extra:
   generator: false
