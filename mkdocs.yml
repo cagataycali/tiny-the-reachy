@@ -13,7 +13,7 @@ exclude_docs: |
   hooks/
 
 extra_css:
-  - stylesheets/tiny.css?v=1
+  - stylesheets/tiny.css?v=2
 
 extra_javascript:
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js

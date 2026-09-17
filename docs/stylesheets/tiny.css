@@ -18,10 +18,10 @@
   --border:     #e8e4dd;
   --border-2:   #ddd8cf;
 
-  --accent:     #7a6aa8;   /* violet — primary (Reachy family) */
-  --accent-ink: #63548f;
-  --accent-sub: #ece7f5;
-  --cyan:       #2e8b8b;   /* muted teal — data    */
+  --accent:     #1f9a88;   /* teal — the cockpit's --acc #5eead4 / --acc2 #34c9b4, inked for paper */
+  --accent-ink: #167a6c;
+  --accent-sub: #e3f5f1;
+  --cyan:       #1f9a88;   /* data    */
   --green:      #4a8a5c;
   --pink:       #c0506b;
   --purple:     #7a6aa8;
@@ -1083,3 +1083,74 @@ html { scroll-behavior: smooth; }
 /* scrollbar tuned for dark */
 [data-md-color-scheme="slate"] ::-webkit-scrollbar-thumb { background: var(--border-2); }
 [data-md-color-scheme="slate"] ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Home v2 (2026-09-17) — cockpit-dark hero on paper, paths, shots.
+   Palette straight from dashboard/frontend/src/styles.css:
+   --bg #05050c · --bg-2 #0a0a16 · --acc #5eead4 · --acc2 #34c9b4 · --acc3 #a78bfa
+   ═══════════════════════════════════════════════════════════════════════ */
+.md-typeset .rh-hero {
+  margin: 0 0 1.5rem;
+  padding: 2.6rem 2rem 1.8rem;
+  border-radius: 22px;
+  color: #f1f3fb;
+  background:
+    radial-gradient(120% 90% at 50% -10%, #12102a 0%, transparent 55%),
+    radial-gradient(100% 80% at 100% 100%, #061a22 0%, transparent 50%),
+    linear-gradient(160deg, #05050c 0%, #0a0a16 50%, #04060a 100%);
+  border: 1px solid rgba(160,200,255,.16);
+  box-shadow: 0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.md-typeset .rh-hero h1 {
+  color: #f1f3fb; font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; letter-spacing: -0.02em;
+  margin: .5rem 0 .8rem; line-height: 1.05;
+}
+.md-typeset .rh-hero h1::after { display: none; }
+.rh-eyebrow { font: 600 .72rem/1.4 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; color: #5eead4; }
+.rh-eyebrow b { color: #7ff5e2; }
+.md-typeset .rh-lead { font-size: 1.05rem; line-height: 1.55; color: rgba(220,228,245,.82); max-width: 62ch; margin: 0 0 1.2rem; }
+.md-typeset .rh-lead em { color: #d4c8ff; font-style: normal; }
+.md-typeset .rh-lead strong { color: #7ff5e2; }
+.md-typeset .rh-cta { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1.2rem; }
+.md-typeset .rh-hero .md-button { border-color: rgba(160,200,255,.22); color: #f1f3fb; background: rgba(255,255,255,.06); }
+.md-typeset .rh-hero .md-button:hover { background: rgba(255,255,255,.12); border-color: #5eead4; color: #fff; }
+.md-typeset .rh-hero .md-button--primary { background: #5eead4; border-color: #5eead4; color: #04201c; font-weight: 700; }
+.md-typeset .rh-hero .md-button--primary:hover { background: #7ff5e2; border-color: #7ff5e2; color: #04201c; }
+.rh-status { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.md-typeset .rh-pill, .md-typeset a.rh-pill {
+  display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .65rem; border-radius: 999px;
+  background: rgba(255,255,255,.11); border: 1px solid rgba(160,200,255,.16);
+  font: 600 .72rem/1 "JetBrains Mono", ui-monospace, monospace; color: #f1f3fb; text-decoration: none; white-space: nowrap;
+}
+.md-typeset a.rh-pill:hover { border-color: #5eead4; color: #7ff5e2; }
+.rh-pill b { color: #7ff5e2; font-weight: 700; }
+.rh-pill img { height: 18px; display: block; }
+.rh-dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; box-shadow: 0 0 10px #34d399; animation: rh-pulse 2.4s ease-in-out infinite; }
+@keyframes rh-pulse { 0%,100% { opacity: 1 } 50% { opacity: .45 } }
+@media (prefers-reduced-motion: reduce) { .rh-dot { animation: none } }
+
+.md-typeset figure.rh-shot { margin: 0 0 2rem; }
+.md-typeset figure.rh-shot img, .md-typeset .rh-shots2 img {
+  width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--border-2);
+  box-shadow: var(--shadow-md); background: #05050c;
+}
+.md-typeset figure.rh-shot figcaption, .md-typeset .rh-shots2 figcaption { font-size: .8rem; color: var(--muted); margin-top: .6rem; }
+.md-typeset .rh-shots2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 1rem; align-items: start; margin: 1.5rem 0; }
+.md-typeset .rh-shots2 figure { margin: 0; }
+.md-typeset .rh-shots2 figure:first-child { grid-row: span 2; }
+@media (max-width: 760px) { .md-typeset .rh-shots2 { grid-template-columns: 1fr; } .md-typeset .rh-shots2 figure:first-child { grid-row: auto; max-width: 320px; margin: 0 auto; } }
+
+.md-typeset .rh-paths { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin: 1rem 0 2rem; }
+@media (max-width: 900px) { .md-typeset .rh-paths { grid-template-columns: 1fr; } }
+.md-typeset .rh-card {
+  padding: 1.1rem 1.2rem; border-radius: 16px; background: var(--surface); border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm); transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast);
+}
+.md-typeset .rh-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.md-typeset .rh-card h3 { margin: 0 0 .5rem; font-size: 1.05rem; }
+.md-typeset .rh-card p { font-size: .9rem; margin: 0 0 .6rem; color: var(--text-2); }
+.md-typeset .rh-card p:last-child { margin: 0; font-weight: 600; }
+[data-md-color-scheme="slate"] .md-typeset .rh-card { background: var(--md-code-bg-color); }
+.md-typeset .rh-hero .headerlink { display: none; }
+.md-typeset .mermaid svg { max-width: 100%; height: auto; }

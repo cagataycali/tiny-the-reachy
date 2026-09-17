@@ -8,6 +8,14 @@ on:
       - 'mkdocs.yml'
       - 'requirements-docs.txt'
       - '.github/workflows/docs.yml'
+      # the reference pages are generated from these at build (docs/hooks/gen.py)
+      - 'scripts/*.py'
+      - 'tools/**.py'
+      - 'dashboard/*.py'
+      - 'tiny.py'
+      - '*_listener.py'
+      - 'thinker_loop.py'
+      - 'prompts/**'
   pull_request:
     branches: [main]
     paths:
@@ -39,6 +47,9 @@ jobs:
 
       - name: Install docs deps
         run: pip install -r requirements-docs.txt
+
+      - name: Docs drift tests (generated pages vs code)
+        run: pip install pytest && pytest tests/test_docs.py -q
 
       - name: Build docs (strict)
         run: mkdocs build --clean --strict
