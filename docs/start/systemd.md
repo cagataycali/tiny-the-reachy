@@ -66,7 +66,7 @@ ssh reachy                                      # pollen@reachy-mini.local, key 
 systemctl --user list-units 'tiny-*' 'reachy-*' # the eight, with state
 systemctl --user restart tiny-voice             # after editing .env or a prompt
 systemctl --user restart reachy-dashboard       # after dashboard/*.py changes (frontend: no restart)
-journalctl --user -u tiny-thinker -f            # a persona's log
+journalctl _SYSTEMD_USER_UNIT=tiny-thinker.service -f   # a persona's log (journalctl --user finds no files here)
 curl -s localhost:8000/api/daemon/status        # the daemon, unauthenticated, loopback only
 curl -s localhost:8097/api/health | jq .pressure # fds / CLOSE-WAIT on the daemon, from the dashboard
 sudo systemctl restart reachy-mini-daemon       # last resort; personas reconnect on their own

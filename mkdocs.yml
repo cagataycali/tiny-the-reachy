@@ -41,6 +41,7 @@ nav:
       - Safety envelope: guide/safety.md
       - Cross-persona brain: guide/brain.md
       - Extending: guide/extending.md
+      - Operations (incidents · budgets · before a demo): guide/operations.md
       - Troubleshooting: guide/troubleshooting.md
   - Reference:
       - Tools:

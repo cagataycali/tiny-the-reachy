@@ -86,4 +86,11 @@ CLOSE-WAIT over 15 minutes**. `/api/health` and the cockpit carry the gauge (⚠
 (`reachy-daemon-watchdog`, every 30 s) restarts the daemon after three missed `/api/daemon/status`, and
 `LimitNOFILE=65536` applies at its next restart. `tiny-mhs` is gated on the venue broker being reachable.
 
-Rule of thumb for anything new on the CM4: **read from `robot.stream`, never poll the daemon yourself.**
+A second pressure incident (06:20–07:00 BST the same day) came from the other direction: a persona that could not
+start (`tiny-voice`, bad key) POSTed `/api/media/release` on every retry, and each release rebuilt the daemon's
+media pipeline and leaked ≈30 unnamed unix sockets — fds 556 → 879 in 35 minutes with 0 CLOSE-WAIT, so the
+CLOSE-WAIT gauge alone was blind to it. `voice_listener` now releases media once and backs off exponentially;
+the fd gauge is the one to watch. Timeline and live mitigation in [Operations](guide/operations.md).
+
+Rule of thumb for anything new on the CM4: **read from `robot.stream`, never poll the daemon yourself, and never
+release media from a retry loop.**

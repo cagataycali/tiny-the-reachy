@@ -44,7 +44,9 @@ Where the values live:
 | `VOICE_MODEL` | *(unset)* | `tiny.py` | OpenAI Realtime model id override (robot `.env`: `gpt-realtime-2`); unset = strands' default. |
 | `VOICE_NAME` | *(unset)* | `voice_listener.py` | Voice inside the provider; code default per provider is alloy/tiffany/Kore (`_DEFAULT_VOICES`). The robot's `.env` sets `shimmer`. |
 | `VOICE_PROVIDER` | `openai` | `telegram_listener.py`, `voice_listener.py` | `openai` (Realtime) · `nova_sonic` · `gemini` — which bidi model voice_listener builds. |
-| `VOICE_RESTART_DELAY` | `5` | `voice_listener.py` | Seconds voice_listener waits before rebuilding the session after a crash. |
+| `VOICE_RELEASE_MEDIA` | `0` | `voice_listener.py` | 1 = POST /api/media/release before each voice start (Lite / daemons with exclusive ALSA). Default 0: the Wireless daemon shares the mic, and every release rebuilt its pipeline and leaked fds (2026-09-17). |
+| `VOICE_RESTART_DELAY` | `5` | `voice_listener.py` | Seconds voice_listener waits before rebuilding the session after a crash (doubles each fatal provider error). |
+| `VOICE_RESTART_DELAY_MAX` | `300` | `voice_listener.py` | Cap for that exponential backoff, seconds (default 300) — a bad key retries every 5 min, not every 5 s. |
 
 ### Robot
 
@@ -168,5 +170,5 @@ Where the values live:
 | `TINY_TOKEN` | *(unset)* | `tools/tiny_mcp.py` | tiny.technology CLI JWT for the MCP server (`TINY_TOKEN_FILE` wins if both are set). |
 | `TINY_TOKEN_FILE` | *(unset)* | `tools/tiny_mcp.py` | Mode-600 file holding that token. Never logged. |
 
-_97 variables, scanned from every `os.getenv` / `os.environ` in the repo._
+_99 variables, scanned from every `os.getenv` / `os.environ` in the repo._
 <!-- /gen:env -->

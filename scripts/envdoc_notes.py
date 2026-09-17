@@ -15,7 +15,9 @@ NOTES = {
     "VOICE_PROVIDER": "`openai` (Realtime) · `nova_sonic` · `gemini` — which bidi model voice_listener builds.",
     "VOICE_NAME": "Voice inside the provider; code default per provider is alloy/tiffany/Kore (`_DEFAULT_VOICES`). The robot's `.env` sets `shimmer`.",
     "VOICE_MODEL": "OpenAI Realtime model id override (robot `.env`: `gpt-realtime-2`); unset = strands' default.",
-    "VOICE_RESTART_DELAY": "Seconds voice_listener waits before rebuilding the session after a crash.",
+    "VOICE_RESTART_DELAY": "Seconds voice_listener waits before rebuilding the session after a crash (doubles each fatal provider error).",
+    "VOICE_RESTART_DELAY_MAX": "Cap for that exponential backoff, seconds (default 300) — a bad key retries every 5 min, not every 5 s.",
+    "VOICE_RELEASE_MEDIA": "1 = POST /api/media/release before each voice start (Lite / daemons with exclusive ALSA). Default 0: the Wireless daemon shares the mic, and every release rebuilt its pipeline and leaked fds (2026-09-17).",
     "REACHY_AUDIO_RATE": "PyAudio device sample rate; resampled to the model's rate (24 kHz OpenAI, 16 kHz Nova).",
     # robot / SDK
     "REACHY_HOST": "Daemon host for the SDK client and the dashboard.",

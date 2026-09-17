@@ -23,7 +23,7 @@ Two hard facts drive this module:
 
 The dashboard is the one long-lived process every persona can reach (127.0.0.1:8097), so the
 controller lives here; tools/head_tracking.py is a thin REST toggle over it (Pollen's 6-line tool).
-Default OFF. REACHY_FACE_TRACKING=1 enables at boot.
+Default ON at boot (REACHY_TRACK_AUTOSTART=1, server.py); REACHY_TRACK_AUTOSTART=0 to start off.
 """
 from __future__ import annotations
 

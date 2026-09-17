@@ -78,11 +78,13 @@ curl -s https://reachy.cagatay.my/api/health | jq '{daemon: .daemon.state, camer
 
 - **Disk 89 % full** (1.5 GB free). No new venvs; `pip install` into `apps_venv` only after checking `df -h /`.
 - **CPU budget**: load average is normally ~3 on four cores; daemon face tracking adds ~1.5 and the
-  dashboard's IPC camera ~0.5. That is why [face tracking](../FACE-TRACKING.md) is off by default.
+  dashboard's IPC camera ~0.5. Face tracking is on by default; the 👁 pill (`F`) turns it off when the
+  temperature pill goes amber — see [Operations](../guide/operations.md).
 - The camera is a CSI **imx708 behind libcamera**: `cv2.VideoCapture("/dev/video0")` opens and returns
   nothing. Read it through the daemon's IPC socket (what the dashboard does) or `rpicam-vid`.
-- `journalctl` on the CM4 is volatile (no persistent journal) — the dashboard's `/api/log` and the
-  agent log in SQLite are the durable record.
+- `journalctl --user` says *no journal files* on the CM4 — read user units through the system journal instead:
+  `journalctl _SYSTEMD_USER_UNIT=tiny-voice.service`. The dashboard's `/api/log` and the SQLite agent log are
+  the durable record.
 
 ## First-time setup on a fresh CM4
 
