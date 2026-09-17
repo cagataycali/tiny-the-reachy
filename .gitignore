@@ -20,3 +20,4 @@ dashboard/frontend/dist/
 .reachy-auth/
 .reachy-dashboard.env
 dashboard/frontend/public/mujoco/
+docs/SHOWCASE-RUNBOOK.md
