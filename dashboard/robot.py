@@ -55,23 +55,9 @@ def clamp(v: float, lo: float, hi: float) -> float:
 
 
 # ── daemon REST ──────────────────────────────────────────────────────────────
-def daemon(method: str, path: str, body: Optional[dict] = None, timeout: float = 4.0) -> Any:
-    """One call to the Reachy daemon. Raises RuntimeError with the daemon's message on failure."""
-    data = json.dumps(body).encode() if body is not None else None
-    req = request.Request(DAEMON + path, data=data, method=method,
-                          headers={"Content-Type": "application/json"} if data is not None else {})
-    try:
-        with request.urlopen(req, timeout=timeout) as r:
-            raw = r.read()
-            return json.loads(raw) if raw else None
-    except error.HTTPError as e:
-        try:
-            detail = json.loads(e.read())
-        except Exception:  # noqa: BLE001
-            detail = e.reason
-        raise RuntimeError(f"daemon {method} {path} → {e.code}: {detail}") from None
-    except (error.URLError, TimeoutError, OSError) as e:
-        raise RuntimeError(f"daemon unreachable ({path}): {e}") from None
+# One keep-alive session + one WebSocket state stream (dashboard/daemonlink.py). The old per-call urllib client
+# opened ~21 TCP connections/s and drove the daemon into EMFILE on 2026-09-17 — see daemonlink's docstring.
+from .daemonlink import SESSION, MovesProbe, StateStream, daemon, pressure as daemon_pressure  # noqa: E402,F401
 
 
 # ── local TTS (tiny-tts.service → Piper, offline) ────────────────────────────
@@ -123,7 +109,7 @@ class Cached:
         self.fn, self.ttl = fn, ttl
         self._v: Any = None
         self._t = 0.0
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()     # fn may call invalidate() on failure
 
     def get(self) -> Any:
         with self._lock:
@@ -167,6 +153,9 @@ class Robot:
         self.cam = Camera()
         self.reel = DemoReel(self)
         self.tracker: Any = None          # dashboard.tracking.Tracker, attached by server.create_app
+        self.stream = StateStream()       # the daemon's 10 Hz state WS, shared by every consumer
+        self.moves = MovesProbe()         # /api/move/running only while something can be in flight
+        self.doa: Any = None              # dashboard.doa.Turner, attached by server.create_app (P1)
 
     # ── reads ──
     def _emotions_safe(self) -> List[str]:
@@ -174,6 +163,7 @@ class Robot:
             return _emotions()
         except RuntimeError as e:
             self.last_error = str(e)
+            self._emotions.invalidate()       # a boot-time "daemon unreachable" must not be cached for an hour
             return []
 
     def emotions(self) -> Dict[str, Any]:
@@ -263,11 +253,10 @@ class Robot:
 
     def _state_uncached(self) -> Dict[str, Any]:
         try:
-            # with_head_joints → head_joints = [yaw_body, stewart_1..6] (rad): the twin's motor targets.
-            # with_target_* → what the daemon is currently commanding (the twin's "ghost").
-            s = daemon("GET", "/api/state/full?with_head_joints=true&with_target_head_pose=true"
-                              "&with_target_head_joints=true&with_target_body_yaw=true&with_target_antenna_positions=true",
-                       timeout=2) or {}
+            # One frame from the daemon's own WebSocket stream (with_head_joints/targets/doa; see daemonlink).
+            # with_target_head_pose is deliberately NOT requested (daemon asserts before the first goto).
+            s, age = self.stream.latest()
+            s = s or {}
             hp = s.get("head_pose") or {}
             ant = s.get("antennas_position") or [0.0, 0.0]
             hj = s.get("head_joints") or []
@@ -275,10 +264,7 @@ class Robot:
             tant = s.get("target_antennas_position") or s.get("target_antenna_positions") or []
             joints = [float(v) for v in hj] + [float(v) for v in ant] if len(hj) == 7 else None
             target = ([float(v) for v in tj] + [float(v) for v in (tant if len(tant) == 2 else ant)]) if len(tj) == 7 else None
-            try:
-                running = daemon("GET", "/api/move/running", timeout=2) or []
-            except RuntimeError:
-                running = []
+            running = self.moves.running()
             out = {
                 "ok": True,
                 "control_mode": s.get("control_mode"),
@@ -288,12 +274,13 @@ class Robot:
                 "head_rad": hp,
                 "body_yaw": math.degrees(s.get("body_yaw") or 0),
                 "antennas": [math.degrees(ant[0]), math.degrees(ant[1])],
-                "doa": s.get("doa"),
+                "doa": self._doa_shape(s.get("doa")),
                 "joints": joints,                      # rad: yaw_body, stewart_1..6, right_antenna, left_antenna
                 "target": target,                      # rad, same order — daemon's commanded pose (ghost), or null
                 "target_head_rad": s.get("target_head_pose"),
                 "moves_running": len(running),
                 "ts": s.get("timestamp"),
+                "state_age_s": round(age or 0.0, 3),
             }
             self.last_error = None
         except RuntimeError as e:
@@ -308,8 +295,17 @@ class Robot:
                     "uptime_s": round(time.time() - self.boot, 1), "camera": self.cam.status(),
                     "reel": self.reel.status(), "system": self._system.get(), "services": self._services.get(),
                     "fleet": _fleet_status(), "tracking": self.tracking_status(),
+                    "pressure": daemon_pressure(), "stream": self.stream.status(),
+                    "doa_turn": self.doa.status() if self.doa is not None else None,
                     "demo": self._services.get().get("tiny-thinker") not in ("active", "activating"), "t": time.time()})
         return out
+
+    @staticmethod
+    def _doa_shape(d: Any) -> Optional[Dict[str, Any]]:
+        """Daemon DoaSnapshot → the cockpit's contract {angle (rad), speech_detected} (PiP.tsx DoaArc)."""
+        if not isinstance(d, dict) or not isinstance(d.get("angle"), (int, float)):
+            return None
+        return {"angle": float(d["angle"]), "speech_detected": bool(d.get("speech_detected"))}
 
     def state(self) -> Dict[str, Any]:
         return self._state.get()
@@ -342,6 +338,7 @@ class Robot:
             body["antennas"] = [math.radians(clamp(a, *LIM_ANTENNA)) for a in antennas[:2]]
         self._track_hold("look", ttl=duration + 3.0)       # explicit look wins over tracking, then tracking resumes
         r = daemon("POST", "/api/move/goto", body)
+        self.moves.arm(duration + 2.0)
         self._track_release_later("look", duration + 2.0)
         self.log("control", f"look roll={roll:.0f} pitch={pitch:.0f} yaw={yaw:.0f} body={body_yaw} d={duration}s", who)
         return {"ok": True, "move": r, "sent": body}
@@ -350,6 +347,7 @@ class Robot:
         body = {"antennas": [math.radians(clamp(right, *LIM_ANTENNA)), math.radians(clamp(left, *LIM_ANTENNA))],
                 "duration": clamp(float(duration), 0.2, 4.0), "interpolation": "minjerk"}
         r = daemon("POST", "/api/move/goto", body)
+        self.moves.arm(float(duration) + 1.0)
         self.log("control", f"antennas right={right:.0f} left={left:.0f}", who)
         return {"ok": True, "move": r}
 
@@ -359,6 +357,7 @@ class Robot:
             raise ValueError(f"unknown emotion {name!r}")
         self._track_hold(f"emotion:{name}", ttl=12.0)      # daemon tracking at weight 1 would override the move
         r = daemon("POST", f"/api/move/play/recorded-move-dataset/{DATASET}/{name}", timeout=8)
+        self.moves.arm(15.0)
         self.now_playing = {"name": name, "started": time.time(), "family": family_of(name), "uuid": (r or {}).get("uuid")}
         self._track_release_later(f"emotion:{name}", 10.0)
         self.log("control", f"express {name}", who, emotion=name)

@@ -53,6 +53,7 @@ from starlette.middleware.gzip import GZipMiddleware
 from . import __version__, auth
 from .robot import Robot, agent_log_record, agent_log_tail
 from .robot import daemon as daemon_call
+from .daemonlink import pressure as daemon_pressure
 
 log = logging.getLogger("reachy.dash")
 REPO = Path(__file__).resolve().parent.parent
@@ -265,8 +266,10 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
     # ── reads (gated by _gate; only /api/health is public) ──
     @app.get("/api/health")
     async def health():
+        pressure = await asyncio.to_thread(daemon_pressure)
         return {"ok": True, "name": "reachy", "version": __version__, "t": time.time(),
                 "daemon": robot._daemon.get(), "camera": robot.cam.status(), "last_error": robot.last_error,
+                "pressure": pressure, "stream": robot.stream.status(),        # daemon fd/CLOSE-WAIT gauge + state WS
                 "auth": {"open": auth.CFG.open, "token": auth.CFG.token is not None, "passkeys": auth.CFG.passkeys_enabled},
                 "clients": len(app.state.clients), "ask_busy": app.state.ask.busy}
 
@@ -519,20 +522,38 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
     def _attach_tracker() -> None:
         from .tracking import Tracker  # noqa: PLC0415
         robot.tracker = Tracker(daemon_call, on_change=emit)
-        threading.Thread(target=robot.tracker.adopt, daemon=True).start()   # daemon already tracking (we restarted)? mirror it
-        if os.getenv("REACHY_FACE_TRACKING", "0") == "1":
-            def _boot_on() -> None:
-                for _ in range(20):                    # the daemon camera may still be coming up
-                    try:
-                        robot.set_tracking(True, "boot")
+        autostart = os.getenv("REACHY_TRACK_AUTOSTART", "1") == "1" or os.getenv("REACHY_FACE_TRACKING", "0") == "1"
+
+        def _boot_on() -> None:
+            for _ in range(20):                        # the daemon camera may still be coming up
+                try:
+                    if robot.tracker.adopt():          # daemon already tracking (we restarted)? mirror it
                         return
-                    except RuntimeError as e:
-                        log.warning("boot tracking: %s", e)
-                        time.sleep(3)
-            threading.Thread(target=_boot_on, daemon=True).start()
+                    if not autostart:
+                        return
+                    robot.set_tracking(True, "boot")
+                    return
+                except RuntimeError as e:
+                    log.warning("boot tracking: %s", e)
+                time.sleep(3)
+        threading.Thread(target=_boot_on, daemon=True).start()
+
+        # daemon restart → its tracker is gone. The state stream reconnecting is our signal: re-enable (or adopt).
+        def _on_stream_up() -> None:
+            if robot.stream.reconnects == 0:
+                return                                 # first connect at boot — _boot_on handles it
+            log.info("daemon state stream reconnected (#%d) — re-asserting tracking", robot.stream.reconnects)
+            if robot.tracker.enabled:
+                robot.tracker.reassert()
+            elif autostart:
+                _boot_on()
+            robot._daemon.invalidate()
+            robot._emotions.invalidate()
+        robot.stream.on_connect = _on_stream_up
 
     @app.on_event("startup")
     async def _start():
+        robot.stream.start()                           # one WS to the daemon; everything reads from it
         _attach_tracker()
         robot.cam.start()
         threading.Thread(target=robot.emotions, daemon=True).start()   # warm the cache
@@ -545,6 +566,7 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
         robot.reel.abort("shutdown")
         if robot.tracker is not None:
             robot.tracker.stop()                       # Pollen moves.py ~661: never leave the daemon tracking headless
+        robot.stream.stop()
         robot.cam.stop()
 
     # ── SPA ──

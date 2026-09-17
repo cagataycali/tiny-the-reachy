@@ -35,7 +35,8 @@ from typing import Any, Callable, Dict, Optional
 
 log = logging.getLogger("reachy.dash.tracking")
 
-FACE_POLL_HZ = float(os.getenv("REACHY_TRACK_POLL_HZ", "5"))          # get_tracked_face poll (≤ 5 Hz)
+FACE_POLL_HZ = float(os.getenv("REACHY_TRACK_POLL_HZ", "2"))          # get_tracked_face poll (≤ 2 Hz — daemon pressure, 2026-09-17)
+REASSERT_AFTER_MISSES = int(os.getenv("REACHY_TRACK_REASSERT_MISSES", "2"))  # ts:null polls while we think enabled → daemon restarted
 HOLD_TTL_DEFAULT = float(os.getenv("REACHY_TRACK_HOLD_TTL", "20"))    # a hold nobody releases dies after this
 SPEAK_HOLD = "speaking"
 
@@ -60,6 +61,8 @@ class Tracker:
         self._stop = threading.Event()
         self._thread: Optional[threading.Thread] = None
         self._last_emit: Optional[tuple] = None
+        self._misses = 0                             # consecutive face polls with ts:null while enabled
+        self.reasserts = 0
 
     # ── daemon calls ──
     def _set_weight(self, w: float) -> bool:
@@ -154,7 +157,8 @@ class Tracker:
                     "detected": bool(self.face.get("detected")), "x": self.face.get("x"), "y": self.face.get("y"),
                     "roll": self.face.get("roll"), "face_ts": self.face.get("ts"),
                     "face_age_s": round(time.time() - self.face_seen_at, 1) if self.face_seen_at else None,
-                    "since": self.since or None, "engine": "daemon-yunet", "poll_hz": FACE_POLL_HZ}
+                    "since": self.since or None, "engine": "daemon-yunet", "poll_hz": FACE_POLL_HZ,
+                    "reasserts": self.reasserts}
 
     def adopt(self) -> bool:
         """Startup: if the daemon is ALREADY tracking (we were restarted, or someone enabled it directly), mirror it
@@ -219,6 +223,17 @@ class Tracker:
                                  "roll": ft.get("roll"), "ts": ft.get("ts")}
                     if self.face["detected"]:
                         self.face_seen_at = time.time()
+                    # ts is None when the daemon's detector is OFF — or PAUSED (enable weight=0 calls
+                    # clear_tracking_aim(), backend/abstract.py). Only when we expect weight 1 (no holds) does a
+                    # null ts mean the daemon restarted under us / someone disabled it → re-assert instead of
+                    # showing a tracking pill that lies. (05:58 BST: 43 false re-asserts during emotion holds.)
+                    if ft.get("ts") is None and self.enabled and self.weight == 1.0 and not self._live_holds():
+                        self._misses += 1
+                        if self._misses >= REASSERT_AFTER_MISSES:
+                            self._misses = 0
+                            self._reassert_locked()
+                    else:
+                        self._misses = 0
                     # a hold that expired while we slept → hand the head back
                     self._apply()
                     st = self.status()
@@ -227,6 +242,35 @@ class Tracker:
                 with self._lock:
                     self.error = str(e)[:300]
             self._stop.wait(max(0.0, period - (time.monotonic() - t)))
+
+    def _reassert_locked(self) -> None:
+        """Daemon came back without our tracker: push the weight again (caller holds the lock)."""
+        try:
+            want = 0.0 if self._live_holds() else 1.0
+            ok = self._set_weight(want)
+            self.reasserts += 1
+            log.info("tracking: re-asserted after daemon restart (weight %.0f, ok=%s)", want, ok)
+        except RuntimeError as e:
+            self.error = str(e)[:300]
+
+    def reassert(self) -> None:
+        """Stream reconnected / daemon restarted: re-enable if we were enabled (retries while media comes up)."""
+        for _ in range(10):
+            with self._lock:
+                if not self.enabled:
+                    return
+                try:
+                    r = self._daemon("GET", "/api/media/tracking/face", None, timeout=3)
+                except RuntimeError:
+                    r = None
+                if r is not None:
+                    if ((r or {}).get("face_target") or {}).get("ts") is None and not self._live_holds():
+                        self._reassert_locked()
+                        if self.available:
+                            return
+                    else:
+                        return
+            time.sleep(3)
 
     def _emit(self, st: Dict[str, Any], force: bool = False) -> None:
         if not self._on_change:

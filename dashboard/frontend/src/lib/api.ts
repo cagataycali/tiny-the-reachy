@@ -13,7 +13,14 @@ export type State = {
   reel: Reel; t: number; tracking?: Tracking
   /** perception (owned by the face-tracking/DoA/IMU lane; the dashboard renders nothing when absent/null) */
   doa?: Doa | null; imu?: Imu | null
+  /** daemon pressure gauge (dashboard/daemonlink.py): fds of the reachy-mini daemon + sockets on :8000; warn = short text or null */
+  pressure?: Pressure | null; stream?: StreamStatus | null; state_age_s?: number
+  /** DoA turn-toward-speaker controller (dashboard/doa.py) */
+  doa_turn?: DoaTurn | null
 }
+export type Pressure = { pid: number | null; fds: number | null; fd_limit: number | null; close_wait: number | null; established: number | null; warn: string | null }
+export type StreamStatus = { connected: boolean; hz: number; frames: number; reconnects: number; age_s: number | null; error: string | null }
+export type DoaTurn = { enabled: boolean; armed?: boolean; turns?: number; last_turn_t?: number | null; angle_deg?: number | null; speech?: boolean; why?: string | null; sign?: number }
 /** ReSpeaker direction of arrival passed through from the daemon's state: angle in rad (0 = front), speech_detected */
 export type Doa = { angle: number | null; speech_detected?: boolean | null }
 /** IMU summary — consumed fields: lifted|picked_up, tilted (booleans); anything else is ignored */

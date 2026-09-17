@@ -221,6 +221,11 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
           <button className={`pill ${s?.tracking?.enabled ? (s?.tracking?.detected ? 'on' : 'warn') : ''}`} disabled={!can || s?.tracking?.available === false} data-testid="track-pill" onClick={() => track(!s?.tracking?.enabled)}
             title={s?.tracking?.available === false ? `face tracking unavailable: ${s?.tracking?.error ?? 'daemon has no camera'}` : 'follow the closest face (daemon face tracking, F)'}>
             👁 {s?.tracking?.enabled ? (s?.tracking?.paused ? 'paused' : (s?.tracking?.detected ? 'face' : 'track')) : 'track'}</button>
+          {(s?.pressure?.warn || (s?.stream && !s.stream.connected)) && (
+            <span className={`pill ${s?.pressure?.warn ? 'crit' : 'warn'}`} data-testid="pressure-pill"
+              title={s?.pressure?.warn ? `daemon under pressure: ${s.pressure.warn} — the systemd watchdog restarts it if /api/daemon/status stops answering` : `daemon state stream down: ${s?.stream?.error ?? 'reconnecting'} — falling back to slow polling`}>
+              {s?.pressure?.warn ? `⚠ ${s.pressure.warn}` : '⚠ daemon stream'}</span>
+          )}
         </div>
         <button className="icon-btn" onClick={onLock} title="lock — sign out" data-testid="lock-btn">🔒</button>
       </header>

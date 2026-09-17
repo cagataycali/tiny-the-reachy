@@ -19,6 +19,9 @@ export function Telemetry({ s }: { s: State | null }) {
       <span className={`tm ${sys?.disk_free_gb != null && sys.disk_free_gb < 1 ? 'warn' : ''}`} title="disk free">💾 {sys?.disk_free_gb ?? '—'} GB</span>
       <span className="tm" title={`Wi-Fi ${s?.wifi?.ssid ?? ''} ${sys?.wifi_signal_dbm ?? ''} dBm`}>📶 {bars(sys?.wifi_signal_dbm ?? null)} {s?.wifi?.ssid ?? '—'}</span>
       <span className="tm" title="CM4 uptime">⏱ {fmtUp(sys?.host_uptime_s)}</span>
+      <span className={`tm ${s?.pressure?.warn ? 'warn' : ''}`} data-testid="tm-pressure"
+        title={`reachy-mini daemon: ${s?.pressure?.fds ?? '—'} open fds of ${s?.pressure?.fd_limit ?? '—'} · ${s?.pressure?.close_wait ?? '—'} CLOSE-WAIT / ${s?.pressure?.established ?? '—'} established on :8000 · state stream ${s?.stream?.connected ? `${s.stream.hz} Hz` : 'DOWN'}${s?.stream?.reconnects ? ` (${s.stream.reconnects} reconnects)` : ''}`}>
+        🧷 {s?.pressure?.fds ?? '—'}/{s?.pressure?.fd_limit ?? '—'} fd · cw {s?.pressure?.close_wait ?? '—'} · {s?.stream?.connected ? 'ws' : 'poll'}</span>
       <span className="tm svcs" title="persona services (systemd --user)">
         {Object.keys(SVC_LABEL).map((k) => <span key={k} className={`svc ${svc[k] === 'active' ? 'on' : svc[k] ? 'off' : 'unk'}`} title={`${k}: ${svc[k] ?? 'unknown'}`}>{SVC_LABEL[k]}</span>)}
       </span>
