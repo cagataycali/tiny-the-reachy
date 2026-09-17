@@ -713,7 +713,12 @@ class Camera:
                 msg = bus.pop_filtered(Gst.MessageType.ERROR)
                 if msg is not None:
                     err_, _dbg = msg.parse_error()
-                    self.error = f"ipc camera: {err_.message}"
+                    # "Internal data stream error" = the daemon closed its unixfdsink under us: somebody POSTed
+                    # /api/media/release (an SDK no_media client, a voice restart). We re-acquire on the next pass.
+                    if "data stream error" in err_.message.lower() or not os.path.exists(CAMERA_SOCKET):
+                        self.error = "ipc camera: daemon media was released by another client — re-acquiring"
+                    else:
+                        self.error = f"ipc camera: {err_.message}"
                     break
                 smp = sink.try_pull_sample(300 * Gst.MSECOND)
                 if smp is None:
