@@ -44,8 +44,16 @@ def get_mini(media_backend: Optional[str] = None):
     """
     global _MINI
     with _LOCK:
-        if _MINI is not None:
+        if _MINI is not None and not _client_dead(_MINI):
             return _MINI
+        if _MINI is not None:
+            # The daemon restarted under us (seen 2026-09-17 02:59: every persona said "Lost connection with
+            # the server" for 10+ min). The SDK's WS client never reconnects on its own — rebuild it.
+            try:
+                _MINI.client.disconnect()
+            except Exception:
+                pass
+            _MINI = None
         try:
             from reachy_mini import ReachyMini
         except Exception as e:  # pragma: no cover - import guard
@@ -71,6 +79,13 @@ def get_mini(media_backend: Optional[str] = None):
                 f"Set REACHY_USE_SIM=1 to run against MuJoCo simulation."
             )
         return _MINI
+
+
+def _client_dead(mini) -> bool:
+    """True when the cached SDK client has lost its WebSocket (its 1 Hz check thread keeps `_is_alive` fresh)."""
+    client = getattr(mini, "client", None)
+    alive = getattr(client, "_is_alive", None)
+    return alive is False
 
 
 def reset_mini():
