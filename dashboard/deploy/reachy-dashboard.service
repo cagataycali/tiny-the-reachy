@@ -14,6 +14,9 @@ ExecStart=/venvs/apps_venv/bin/python -m dashboard.server
 Restart=always
 RestartSec=3
 Nice=5
+# uvicorn + the rpicam reader thread ignore SIGTERM for ~90 s (seen 2026-09-17); cut restarts short
+TimeoutStopSec=8
+KillMode=mixed
 
 [Install]
 WantedBy=default.target

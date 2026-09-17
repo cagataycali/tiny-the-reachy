@@ -276,6 +276,28 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
         return StreamingResponse(gen(), media_type=f"multipart/x-mixed-replace; boundary={boundary}",
                                  headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
 
+    # ── tiny.technology endpoint-device contract (worker ENDPOINT_ACTIONS) ──
+    # telemetry → GET /api/telemetry · snapshot → GET /api/camera/snapshot · chat → POST /api/chat
+    @app.get("/api/telemetry")
+    async def telemetry():
+        st = await asyncio.to_thread(robot.state)
+        st["camera"] = robot.cam.status()
+        st["daemon"] = robot._daemon.get()
+        st["t"] = time.time()
+        return st
+
+    @app.get("/api/camera/snapshot")
+    async def camera_snapshot():
+        return await snapshot()
+
+    @app.post("/api/chat")
+    async def chat(req: Request, body: Dict[str, Any] = Body(default={})):
+        who = _control(req)
+        text = str(body.get("prompt") or body.get("text") or "").strip()[:600]
+        if not text:
+            raise HTTPException(422, {"error": "prompt required"})
+        return app.state.ask.run(text, who, emit, robot)
+
     # ── control ──
     @app.post("/api/control/look")
     async def look(req: Request, body: Dict[str, Any] = Body(default={})):
