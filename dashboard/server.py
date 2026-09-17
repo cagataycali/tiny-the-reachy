@@ -113,7 +113,8 @@ class Ask:
                      system_prompt=tiny._shell_prompt() + origin + tiny_mcp.prompt_block("dashboard", fleet=fleet),
                      callback_handler=handler)
 
-    def run(self, text: str, who: str, emit, robot: Robot, *, fleet: bool = False) -> Dict[str, Any]:
+    def run(self, text: str, who: str, emit, robot: Robot, *, fleet: bool = False,
+            wait: float = 0) -> Dict[str, Any]:
         with self.lock:
             if self.busy:
                 raise HTTPException(429, {"error": "an ask is already running"})
@@ -150,6 +151,16 @@ class Ask:
                 self.busy = False
 
         threading.Thread(target=watchdog, daemon=True).start()
+        if wait:
+            # fleet callers (use_device invoke → /api/chat) need the ANSWER, not an acceptance:
+            # block up to `wait` s (the platform proxy allows ~90 s), then fall back to accepted.
+            t.join(min(float(wait), ASK_TIMEOUT))
+            if not t.is_alive() and self.last and self.last.get("text") == text:
+                res = dict(self.last)
+                res["result"] = res.get("reply") or res.get("error") or ""
+                return res
+            return {"ok": True, "accepted": True, "pending": True, "text": text,
+                    "result": "still working — the move/answer will land on the robot shortly"}
         return {"ok": True, "accepted": True, "text": text}
 
 
@@ -319,7 +330,7 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
         if not text:
             raise HTTPException(422, {"error": "prompt required"})
         # endpoint-proxy chat = a fleet turn: depth-capped (no use_device etc.), see docs/MCP.md
-        return app.state.ask.run(text, who, emit, robot, fleet=True)
+        return await asyncio.to_thread(app.state.ask.run, text, who, emit, robot, fleet=True, wait=75)
 
     # ── control ──
     @app.post("/api/control/look")

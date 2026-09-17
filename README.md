@@ -56,6 +56,8 @@ python mcp_server_entry.py --http --port 8090                     # HTTP mode, m
 
 > Tools connect to the robot lazily. The server starts without hardware — individual tool calls fail cleanly if the Reachy daemon (`:8000`) isn't running. Bring up the daemon first (real robot or `make sim`).
 
+**The other direction — Tiny as an MCP *client*.** With `TINY_MCP=1` the personas mount the [tiny.technology](https://tiny.technology) MCP server (`tiny-tech`) as Strands tools: `use_device` reaches the owner's other devices (fomo the arm, q-the-brain, the Mac, Scout the rover), `tiny_recall`/`tiny_learn` share memory across agents. Curated allow-list, self-invoke refused, cross-device chains capped at depth 1, fail-open when node/token are missing. See [docs/MCP.md](docs/MCP.md).
+
 ---
 
 ## 🧬 the family
