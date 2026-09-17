@@ -5,10 +5,10 @@ import Twin from './components/Twin'
 import { Camera } from './components/Camera'
 import { EmotionGrid } from './components/Emotions'
 import { HeadPad } from './components/Joystick'
-import { AgentLog } from './components/Log'
+import { Live, Timeline } from './components/Timeline'
 import { Login } from './components/Login'
 
-type Thought = { id: number; kind: 'start' | 'text' | 'tool' | 'end' | 'timeout'; text: string }
+type Thought = Live
 
 export default function App() {
   const [auth, setAuth] = useState<AuthStatus | null>(null)
@@ -16,7 +16,6 @@ export default function App() {
   const [toast, setToast] = useState<string>('')
   const [thoughts, setThoughts] = useState<Thought[]>([])
   const [askBusy, setAskBusy] = useState(false)
-  const [ask, setAsk] = useState('')
   const [say, setSay] = useState('')
   const [roll, setRoll] = useState(0)
   const [body, setBody] = useState(0)
@@ -34,14 +33,15 @@ export default function App() {
         if (last && last.kind === 'text') return [...t.slice(0, -1), { ...last, text: last.text + (e.text || '') }]
         return [...t, { id, kind: 'text', text: e.text || '' }]
       }
-      if (e.event === 'tool') return [...t, { id, kind: 'tool', text: `${e.name} ${e.input || ''}`.trim() }]
+      if (e.event === 'tool') return [...t, { id, kind: 'tool', text: `${e.name} ${e.input || ''}`.trim(), name: e.name, input: e.input }]
+      if (e.event === 'end' || e.event === 'timeout') setTimeout(() => setThoughts([]), 2500)
       if (e.event === 'end') { setAskBusy(false); return [...t, { id, kind: 'end', text: e.ok ? `done in ${e.seconds}s` : `failed: ${e.error}` }] }
       if (e.event === 'timeout') { setAskBusy(false); return [...t, { id, kind: 'timeout', text: `timed out after ${e.seconds}s` }] }
       return t
     })
   }, [])
 
-  const { state, hello, rows, events, connected } = useSocket(onAgent)
+  const { state, hello, rows, connected } = useSocket(onAgent)
   const can = !!(hello?.can_control)
   const refreshAuth = useCallback(() => { api.auth().then(setAuth).catch(() => {}) }, [])
   useEffect(() => { refreshAuth(); api.emotions().then(setEmotions).catch(() => {}) }, [refreshAuth])
@@ -55,7 +55,6 @@ export default function App() {
   }
   const look = (yaw: number, pitch: number) => ctl('look', { yaw, pitch, roll, body_yaw: body, duration: 0.8 })
   const home = () => { setRoll(0); setBody(0); setAntR(0); setAntL(0); return ctl('home') }
-  const doAsk = async () => { const t = ask.trim(); if (!t) return; setThoughts([]); const r = await ctl('ask', { text: t }); if (r) setAsk('') }
   const doSay = async () => { const t = say.trim(); if (!t) return; const r = await ctl('say', { text: t }); if (r) { setSay(''); setToast(r.engine === 'piper-local' ? `speaking (${r.seconds}s)` : (r.warning || 'queued — no voice backend')) } }
 
   const s = state
@@ -152,22 +151,11 @@ export default function App() {
           <Slider label="volume" v={vol ?? 70} min={0} max={100} set={(v) => setVol(v)} can={can} onDone={(v) => ctl('volume', { level: v })} unit="%" />
         </section>
 
-        <section className="card">
-          <h2>💭 Ask TINY <span className="muted small">one Strands agent turn · watch it think</span></h2>
-          <div className="inline">
-            <input value={ask} onChange={(e) => setAsk(e.target.value)} placeholder="Who are you? Look at the camera and tell me what you see…" disabled={!can || askBusy} onKeyDown={(e) => e.key === 'Enter' && doAsk()} />
-            <button className="btn primary" disabled={!can || askBusy || !ask.trim()} onClick={doAsk}>{askBusy ? '…' : 'ask'}</button>
-          </div>
-          <div className="thoughts">
-            {thoughts.length === 0 && <div className="muted">{askBusy ? 'thinking…' : 'the agent\'s reply, tool calls and reasoning stream here'}</div>}
-            {thoughts.map((t) => <div key={t.id} className={`th ${t.kind}`}>{t.kind === 'tool' ? '🔧 ' : t.kind === 'start' ? '❯ ' : t.kind === 'end' ? '✓ ' : ''}{t.text}</div>)}
-          </div>
+        <section className="card wide2 mind" id="mind">
+          <h2>🧠 TINY's mind <span className="muted small">one feed · voice · telegram · thinker · dashboard — text, reasoning, tool receipts, live</span></h2>
+          <Timeline rows={rows} live={thoughts} askBusy={askBusy} can={can} onAsk={async (t) => { setThoughts([]); const r = await ctl('ask', { text: t }); return !!r }} />
         </section>
 
-        <section className="card wide2">
-          <h2>🧠 Shared brain <span className="muted small">live agent_log — thinker · telegram · voice · dashboard</span></h2>
-          <AgentLog rows={rows} events={events} />
-        </section>
       </main>
 
       <footer className="muted small">reachy.cagatay.my · dashboard {hello?.version ?? ''} · uptime {Math.round((s?.uptime_s ?? 0) / 60)} min · {s?.camera?.clients ?? 0} viewer{(s?.camera?.clients ?? 0) === 1 ? '' : 's'} · public read-only, owner drives</footer>

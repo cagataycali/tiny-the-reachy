@@ -44,3 +44,27 @@ input[type=range]{ width:100%; accent-color:var(--acc); height:28px }
 footer { margin-top:14px; text-align:center }
 .toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:#1a1a26; border:1px solid var(--warn); color:var(--warn); padding:9px 14px; border-radius:10px; z-index:20 }
 .modal { position:fixed; inset:0; background:rgba(0,0,0,.6); display:grid; place-items:center; z-index:30; padding:16px } .sheet { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; width:min(420px,100%) } .sheet h3{ margin:0 0 6px } .stack{ display:grid; gap:6px; margin-top:12px } .msg{ margin-top:10px; color:var(--warn) }
+
+/* ── unified timeline ── */
+.mind h2 { margin-bottom: 8px }
+.timeline { display:flex; flex-direction:column; gap:8px }
+.tl-filters { display:flex; flex-wrap:wrap; gap:6px; align-items:center }
+.chip { --c:#9ca3af; font:12px ui-monospace,monospace; padding:3px 9px; border-radius:999px; border:1px solid #2a2a3a; background:#12121a; color:#77778a; cursor:pointer }
+.chip.on { color:var(--c); border-color:var(--c); background:color-mix(in srgb, var(--c) 12%, #12121a) }
+.chip.sys { display:flex; gap:5px; align-items:center; cursor:default } .chip.sys input { margin:0 }
+.tl-scroll { overflow:auto; background:#0e0e15; border-radius:10px; padding:6px 8px; font-size:13px; scroll-behavior:smooth }
+.tl-row { display:grid; grid-template-columns:58px 22px 1fr; gap:6px; padding:5px 0; border-bottom:1px solid #15151f; align-items:start }
+.tl-ts { color:#55556a; font:11px ui-monospace,monospace; padding-top:3px } .tl-chip { font-size:13px; text-align:center; padding-top:1px }
+.tl-body { white-space:pre-wrap; word-break:break-word; color:#c8c8d4; line-height:1.4 }
+.tl-who { display:inline-block; font:600 10px ui-monospace,monospace; letter-spacing:.04em; text-transform:uppercase; color:#77778a; margin-right:8px; padding-top:2px }
+.role-user .tl-body { color:var(--fg) } .role-user .tl-body::before { content:''; }
+.role-assistant .tl-body { color:#e6e6f0 } .role-assistant .tl-who { color:#5eead4 }
+.role-system .tl-body { color:#6b6b80; font-size:12px }
+.role-reasoning .tl-body { color:#9d8fd6; font-style:italic; font-size:12px; cursor:pointer } .role-reasoning .tl-who { color:#a78bfa }
+.tl-body.tool { font:12px ui-monospace,monospace; cursor:pointer; display:flex; flex-wrap:wrap; gap:6px; align-items:baseline }
+.tl-tool { color:var(--warn); font-weight:600 } .tl-in { color:#9aa0b4; background:#14141e; padding:1px 6px; border-radius:6px; white-space:pre-wrap; word-break:break-all }
+.tl-res { color:#8fd694; flex-basis:100% } .tl-res.bad { color:var(--bad) } .tl-pending { color:#77778a; animation:blink 1.2s infinite }
+.tl-live { border-left:2px solid #5eead4; margin:4px 0 0 -8px; padding-left:6px; background:linear-gradient(90deg, rgba(94,234,212,.06), transparent) }
+.tl-live .tl-row { grid-template-columns:22px 1fr }
+.caret { color:#5eead4; animation:blink .9s infinite } @keyframes blink { 50% { opacity:.2 } }
+.tl-ask { display:flex; gap:8px } .tl-ask input { flex:1 }

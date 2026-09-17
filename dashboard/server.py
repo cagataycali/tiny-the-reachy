@@ -42,7 +42,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
 from . import __version__, auth
-from .robot import Robot, agent_log_tail
+from .robot import Robot, agent_log_record, agent_log_tail
 
 log = logging.getLogger("reachy.dash")
 REPO = Path(__file__).resolve().parent.parent
@@ -92,11 +92,17 @@ class Ask:
                 emit({"type": "agent", "event": "tool", "name": tu.get("name"), "id": tu.get("toolUseId"),
                       "input": str(tu.get("input", ""))[:400]})
 
+        # tool use/results + reasoning → agent_log rows (persona "dashboard") for the unified feed; cb keeps streaming
+        try:
+            from tools.agent_log import make_callback  # noqa: PLC0415
+            handler = make_callback("dashboard", {"kind": "ask"}, chain=cb)
+        except Exception:  # noqa: BLE001
+            handler = cb
         return Agent(model=tiny.MODEL_ID, tools=tiny.build_voice_tools(),
                      system_prompt=tiny._shell_prompt()
                      + "\n\nYou are being driven from the public web dashboard (reachy.cagatay.my) during a live "
                        "showcase. Answer in 1–3 short sentences, use one expressive move when it fits, never sleep.",
-                     callback_handler=cb)
+                     callback_handler=handler)
 
     def run(self, text: str, who: str, emit, robot: Robot) -> Dict[str, Any]:
         with self.lock:
@@ -105,7 +111,8 @@ class Ask:
             self.busy = True
         started = time.time()
         emit({"type": "agent", "event": "start", "text": text, "who": who})
-        robot.log("ask", text, who)
+        robot.events.append({"t": time.time(), "kind": "ask", "who": who, "text": text})
+        agent_log_record("dashboard", "user", text, {"kind": "ask", "who": who})
 
         def work() -> None:
             result: Dict[str, Any] = {"ok": False}
@@ -114,7 +121,7 @@ class Ask:
                 out = agent(text)
                 reply = str(out)
                 result = {"ok": True, "reply": reply, "seconds": round(time.time() - started, 1)}
-                robot.log("ask-reply", reply[:600], "tiny")
+                agent_log_record("dashboard", "assistant", reply[:2000], {"kind": "ask", "seconds": result["seconds"]})
             except Exception as e:  # noqa: BLE001
                 result = {"ok": False, "error": str(e)[:400], "seconds": round(time.time() - started, 1)}
                 robot.log("error", f"ask failed: {e}", "tiny")
@@ -359,7 +366,7 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
         await sock.accept()
         app.state.clients.add(sock)
         await sock.send_json({"type": "hello", "who": who, "can_control": who is not None, "version": __version__})
-        rows = await asyncio.to_thread(agent_log_tail, 40, 0)
+        rows = await asyncio.to_thread(agent_log_tail, 200, 0)
         last_id = rows[-1]["id"] if rows else 0
         await sock.send_json({"type": "log", "rows": rows})
         for ev in robot.events[-30:]:

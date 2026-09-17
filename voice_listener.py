@@ -39,12 +39,15 @@ def _release_daemon_media():
 async def run_once():
     _release_daemon_media()
     agent, audio_io = build_voice_agent(provider=PROVIDER, voice=VOICE or None)
+    # transcripts (what was heard / what TINY said) + tool calls → shared agent_log for the dashboard feed
+    from tools.agent_log import BidiTranscriptSink
+    sink = BidiTranscriptSink("voice")
     model_id = getattr(agent.model, "model_id", "default")
     print(f"🎙 TINY voice up (provider={PROVIDER}, model={model_id}, "
           f"voice={VOICE or 'default'})", file=sys.stderr)
     print("   live mute: memory kv 'voice.muted' (true/false); /mute /unmute on Telegram.",
           file=sys.stderr)
-    await agent.run(inputs=[audio_io.input()], outputs=[audio_io.output()])
+    await agent.run(inputs=[audio_io.input()], outputs=[audio_io.output(), sink])
 
 
 def main():

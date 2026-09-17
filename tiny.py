@@ -306,9 +306,14 @@ def build_agent(persona: str, *, chat_id: Optional[str] = None,
         prompt = _thinker_prompt()
     else:
         raise ValueError(f"unknown persona: {persona}")
+    # Tool calls/results + reasoning → agent_log (dashboard unified feed); stdout printing kept.
+    from strands.handlers.callback_handler import PrintingCallbackHandler
+    from tools.agent_log import make_callback
+    meta = {"chat_id": chat_id} if chat_id else None
     return Agent(model=MODEL_ID,
                  tools=build_tools(include_telegram=True, include_robot=True),
-                 system_prompt=prompt)
+                 system_prompt=prompt,
+                 callback_handler=make_callback(persona, meta, chain=PrintingCallbackHandler()))
 
 
 # ── voice (BidiAgent) factory ───────────────────────────────────────

@@ -22,7 +22,7 @@ export function useSocket(onAgent: (e: AgentEvent) => void) {
         switch (d.type) {
           case 'hello': setHello(d); break
           case 'state': setState(d); break
-          case 'log': setRows((r) => [...r, ...d.rows].slice(-200)); break
+          case 'log': setRows((r) => [...r, ...d.rows].slice(-400)); break
           case 'event': setEvents((e) => [...e, d].slice(-100)); break
           case 'agent': onAgentRef.current(d); break
         }
