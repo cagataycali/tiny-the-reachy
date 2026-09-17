@@ -12,6 +12,8 @@ const require = createRequire(import.meta.url);
 const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const axePath = process.env.AXE_PATH || require.resolve('axe-core/axe.min.js');
 const base = new URL(process.env.BASE_URL || 'http://127.0.0.1:8767/');
+assert(['127.0.0.1', 'localhost', '[::1]'].includes(base.hostname), 'BASE_URL must be a local static docs preview');
+assert(base.protocol === 'http:' && !base.username && !base.password, 'Use an HTTP preview without credentials');
 const out = process.env.PROOF_DIR || '/tmp/reachy-docs-accessibility';
 await fs.mkdir(out, {recursive: true});
 const browser = await chromium.launch();
@@ -20,6 +22,7 @@ async function makePage(options = {}) {
   const page = await browser.newPage(options);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
+      if (!['GET', 'HEAD'].includes(route.request().method())) return route.abort();
     return url.origin === base.origin || ['unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'github.com'].includes(url.hostname)
       ? route.continue() : route.abort();
   });

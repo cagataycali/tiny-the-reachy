@@ -7,6 +7,8 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = new URL(process.env.BASE_URL || 'http://127.0.0.1:8767/');
+assert(['127.0.0.1', 'localhost', '[::1]'].includes(base.hostname), 'BASE_URL must be a local static docs preview');
+assert(base.protocol === 'http:' && !base.username && !base.password, 'Use an HTTP preview without credentials');
 const out = process.env.PROOF_DIR || '/tmp/reachy-docs-proof';
 await fs.mkdir(out, {recursive: true});
 const browser = await chromium.launch({headless: true});
@@ -19,6 +21,7 @@ try {
     // Allow only documentation dependencies, never a robot/private endpoint.
     await page.route('**/*', route => {
       const url = new URL(route.request().url());
+      if (!['GET', 'HEAD'].includes(route.request().method())) return route.abort();
       const allowed = url.origin === base.origin ||
         ['unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com', 'github.com'].includes(url.hostname);
       return allowed ? route.continue() : route.abort();
