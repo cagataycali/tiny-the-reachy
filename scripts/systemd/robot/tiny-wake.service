@@ -1,0 +1,16 @@
+[Unit]
+Description=TINY (Reachy Mini) - wake motors at boot (daemon starts asleep)
+After=network-online.target reachy-mini-daemon.service
+Wants=reachy-mini-daemon.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/pollen
+ExecStartPre=/bin/sleep 8
+ExecStart=/venvs/apps_venv/bin/python /home/pollen/tiny-wake.py
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
