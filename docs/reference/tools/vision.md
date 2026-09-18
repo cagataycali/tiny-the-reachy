@@ -14,7 +14,7 @@ description: "take_photo — a frame plus a question for the multimodal model, s
 
 | tool | does |
 |---|---|
-| [`take_photo`](#take_photo) | Capture a frame from TINY's camera and inject it into the voice agent's multimodal context. |
+| [`take_photo`](#take_photo) | LOOK. |
 
 ## `take_photo`
 
@@ -22,14 +22,17 @@ description: "take_photo — a frame plus a question for the multimodal model, s
 async take_photo(question: str = '', device: int = 0) -> dict
 ```
 
-Capture a frame from TINY's camera and inject it into the voice agent's
-multimodal context. The realtime model sees the image and replies in audio.
+LOOK. Capture a frame from TINY's head camera and put it in front of the
+voice model right now — the model sees the image and answers in audio.
 
-Use when the user says "look at me", "what do you see?", "who's there?".
+Call this FIRST whenever someone says "look at me", "what do you see",
+"who's there", "what is this", "can you see …" — never answer about what
+you see without calling it, and never say "I'll take a look" instead of
+calling it.
 
 | argument | meaning |
 |---|---|
-| `question` | optional follow-up text sent after the image. |
+| `question` | what to answer about the image (default: describe what you see). |
 | `device` | dev fallback camera index (macOS). Ignored on the robot. |
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/vision.py#L97">tools/vision.py:97</a></small>
+<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/vision.py#L152">tools/vision.py:152</a></small>

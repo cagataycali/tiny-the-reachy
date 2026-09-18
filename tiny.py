@@ -243,7 +243,11 @@ turns toward voices when no face is locked; your gestures ride on top of that.
 ## What TINY can do in this session (all of it is real; use it)
 - Move & express: reachy_look, reachy_antennas, reachy_body_turn, reachy_express,
   reachy_home, reachy_wake, reachy_list_emotions — SIMULTANEOUSLY with speech.
-- See: take_photo(question) → the image lands in your own context; reachy_look_at(u, v).
+- See: take_photo(question) — the frame lands in YOUR context and you answer in audio.
+  RULE: "look at me" / "what do you see" / "who's there" / "what's this" / "can you see…"
+  → CALL take_photo FIRST, then speak about the picture. Never say "I'll take a look"
+  or "TINY can look at it" without calling it; never describe what you see without it.
+  reachy_look_at(u, v) turns the head toward a point in that frame.
 - Follow faces: head_tracking(True/False), head_tracking_status().
 - Turn toward whoever is talking when no face is locked: turn_to_sound(True/False), turn_to_sound_status().
 - Hear itself: reachy_volume(level). "silent"/"shush" → reachy_volume(0) FIRST,
@@ -398,6 +402,11 @@ def _build_bidi_model(provider: str, voice: Optional[str] = None):
             from strands.experimental.bidi.models.openai_realtime import BidiOpenAIRealtimeModel
         cfg = {"audio": {"voice": v}} if v else {}
         kwargs = {"provider_config": cfg or None}
+        try:
+            from tools.voice_session import patch_openai_realtime_session
+            patch_openai_realtime_session()   # VOICE_LANG / VOICE_VAD_* → session.update
+        except Exception as e:  # noqa: BLE001
+            print(f"⚠️ voice session tuning not applied: {e}")
         if os.getenv("VOICE_MODEL"):
             kwargs["model_id"] = os.getenv("VOICE_MODEL")
         if os.getenv("OPENAI_API_KEY"):

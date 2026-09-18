@@ -44,7 +44,8 @@ def cycle(agent) -> None:
     user_turn = (
         "Run an active heartbeat cycle. TINY is alive — show it.\n"
         "MANDATORY (do 1+3+4 every time, VARY step 2):\n"
-        "  1. reachy_camera(save_path='/tmp/tiny_view.jpg').\n"
+        "  1. capture_camera(save_path='/tmp/tiny_view.jpg') — ONE call: the frame lands in your context AND is saved\n"
+        "     to /tmp/tiny_view.jpg for step 3 (do not call reachy_camera + image_reader).\n"
         "  2. PICK ONE expressive action — ROTATE, do NOT repeat last cycle:\n"
         "       (a) reachy_express('happy'|'curious'|'surprised'|'sad'|'yes'|'no')\n"
         "       (b) reachy_antennas(right, left)  — always safe\n"

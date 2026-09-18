@@ -53,7 +53,7 @@ media-capable backend so the camera intrinsics are known.
 ## `capture_camera`
 
 ```python
-capture_camera(question: str = '') -> dict
+capture_camera(question: str = '', save_path: str = '') -> dict
 ```
 
 Grab a frame from TINY's head camera and return it as an IMAGE block (text personas only).
@@ -61,6 +61,8 @@ Grab a frame from TINY's head camera and return it as an IMAGE block (text perso
 For the telegram / thinker / shell personas (Bedrock Claude): the JPEG lands
 in the conversation so the model can SEE it. NOT for the realtime VOICE
 persona — OpenAI Realtime rejects image tool results and drops the session;
-voice must use take_photo() instead. Optional question is echoed for context.
+voice must use take_photo() instead. Optional question is echoed for context;
+save_path defaults to $TINY_CAMERA_SNAPSHOT and is reported so a follow-up
+telegram send_photo can reuse the same file (no second capture, no image_reader).
 
 <small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_camera.py#L91">tools/reachy_camera.py:91</a></small>

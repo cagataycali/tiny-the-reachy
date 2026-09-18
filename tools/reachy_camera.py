@@ -88,15 +88,17 @@ def reachy_look_at(u: int, v: int, duration: float = 1.0) -> dict:
 
 
 @tool
-def capture_camera(question: str = "") -> dict:
+def capture_camera(question: str = "", save_path: str = "") -> dict:
     """Grab a frame from TINY's head camera and return it as an IMAGE block (text personas only).
 
     For the telegram / thinker / shell personas (Bedrock Claude): the JPEG lands
     in the conversation so the model can SEE it. NOT for the realtime VOICE
     persona — OpenAI Realtime rejects image tool results and drops the session;
-    voice must use take_photo() instead. Optional question is echoed for context.
+    voice must use take_photo() instead. Optional question is echoed for context;
+    save_path defaults to $TINY_CAMERA_SNAPSHOT and is reported so a follow-up
+    telegram send_photo can reuse the same file (no second capture, no image_reader).
     """
-    r = reachy_camera()
+    r = reachy_camera(save_path=save_path)
     if r.get("status") != "success":
         return r
     try:
@@ -104,7 +106,7 @@ def capture_camera(question: str = "") -> dict:
         data = Path(path).read_bytes()
     except Exception as e:  # noqa: BLE001
         return err(f"capture_camera: frame saved but unreadable: {e}")
-    text = f"camera frame ({len(data)//1024} KB)"
+    text = f"camera frame ({len(data)//1024} KB) saved → {path}"
     if question:
         text += f" — question: {question}"
     return {"status": "success",
