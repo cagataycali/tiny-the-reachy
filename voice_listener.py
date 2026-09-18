@@ -54,6 +54,13 @@ def _is_fatal(err: BaseException) -> bool:
 async def run_once():
     if RELEASE_MEDIA:
         _release_daemon_media()
+    # The audio board mutes the near end while the speaker plays unless PP_NLATTENONOFF=0 — no barge-in
+    # otherwise. Runtime-only on the chip, so re-applied at every start (tools/xmos_audio.py has the numbers).
+    try:
+        from tools.xmos_audio import apply_params
+        await asyncio.to_thread(apply_params)
+    except Exception as e:  # noqa: BLE001
+        print(f"[voice] XVF3800 tuning skipped: {e}", file=sys.stderr)
     agent, audio_io = build_voice_agent(provider=PROVIDER, voice=VOICE or None)
     # transcripts (what was heard / what TINY said) + tool calls → shared agent_log for the dashboard feed
     from tools.agent_log import BidiTranscriptSink

@@ -42,6 +42,7 @@ Where the values live:
 | variable | default | read by | purpose |
 |---|---|---|---|
 | `REACHY_AUDIO_RATE` | `16000` | `tiny.py` | PyAudio device sample rate; resampled to the model's rate (24 kHz OpenAI, 16 kHz Nova). |
+| `REACHY_DAEMON_PYTHON` | `/venvs/mini_daemon/bin/python` | `tools/xmos_audio.py` | Interpreter of Pollen's daemon venv (default /venvs/mini_daemon/bin/python) — used for the USB fallback when the daemon's audio-config endpoint refuses int parameters. |
 | `TINY_PHOTO_QUESTION` | `This is what your head camera sees right now. Say briefly what you see; if there is a person, describe them and what they are doing.` | `tools/vision.py` | What `take_photo` asks the voice model about the frame when the caller gives no question. |
 | `VOICE_LANG` | *(unset)* | `tools/voice_session.py` | ISO-639-1 hint for input transcription (`tr`, `en`); unset = auto-detect, which turns room noise into phantom foreign-language turns. |
 | `VOICE_MODEL` | *(unset)* | `tiny.py` | OpenAI Realtime model id override (robot `.env`: `gpt-realtime-2`); unset = strands' default. |
@@ -56,6 +57,7 @@ Where the values live:
 | `VOICE_VAD_PREFIX_MS` | `300` | `tools/voice_session.py` | Audio kept before detected speech onset, ms (default 300). |
 | `VOICE_VAD_SILENCE_MS` | `600` | `tools/voice_session.py` | Silence that ends a user turn, ms (default 600). |
 | `VOICE_VAD_THRESHOLD` | `0.5` | `tools/voice_session.py` | OpenAI server-VAD speech threshold 0–1 (default 0.5 = OpenAI's). Raising it makes barge-in over TINY's own speech harder; the XMOS board's hardware AEC already removes the echo. |
+| `VOICE_XMOS_PARAMS` | `DEFAULT_PARAMS` | `tools/xmos_audio.py` | XVF3800 audio-board parameters the voice persona writes at every start (runtime-only on the chip). Default `PP_NLATTENONOFF=0` — the factory value mutes your voice while Reachy speaks, which makes barge-in impossible. Empty disables. |
 
 ### Robot
 
@@ -84,11 +86,11 @@ Where the values live:
 | `REACHY_DOA_WINDUP_RATIO` | `0.6` | `dashboard/doa.py` | …“did not shrink” = new |delta| ≥ this × the previous one (default 0.6). |
 | `REACHY_DOA_WINDUP_S` | `10` | `dashboard/doa.py` | A same-direction turn within this window while the bearing did not shrink is refused (default 10 s). |
 | `REACHY_FD_WARN_FRACTION` | `0.6` | `dashboard/daemonlink.py` | Warn (health + cockpit pill) when the daemon's open fds exceed this fraction of its limit (default 0.6). |
-| `REACHY_HOST` | `127.0.0.1` | `dashboard/server.py`, `tools/_reachy_common.py`, `voice_listener.py` | Daemon host for the SDK client and the dashboard. |
+| `REACHY_HOST` | `127.0.0.1` | `dashboard/server.py`, `tools/_reachy_common.py`, `tools/xmos_audio.py`, `voice_listener.py` | Daemon host for the SDK client and the dashboard. |
 | `REACHY_MEDIA_BACKEND` | `no_media` | `tools/_reachy_common.py` | SDK media backend for the personas' shared client; `no_media` keeps the daemon owning mic + camera. |
 | `REACHY_MOVES_ACTIVE_HZ` | `5` | `dashboard/daemonlink.py` | `/api/move/running` probe rate right after the dashboard started a move (default 5 Hz). |
 | `REACHY_MOVES_IDLE_PROBE_S` | `3` | `dashboard/daemonlink.py` | Seconds between `/api/move/running` probes when nothing is in flight (default 3). |
-| `REACHY_PORT` | `8000` | `tools/_reachy_common.py`, `voice_listener.py` | Daemon HTTP port (Pollen daemon listens on :8000). |
+| `REACHY_PORT` | `8000` | `tools/_reachy_common.py`, `tools/xmos_audio.py`, `voice_listener.py` | Daemon HTTP port (Pollen daemon listens on :8000). |
 | `REACHY_SPAWN_DAEMON` | *(unset)* | `tools/_reachy_common.py` | `1` = let the SDK spawn a daemon if none answers (dev laptops only). |
 | `REACHY_USE_SIM` | *(unset)* | `tools/_reachy_common.py` | `1` = talk to the MuJoCo simulation instead of the robot (`make sim`). |
 | `TINY_CAMERA_SNAPSHOT` | `str(Path(tempfile.gettempdir()) / 'tiny_view.jpg')` | `tools/reachy_camera.py` | Where `reachy_camera` writes the frame it hands to the vision model. |
@@ -180,5 +182,5 @@ Where the values live:
 | `TINY_TOKEN` | *(unset)* | `tools/tiny_mcp.py` | tiny.technology CLI JWT for the MCP server (`TINY_TOKEN_FILE` wins if both are set). |
 | `TINY_TOKEN_FILE` | *(unset)* | `tools/tiny_mcp.py` | Mode-600 file holding that token. Never logged. |
 
-_108 variables, scanned from every `os.getenv` / `os.environ` in the repo._
+_110 variables, scanned from every `os.getenv` / `os.environ` in the repo._
 <!-- /gen:env -->
