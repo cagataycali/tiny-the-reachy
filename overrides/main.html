@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "partials/companion.html" import companion %}
+
+{% block site_meta %}
+  {{ super() }}
+  <meta property="og:title" content="{{ page.title if page else 'Page not found' }} · tiny" />
+  <meta property="og:description" content="A field guide to TINY: expression, language and presence in a Reachy Mini. Built with Strands Agents." />
+  <meta property="og:image" content="{{ 'assets/tiny-mark.svg' | url }}" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="theme-color" content="#f5f6f7" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121416" />
+{% endblock %}
+
+{% block content %}
+  {% if page and page.is_homepage %}
+    {# Static fallback is visible above the hero. JS places this inside its grid. #}
+    {{ companion() }}
+  {% else %}
+    <div class="rh-manual-label" aria-hidden="true">TINY / FIELD GUIDE</div>
+  {% endif %}
+  {{ super() }}
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ 'javascripts/design.js?v=1' | url }}" defer></script>
+{% endblock %}

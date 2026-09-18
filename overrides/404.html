@@ -1,0 +1,17 @@
+{% extends "main.html" %}
+{% from "partials/companion.html" import companion %}
+{% block content %}
+<section class="rh-lost">
+  <div>
+    <p class="rh-manual-label">404 / A SMALL DETOUR</p>
+    <h1>That page wandered<br>off the desk.</h1>
+    <p>TINY is still here. Let's find your way back.</p>
+    <p class="rh-cta">
+      <a href="{{ '' | url }}" class="md-button md-button--primary">Back home</a>
+      <a href="{{ 'start/quickstart/' | url }}" class="md-button">Quickstart</a>
+      <a href="{{ 'reference/tools/' | url }}" class="md-button">Tool reference</a>
+    </p>
+  </div>
+  {{ companion('lost', false) }}
+</section>
+{% endblock %}
