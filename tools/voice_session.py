@@ -8,9 +8,15 @@ fires and gpt-4o-transcribe, with no language hint, guesses. Each one costs a
 bar, all from env so nothing here is hard-coded per household:
 
     VOICE_LANG              ISO-639-1 for input transcription (e.g. tr, en). Unset = auto.
-    VOICE_VAD_THRESHOLD     server_vad threshold, default 0.6 (OpenAI default 0.5)
+    VOICE_TRANSCRIBE_PROMPT free-text hint for the transcriber ("Turkish or English, robot named TINY")
+    VOICE_TURN_DETECTION    server_vad (default) | semantic_vad
+    VOICE_VAD_THRESHOLD     server_vad threshold, default 0.5 (= OpenAI). Raising it makes barge-in
+                            over TINY's own speech HARDER — the XMOS board's hardware AEC already
+                            removes the echo, so there is no reason to.
     VOICE_VAD_SILENCE_MS    end-of-turn silence, default 600 (OpenAI default 500)
     VOICE_VAD_PREFIX_MS     audio kept before speech onset, default 300
+    VOICE_VAD_EAGERNESS     semantic_vad only: low | medium | high | auto
+interrupt_response / create_response are always set true (barge-in is the server's job).
 
 Applied by wrapping BidiOpenAIRealtimeModel._build_session_config (idempotent),
 deep-copying the config so the module-level DEFAULT_SESSION_CONFIG is never mutated
@@ -38,16 +44,33 @@ def _as_int(raw: str, default: int) -> int:
 
 def session_overrides() -> dict:
     """The audio.input overrides we want, from env."""
-    turn = {
-        "type": "server_vad",
-        "threshold": max(0.0, min(1.0, _as_float(os.getenv("VOICE_VAD_THRESHOLD", "0.6"), 0.6))),
-        "prefix_padding_ms": _as_int(os.getenv("VOICE_VAD_PREFIX_MS", "300"), 300),
-        "silence_duration_ms": _as_int(os.getenv("VOICE_VAD_SILENCE_MS", "600"), 600),
-    }
+    kind = (os.getenv("VOICE_TURN_DETECTION", "server_vad") or "server_vad").strip().lower()
+    if kind == "semantic_vad":
+        eager = (os.getenv("VOICE_VAD_EAGERNESS", "auto") or "auto").strip().lower()
+        if eager not in ("low", "medium", "high", "auto"):
+            eager = "auto"
+        turn: dict = {"type": "semantic_vad", "eagerness": eager}
+    else:
+        turn = {
+            "type": "server_vad",
+            "threshold": max(0.0, min(1.0, _as_float(os.getenv("VOICE_VAD_THRESHOLD", "0.5"), 0.5))),
+            "prefix_padding_ms": _as_int(os.getenv("VOICE_VAD_PREFIX_MS", "300"), 300),
+            "silence_duration_ms": _as_int(os.getenv("VOICE_VAD_SILENCE_MS", "600"), 600),
+        }
+    # Barge-in is a server decision on Realtime: speech_started must cancel the
+    # in-flight response and the end of the user's turn must start a new one.
+    turn["interrupt_response"] = True
+    turn["create_response"] = True
     out: dict = {"turn_detection": turn}
+    transcription: dict = {"model": "gpt-4o-transcribe"}
     lang = (os.getenv("VOICE_LANG") or "").strip().lower()
     if lang:
-        out["transcription"] = {"model": "gpt-4o-transcribe", "language": lang}
+        transcription["language"] = lang
+    hint = (os.getenv("VOICE_TRANSCRIBE_PROMPT") or "").strip()
+    if hint:
+        transcription["prompt"] = hint
+    if len(transcription) > 1:
+        out["transcription"] = transcription
     return out
 
 

@@ -78,14 +78,27 @@ def test_no_lang_means_auto(monkeypatch):
     monkeypatch.delenv("VOICE_VAD_THRESHOLD", raising=False)
     out = voice_session.apply_session_config({"audio": {"input": {"transcription": {"model": "gpt-4o-transcribe"}}}})
     assert out["audio"]["input"]["transcription"] == {"model": "gpt-4o-transcribe"}
-    assert out["audio"]["input"]["turn_detection"]["threshold"] == 0.6
+    assert out["audio"]["input"]["turn_detection"]["threshold"] == 0.5
+    assert out["audio"]["input"]["turn_detection"]["interrupt_response"] is True
 
 
 def test_bad_env_values_fall_back(monkeypatch):
     monkeypatch.setenv("VOICE_VAD_THRESHOLD", "loud")
     monkeypatch.setenv("VOICE_VAD_SILENCE_MS", "x")
     o = voice_session.session_overrides()["turn_detection"]
-    assert o["threshold"] == 0.6 and o["silence_duration_ms"] == 600
+    assert o["threshold"] == 0.5 and o["silence_duration_ms"] == 600
+
+
+def test_semantic_vad_and_transcribe_prompt(monkeypatch):
+    monkeypatch.setenv("VOICE_TURN_DETECTION", "semantic_vad")
+    monkeypatch.setenv("VOICE_VAD_EAGERNESS", "loud")
+    monkeypatch.setenv("VOICE_TRANSCRIBE_PROMPT", "Turkish or English, talking to a robot named TINY")
+    monkeypatch.delenv("VOICE_LANG", raising=False)
+    o = voice_session.session_overrides()
+    assert o["turn_detection"] == {"type": "semantic_vad", "eagerness": "auto",
+                                   "interrupt_response": True, "create_response": True}
+    assert o["transcription"]["prompt"].startswith("Turkish")
+    assert "language" not in o["transcription"]
 
 
 def test_session_patch_is_idempotent_and_applies():

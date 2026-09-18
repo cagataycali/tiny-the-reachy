@@ -90,12 +90,27 @@ class _ResamplingInput(_BidiAudioInput):
 
 
 class _ResamplingOutput(_BidiAudioOutput):
-    """Speaker output at device_rate, downsampled from the model's output_rate."""
+    """Speaker output at device_rate, downsampled from the model's output_rate.
+
+    Barge-in hardening (measured 2026-09-18 on the robot — the XMOS board's hardware
+    AEC cancels our own playback completely, so a user really talking over TINY is
+    what reaches the model, and the client must honour the interruption fully):
+
+    * on ``bidi_interruption`` the playback queue AND the partially consumed chunk
+      are dropped, the resampler filter state is reset, and every further audio
+      delta is DROPPED until the next ``bidi_response_start`` — OpenAI keeps
+      streaming the cancelled response for one network round-trip after
+      ``speech_started`` and, because it generates faster than realtime, those
+      stragglers were a second or two of the old sentence blurted after the user
+      had already started talking.
+    """
 
     def __init__(self, config: dict[str, Any]) -> None:
         super().__init__(config)
         self._device_rate = config.get("device_rate", 16000)
         self._ratecv_state = None
+        self._drop_until_next_response = False
+        self.stats = {"interruptions": 0, "dropped_chunks": 0, "dropped_bytes": 0}
 
     async def start(self, agent) -> None:
         self._channels = agent.model.config["audio"]["channels"]
@@ -114,9 +129,30 @@ class _ResamplingOutput(_BidiAudioOutput):
             stream_callback=self._callback,
         )
 
+    def _flush(self) -> None:
+        """Drop everything queued for the speaker, including the half-consumed chunk."""
+        self._buffer.clear()
+        data = getattr(self._buffer, "_data", None)
+        if data is not None:
+            data.clear()
+        self._ratecv_state = None
+
     async def __call__(self, event: BidiOutputEvent) -> None:
-        if isinstance(event, BidiAudioStreamEvent):
+        etype = event.get("type") if isinstance(event, dict) else None
+        if etype == "bidi_response_start":
+            self._drop_until_next_response = False
+            return
+        if isinstance(event, BidiInterruptionEvent) or etype == "bidi_interruption":
+            self.stats["interruptions"] += 1
+            self._drop_until_next_response = True
+            self._flush()
+            return
+        if isinstance(event, BidiAudioStreamEvent) or etype == "bidi_audio_stream":
             data = base64.b64decode(event["audio"])
+            if self._drop_until_next_response:
+                self.stats["dropped_chunks"] += 1
+                self.stats["dropped_bytes"] += len(data)
+                return
             # Downsample model_rate -> device_rate before buffering for playback.
             if self._device_rate != self._model_rate and data:
                 data, self._ratecv_state = audioop.ratecv(
@@ -124,8 +160,6 @@ class _ResamplingOutput(_BidiAudioOutput):
                     self._ratecv_state,
                 )
             self._buffer.put(data)
-        elif isinstance(event, BidiInterruptionEvent):
-            self._buffer.clear()
 
 
 class ResamplingAudioIO:

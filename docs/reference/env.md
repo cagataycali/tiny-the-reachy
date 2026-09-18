@@ -50,9 +50,12 @@ Where the values live:
 | `VOICE_RELEASE_MEDIA` | `0` | `voice_listener.py` | 1 = POST /api/media/release before each voice start (Lite / daemons with exclusive ALSA). Default 0: the Wireless daemon shares the mic, and every release rebuilt its pipeline and leaked fds (2026-09-17). |
 | `VOICE_RESTART_DELAY` | `5` | `voice_listener.py` | Seconds voice_listener waits before rebuilding the session after a crash (doubles each fatal provider error). |
 | `VOICE_RESTART_DELAY_MAX` | `300` | `voice_listener.py` | Cap for that exponential backoff, seconds (default 300) — a bad key retries every 5 min, not every 5 s. |
+| `VOICE_TRANSCRIBE_PROMPT` | *(unset)* | `tools/voice_session.py` | Free-text hint for the input transcriber (e.g. `Turkish or English, talking to a robot named TINY`) — steers it without pinning one language. |
+| `VOICE_TURN_DETECTION` | `server_vad` | `tools/voice_session.py` | `server_vad` (default) or `semantic_vad` — how OpenAI decides the user's turn ended; interrupt_response/create_response are always on. |
+| `VOICE_VAD_EAGERNESS` | `auto` | `tools/voice_session.py` | `semantic_vad` only: `low` | `medium` | `high` | `auto` — how quickly it takes the turn. |
 | `VOICE_VAD_PREFIX_MS` | `300` | `tools/voice_session.py` | Audio kept before detected speech onset, ms (default 300). |
 | `VOICE_VAD_SILENCE_MS` | `600` | `tools/voice_session.py` | Silence that ends a user turn, ms (default 600). |
-| `VOICE_VAD_THRESHOLD` | `0.6` | `tools/voice_session.py` | OpenAI server-VAD speech threshold 0–1 (default 0.6; OpenAI's own default 0.5 fires on room noise). |
+| `VOICE_VAD_THRESHOLD` | `0.5` | `tools/voice_session.py` | OpenAI server-VAD speech threshold 0–1 (default 0.5 = OpenAI's). Raising it makes barge-in over TINY's own speech harder; the XMOS board's hardware AEC already removes the echo. |
 
 ### Robot
 
@@ -177,5 +180,5 @@ Where the values live:
 | `TINY_TOKEN` | *(unset)* | `tools/tiny_mcp.py` | tiny.technology CLI JWT for the MCP server (`TINY_TOKEN_FILE` wins if both are set). |
 | `TINY_TOKEN_FILE` | *(unset)* | `tools/tiny_mcp.py` | Mode-600 file holding that token. Never logged. |
 
-_105 variables, scanned from every `os.getenv` / `os.environ` in the repo._
+_108 variables, scanned from every `os.getenv` / `os.environ` in the repo._
 <!-- /gen:env -->
