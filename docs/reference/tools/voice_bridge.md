@@ -1,7 +1,7 @@
 ---
 title: Voice bridge
-description: "text → the voice persona's mouth (say/mute) from the text personas"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "text personas → voice persona queue"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,13 +10,7 @@ proof: code
 # Voice bridge
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/voice_bridge.py`: `voice_say`.
-    - Voice bridge — async text-input queue feeding the bidi voice agent.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`voice_say`](#voice_say) | Send a message to the voice agent so it speaks it out loud. |
+    - 1 tool in `tools/voice_bridge.py` — text personas → voice persona queue.
 
 ## `voice_say`
 
@@ -26,25 +20,8 @@ voice_say(text: str, importance: int = 1) -> dict
 
 Send a message to the voice agent so it speaks it out loud.
 
-Use this from any other persona (telegram, thinker, shell) to make the
-voice agent speak something to the user. The voice agent picks it up
-from a shared SQLite queue within ~2 seconds.
-
-| argument | meaning |
-|---|---|
-| `text` | What the voice agent should speak (or react to). Plain text. |
-| `importance` | 0=silent log, 1=normal info (default), 2=URGENT URGENT briefings are read immediately even mid-conversation. |
-
-**Returns**
-
-    dict with 'id' of the queued message and 'status'.
-
-**Examples**
-
 ```python
 voice_say("hey, the user just said hi over telegram")
-voice_say("CRITICAL: production is down", importance=2)
-voice_say("just confirming: telegram message received", importance=1)
 ```
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/voice_bridge.py#L133">tools/voice_bridge.py:133</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/voice_bridge.py#L133" title="tools/voice_bridge.py:133">source ↗</a></small>

@@ -1,7 +1,7 @@
 ---
 title: Dispatch
-description: "hand a task to another persona (voice/telegram/thinker) through the shared brain"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "hand a task to another persona"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,13 +10,7 @@ proof: code
 # Dispatch
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/dispatch.py`: `dispatch`.
-    - Dispatch — spawn a devduck agent IN-PROCESS as a tool, optionally on a schedule.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`dispatch`](#dispatch) | Spawn a devduck instance as a tool, optionally on a schedule. |
+    - 1 tool in `tools/dispatch.py` — hand a task to another persona.
 
 ## `dispatch`
 
@@ -46,57 +40,4 @@ dispatch(
 
 Spawn a devduck instance as a tool, optionally on a schedule.
 
-Builds an in-process `devduck.DevDuck` agent with custom config, runs the
-prompt, persists `agent.messages` to SQLite, writes a summary to the
-unified cross-persona log, and (optionally) schedules recurring fires.
-
-| argument | meaning |
-|---|---|
-| `prompt` | Query for the dispatched agent (required for run/schedule) |
-| `model` | STRANDS_MODEL_ID override |
-| `model_provider` | bedrock / anthropic / openai / ollama / etc |
-| `tools` | DEVDUCK_TOOLS string |
-| `system_prompt` | Custom SYSTEM_PROMPT for the child |
-| `mcp_servers` | MCP_SERVERS JSON string |
-| `env_vars` | Dict of extra env vars |
-| `work_dir` | cwd for the child |
-| `timeout` | sync-mode timeout (seconds, default 600) |
-| `enable_servers` | allow child to start its own zenoh/proxy/etc |
-| `load_tools_from_directory` | load ./tools/*.py auto-discovery (default True) |
-
-**Actions**
-
-  Run/inspect:
-    - "run":      spawn + run NOW. Modes: sync | async | bg.
-    - "list":     list dispatch runs
-    - "status":   inspect one (dispatch_id required)
-    - "result":   final assistant text (dispatch_id required)
-    - "messages": full agent.messages dump (dispatch_id required)
-    - "logs":     tail captured stdout (dispatch_id required)
-    - "wait":     block until done (dispatch_id required)
-    - "clean":    purge finished runs older than 24h
-  Schedule:
-    - "schedule":   register a schedule (requires prompt + schedule|run_at)
-    - "schedules":  list active schedules
-    - "unschedule": remove schedule (schedule_id required)
-
-Modes (action="run"):
-  sync   — block + return text
-  async  — thread-spawn, return id
-  bg     — alias for async
-
-Scheduling:
-  schedule="*/5 * * * *"     → cron expression, fires on match
-  run_at="2026-05-26T18:00"  → one-shot at ISO datetime
-  runs=N                      → cap total fires (default ∞ for cron, 1 for run_at)
-
-  Scheduled fires use the same model/tools/system_prompt/etc you pass in
-  this call. Ticker runs every 30s. Schedule survives only while THIS
-  process is alive (in-process; if you need cross-process persistence,
-  use devduck's own `scheduler` tool).
-
-**Returns**
-
-  Dict with status + content.
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/dispatch.py#L308">tools/dispatch.py:308</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/dispatch.py#L308" title="tools/dispatch.py:308">source ↗</a></small>

@@ -1,7 +1,7 @@
 ---
 title: Turn to sound
-description: "turn toward whoever is talking (ReSpeaker direction of arrival) when face tracking has no lock — the dashboard's DoA turner"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "ReSpeaker direction of arrival, no face locked"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,14 +10,7 @@ proof: code
 # Turn to sound
 
 !!! abstract "In 10 seconds"
-    - 2 tools in `tools/turn_to_sound.py`: `turn_to_sound` · `turn_to_sound_status`.
-    - turn_to_sound — let TINY turn its head toward whoever is talking (Direction of Arrival).
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`turn_to_sound`](#turn_to_sound) | Turn toward whoever is speaking when no face is being tracked (ReSpeaker direction of arrival). |
-| [`turn_to_sound_status`](#turn_to_sound_status) | Is turn-to-sound on, where was the last sound (degrees, left/right), and why is TINY not turning right now? |
+    - 2 tools in `tools/turn_to_sound.py` — ReSpeaker direction of arrival, no face locked.
 
 ## `turn_to_sound`
 
@@ -27,16 +20,7 @@ turn_to_sound(enabled: bool = True) -> dict
 
 Turn toward whoever is speaking when no face is being tracked (ReSpeaker direction of arrival).
 
-While ON, TINY turns its head (and body, for sounds far round) toward speech that holds still for ~half a
-second, at most once every 2 s, and only when face tracking has no lock and nothing else is moving the head.
-Face tracking takes over once the speaker is in view. Turn OFF for photo/demo moments where the head must
-stay put.
-
-| argument | meaning |
-|---|---|
-| `enabled` | True to turn toward speech, False to stop. |
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/turn_to_sound.py#L33">tools/turn_to_sound.py:33</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/turn_to_sound.py#L33" title="tools/turn_to_sound.py:33">source ↗</a></small>
 
 ## `turn_to_sound_status`
 
@@ -46,4 +30,4 @@ turn_to_sound_status() -> dict
 
 Is turn-to-sound on, where was the last sound (degrees, left/right), and why is TINY not turning right now?
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/turn_to_sound.py#L54">tools/turn_to_sound.py:54</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/turn_to_sound.py#L54" title="tools/turn_to_sound.py:54">source ↗</a></small>

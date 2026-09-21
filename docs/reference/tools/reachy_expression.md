@@ -1,7 +1,7 @@
 ---
 title: Expression
-description: "the recorded-move library (emotions, dances) the personas fire while they talk"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "recorded moves, fired while talking"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,14 +10,7 @@ proof: code
 # Expression
 
 !!! abstract "In 10 seconds"
-    - 2 tools in `tools/reachy_expression.py`: `reachy_express` · `reachy_list_emotions`.
-    - TINY expression tools — the recorded-emotion library (the 'gesture playbook').
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`reachy_express`](#reachy_express) | Play a named emotion/dance from TINY's recorded-move library. |
-| [`reachy_list_emotions`](#reachy_list_emotions) | List all emotion/move names available in TINY's recorded-move library. |
+    - 2 tools in `tools/reachy_expression.py` — recorded moves, fired while talking.
 
 ## `reachy_express`
 
@@ -25,33 +18,13 @@ proof: code
 reachy_express(emotion: str = 'happy', initial_goto_duration: float = 1.0, sound: bool = True) -> dict
 ```
 
-Play a named emotion/dance from TINY's recorded-move library. USE PROACTIVELY.
-
-This is the primary way TINY shows personality — a full head+antenna+body
-choreography (optionally with synced sound). Call it alongside speaking,
-just like neon fires arm gestures.
-
-Plain names resolve to library moves: happy→cheerful1, curious→curious1, yes→yes1, no→no1,
-surprised→surprised1, sad→sad1, angry→rage1 … (alias table + name+"1" + prefix match).
-Common emotion names (varies by library version — use reachy_list_emotions
-to see the live catalogue): happy, sad, curious, surprised, angry, yes,
-no, dance1, confused, excited, sleepy, greeting.
-
-| argument | meaning |
-|---|---|
-| `emotion` | name of the recorded move. |
-| `initial_goto_duration` | smooth ramp into the move's start pose (s). |
-| `sound` | play the move's synced sound if it has one. |
-
-**Examples**
+Play a named emotion/dance from TINY's recorded-move library.
 
 ```python
 reachy_express("happy")          # greeting / positive
-reachy_express("curious")        # someone new appeared
-reachy_express("no", sound=False) # silent head-shake
 ```
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_expression.py#L85">tools/reachy_expression.py:85</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_expression.py#L85" title="tools/reachy_expression.py:85">source ↗</a></small>
 
 ## `reachy_list_emotions`
 
@@ -61,4 +34,4 @@ reachy_list_emotions() -> dict
 
 List all emotion/move names available in TINY's recorded-move library.
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_expression.py#L129">tools/reachy_expression.py:129</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_expression.py#L129" title="tools/reachy_expression.py:129">source ↗</a></small>

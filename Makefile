@@ -123,5 +123,8 @@ log-show: ## Last 30 cross-persona turns
 test: ## Run the test suite (no robot needed — uses sim/mocks)
 	$(PY) -m pytest tests/ -v || $(PY) tests/test_import.py
 
+budget: ## Docs word budget — per page + site (tools/docs_budget.py, CI gate)
+	$(PY) tools/docs_budget.py
+
 test-tools: ## Verify all tools import + register cleanly
 	$(PY) tests/test_import.py

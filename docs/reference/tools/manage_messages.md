@@ -1,7 +1,7 @@
 ---
 title: Manage messages
-description: "inspect and compact the running agent's own conversation"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "compact the running agent's history"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,13 +10,7 @@ proof: code
 # Manage messages
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/manage_messages.py`: `manage_messages`.
-    - Manage agent.messages — list/drop/compact/clear/stats.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`manage_messages`](#manage_messages) | Manage the current agent's conversation history. |
+    - 1 tool in `tools/manage_messages.py` — compact the running agent's history.
 
 ## `manage_messages`
 
@@ -34,14 +28,4 @@ manage_messages(
 
 Manage the current agent's conversation history.
 
-**Actions**
-
-  - "stats":   show counts (messages, turns, total chars)
-  - "list":    show all messages with index + role + preview
-  - "list_turns": show turn-grouped view
-  - "drop":    remove turns by index. Use turns="0,2,5" or start+end.
-  - "compact": strip toolUse/toolResult blocks from turns, keeping text only.
-               Use turns="0,1,2" or start+end. Default: compact all but last 3.
-  - "clear":   remove ALL messages (full reset)
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/manage_messages.py#L63">tools/manage_messages.py:63</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/manage_messages.py#L63" title="tools/manage_messages.py:63">source ↗</a></small>

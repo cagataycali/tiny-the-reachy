@@ -1,7 +1,7 @@
 ---
 title: Motion
-description: "head pose, antennas, body yaw, home, wake/sleep — every angle clamped before it reaches the daemon"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "head, antennas, body yaw, wake/sleep — clamped"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,17 +10,7 @@ proof: code
 # Motion
 
 !!! abstract "In 10 seconds"
-    - 5 tools in `tools/reachy_motion.py`: `reachy_look` · `reachy_antennas` · `reachy_body_turn` · `reachy_home` · `reachy_wake`.
-    - TINY motion tools — head (6-DOF Stewart platform), body yaw, antennas.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`reachy_look`](#reachy_look) | Move TINY's head to a pose (smooth interpolation). |
-| [`reachy_antennas`](#reachy_antennas) | Move just the two antennas (TINY's 'ears'), in DEGREES. |
-| [`reachy_body_turn`](#reachy_body_turn) | Rotate TINY's body around the vertical axis, in DEGREES ([-160,160]). |
-| [`reachy_home`](#reachy_home) | Return TINY to the neutral/init pose (head centered, antennas rest). |
-| [`reachy_wake`](#reachy_wake) | Wake TINY up (init pose + wake emote + sound) or put it to sleep. |
+    - 5 tools in `tools/reachy_motion.py` — head, antennas, body yaw, wake/sleep — clamped.
 
 ## `reachy_look`
 
@@ -39,26 +29,19 @@ reachy_look(
 ) -> dict
 ```
 
-Move TINY's head to a pose (smooth interpolation). The primary gesture tool.
+Move TINY's head to a pose (smooth interpolation).
 
-| argument | meaning |
+| argument | envelope |
 |---|---|
 | `x, y, z` | head translation in millimetres (small, ~[-20,20]). |
 | `roll, pitch, yaw` | head orientation in DEGREES. pitch/roll clamped to [-40,40], yaw to [-180,180]. |
 | `body_yaw` | body rotation in DEGREES (clamped [-160,160]). None = keep current. |
-| `antennas` | optional [right_deg, left_deg] antenna angles. |
-| `duration` | seconds for the move (>=0.5 recommended for smoothness). |
-| `method` | "minjerk" (default) \| "linear" \| "ease_in_out" \| "cartoon". |
-
-**Examples**
 
 ```python
 reachy_look(pitch=15, yaw=20)              # look up-and-right
-reachy_look(roll=15, antennas=[30,-30])    # curious head-tilt + ears
-reachy_look(yaw=0, body_yaw=45)            # spin body, keep head level
 ```
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L35">tools/reachy_motion.py:35</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L35" title="tools/reachy_motion.py:35">source ↗</a></small>
 
 ## `reachy_antennas`
 
@@ -66,19 +49,13 @@ reachy_look(yaw=0, body_yaw=45)            # spin body, keep head level
 reachy_antennas(right: float = 0.0, left: float = 0.0, duration: float = 0.5) -> dict
 ```
 
-Move just the two antennas (TINY's 'ears'), in DEGREES. Great for emotion.
-
-right/left ~ [-90, 90] deg. Wiggle them for excitement, droop for sad.
-
-**Examples**
+Move just the two antennas (TINY's 'ears'), in DEGREES.
 
 ```python
 reachy_antennas(45, 45)     # both up — alert / happy
-reachy_antennas(-40, -40)   # both down — sad / sleepy
-reachy_antennas(60, -60)    # asymmetric — quizzical
 ```
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L90">tools/reachy_motion.py:90</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L90" title="tools/reachy_motion.py:90">source ↗</a></small>
 
 ## `reachy_body_turn`
 
@@ -88,10 +65,7 @@ reachy_body_turn(yaw: float = 0.0, duration: float = 1.0) -> dict
 
 Rotate TINY's body around the vertical axis, in DEGREES ([-160,160]).
 
-The head stays level (automatic_body_yaw keeps IK consistent). Use this
-to turn toward a speaker or scan the room.
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L111">tools/reachy_motion.py:111</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L111" title="tools/reachy_motion.py:111">source ↗</a></small>
 
 ## `reachy_home`
 
@@ -101,7 +75,7 @@ reachy_home(duration: float = 1.0) -> dict
 
 Return TINY to the neutral/init pose (head centered, antennas rest).
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L128">tools/reachy_motion.py:128</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L128" title="tools/reachy_motion.py:128">source ↗</a></small>
 
 ## `reachy_wake`
 
@@ -111,8 +85,4 @@ reachy_wake(sleep: bool = False) -> dict
 
 Wake TINY up (init pose + wake emote + sound) or put it to sleep.
 
-| argument | meaning |
-|---|---|
-| `sleep` | if True, run goto_sleep() instead of wake_up(). |
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L142">tools/reachy_motion.py:142</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L142" title="tools/reachy_motion.py:142">source ↗</a></small>

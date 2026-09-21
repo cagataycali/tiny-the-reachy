@@ -1,33 +1,17 @@
 ---
 title: Environment variables
-description: "Every variable TINY's code reads, scanned from os.getenv at every docs build, with default, reader and purpose — filterable, each row linkable."
+description: "Every variable TINY's code reads, scanned from os.getenv at every docs build — default, reader, purpose in ≤ 12 words. Filterable, each row linkable."
 for: operators editing .env · tool authors adding a knob
 proof: code
+verified: 2026-09-21
 ---
 
 # Environment variables
 
 !!! abstract "In 10 seconds"
-    - Every `os.getenv` / `os.environ` read in the repo lands here at build time (`scripts/envdoc.py`); `tests/test_docs.py` fails when a variable has no purpose note.
-    - Filter the tables below; every row has a permalink (`#env-VOICE_NAME`).
-    - Values live in `.env` (repo root), `~/.reachy-dashboard.env` and `~/.tiny-mcp.env` on the CM4 — the map is just below.
-    - The robot's actual values were read on 2026-09-17; secrets never appear in the repo or here.
-
-Where the values live:
-
-| place | file | loaded by |
-|---|---|---|
-| bare-metal / dev | `.env` in the repo root (`cp .env.example .env`) | the Makefile (`include .env`) and the systemd units' `EnvironmentFile` |
-| docker | the same `.env` | `docker compose` (`env_file`) — AWS creds are passed through by name (`AWS_BEARER_TOKEN_BEDROCK`, `AWS_DEFAULT_REGION=us-west-2` are set in `docker-compose.yml`, not read by Python) |
-| the robot's dashboard | `~/.reachy-dashboard.env` on the CM4 | `reachy-dashboard.service` (second `EnvironmentFile`) — holds `REACHY_TOKEN`, `REACHY_REG_TOKEN`, `REACHY_RP_ID` |
-| the fleet bridge | `~/.tiny-mcp.env` (mode 600) | a systemd drop-in on tiny-voice/telegram/thinker + reachy-dashboard: `TINY_MCP=1`, `TINY_MCP_PERSONAS`, token via `TINY_TOKEN_FILE` |
-
-!!! tip "The robot's actual values (2026-09-17)"
-    `VOICE_PROVIDER=openai` · `VOICE_NAME=shimmer` · `VOICE_MODEL=gpt-realtime-2` · `REACHY_CONNECTION_MODE=localhost_only` ·
-    `THINKER_INTERVAL=30` · `TINY_MCP=1` · `TINY_MCP_PERSONAS=telegram,dashboard,shell,voice` · `TINY_MCP_MESH=0`.
-    Secrets are never in the repo — see [Extending](../guide/extending.md).
-
-## Every variable
+    - Every `os.getenv` / `os.environ` read in the repo lands here at build time (`scripts/envdoc.py`); `tests/test_docs.py` fails on a variable without a note.
+    - Values live in `.env` (repo root, `cp .env.example .env`; Makefile + systemd `EnvironmentFile`), `~/.reachy-dashboard.env` (`REACHY_TOKEN`, `REACHY_REG_TOKEN`, `REACHY_RP_ID`) and `~/.tiny-mcp.env` (`TINY_MCP*`, `TINY_TOKEN_FILE`) on the CM4.
+    - The robot on 2026-09-17: `VOICE_PROVIDER=openai` · `VOICE_NAME=shimmer` · `VOICE_MODEL=gpt-realtime-2` · `REACHY_CONNECTION_MODE=localhost_only` · `THINKER_INTERVAL=30` · `TINY_MCP=1`. Secrets never appear here.
 
 <div class="filterable" data-id="env" data-key="1" data-placeholder="VOICE_, default, tiny.py, purpose…" markdown>
 
@@ -36,160 +20,160 @@ Where the values live:
 
 ## Models
 
-| variable | default | read by | purpose |
+| variable | default | purpose | read by |
 |---|---|---|---|
-| `AWS_REGION` | `us-east-1` | `tiny.py` | Bedrock region for the text model (tiny.py) and Nova Sonic voice. |
-| `GEMINI_API_KEY` | *(unset)* | `tiny.py` | Gemini Live key (`VOICE_PROVIDER=gemini`); `GOOGLE_API_KEY` is the fallback name. |
-| `GOOGLE_API_KEY` | *(unset)* | `tiny.py` | Fallback for `GEMINI_API_KEY`. |
-| `OPENAI_API_KEY` | *(unset)* | `tiny.py` | OpenAI Realtime key for the voice persona (`VOICE_PROVIDER=openai`). |
-| `TINY_MODEL_ID` | `global.anthropic.claude-opus-4-8` | `tiny.py` | Bedrock model id for the text personas (shell/telegram/thinker/dashboard Ask). |
+| `AWS_REGION` | `us-east-1` | Bedrock region for the text model (tiny.py) and Nova Sonic voice. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tiny.py">tiny.py</a> |
+| `GEMINI_API_KEY` | *(unset)* | Gemini Live key (`VOICE_PROVIDER=gemini`); `GOOGLE_API_KEY` is the fallback name. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tiny.py">tiny.py</a> |
+| `GOOGLE_API_KEY` | *(unset)* | Fallback for `GEMINI_API_KEY`. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tiny.py">tiny.py</a> |
+| `OPENAI_API_KEY` | *(unset)* | OpenAI Realtime key for the voice persona (`VOICE_PROVIDER=openai`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tiny.py">tiny.py</a> |
+| `TINY_MODEL_ID` | `global.anthropic.claude-opus-4-8` | Bedrock model id for the text personas. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tiny.py">tiny.py</a> |
 
 ## Voice
 
-| variable | default | read by | purpose |
+| variable | default | purpose | read by |
 |---|---|---|---|
-| `REACHY_AUDIO_RATE` | `16000` | `tiny.py` | PyAudio device sample rate; resampled to the model's rate (24 kHz OpenAI, 16 kHz Nova). |
-| `REACHY_DAEMON_PYTHON` | `/venvs/mini_daemon/bin/python` | `tools/xmos_audio.py` | Interpreter of Pollen's daemon venv (default /venvs/mini_daemon/bin/python) — used for the USB fallback when the daemon's audio-config endpoint refuses int parameters. |
-| `TINY_PHOTO_QUESTION` | `This is what your head camera sees right now. Say briefly what you see; if there is a person, describe them and what they are doing.` | `tools/vision.py` | What `take_photo` asks the voice model about the frame when the caller gives no question. |
-| `VOICE_LANG` | *(unset)* | `tools/voice_session.py` | ISO-639-1 hint for input transcription (`tr`, `en`); unset = auto-detect, which turns room noise into phantom foreign-language turns. |
-| `VOICE_MODEL` | *(unset)* | `tiny.py` | OpenAI Realtime model id override (robot `.env`: `gpt-realtime-2`); unset = strands' default. |
-| `VOICE_NAME` | *(unset)* | `voice_listener.py` | Voice inside the provider; code default per provider is alloy/tiffany/Kore (`_DEFAULT_VOICES`). The robot's `.env` sets `shimmer`. |
-| `VOICE_PROVIDER` | `openai` | `telegram_listener.py`, `voice_listener.py` | `openai` (Realtime) · `nova_sonic` · `gemini` — which bidi model voice_listener builds. |
-| `VOICE_RELEASE_MEDIA` | `0` | `voice_listener.py` | 1 = POST /api/media/release before each voice start (Lite / daemons with exclusive ALSA). Default 0: the Wireless daemon shares the mic, and every release rebuilt its pipeline and leaked fds (2026-09-17). |
-| `VOICE_RESTART_DELAY` | `5` | `voice_listener.py` | Seconds voice_listener waits before rebuilding the session after a crash (doubles each fatal provider error). |
-| `VOICE_RESTART_DELAY_MAX` | `300` | `voice_listener.py` | Cap for that exponential backoff, seconds (default 300) — a bad key retries every 5 min, not every 5 s. |
-| `VOICE_TRANSCRIBE_PROMPT` | *(unset)* | `tools/voice_session.py` | Free-text hint for the input transcriber (e.g. `Turkish or English, talking to a robot named TINY`) — steers it without pinning one language. |
-| `VOICE_TURN_DETECTION` | `server_vad` | `tools/voice_session.py` | `server_vad` (default) or `semantic_vad` — how OpenAI decides the user's turn ended; interrupt_response/create_response are always on. |
-| `VOICE_VAD_EAGERNESS` | `auto` | `tools/voice_session.py` | `semantic_vad` only: `low` | `medium` | `high` | `auto` — how quickly it takes the turn. |
-| `VOICE_VAD_PREFIX_MS` | `300` | `tools/voice_session.py` | Audio kept before detected speech onset, ms (default 300). |
-| `VOICE_VAD_SILENCE_MS` | `600` | `tools/voice_session.py` | Silence that ends a user turn, ms (default 600). |
-| `VOICE_VAD_THRESHOLD` | `0.5` | `tools/voice_session.py` | OpenAI server-VAD speech threshold 0–1 (default 0.5 = OpenAI's). Raising it makes barge-in over TINY's own speech harder; the XMOS board's hardware AEC already removes the echo. |
-| `VOICE_XMOS_PARAMS` | `DEFAULT_PARAMS` | `tools/xmos_audio.py` | XVF3800 audio-board parameters the voice persona writes at every start (runtime-only on the chip). Default `PP_NLATTENONOFF=0` — the factory value mutes your voice while Reachy speaks, which makes barge-in impossible. Empty disables. |
+| `REACHY_AUDIO_RATE` | `16000` | PyAudio device rate; resampled to the model's 24 kHz / 16 kHz. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tiny.py">tiny.py</a> |
+| `REACHY_DAEMON_PYTHON` | `/venvs/mini_daemon/bin/python` | Pollen's daemon venv interpreter, for the USB audio-param fallback. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/xmos_audio.py">tools/xmos_audio.py</a> |
+| `TINY_PHOTO_QUESTION` | `*(long)*` | What `take_photo` asks the voice model when no question is given. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/vision.py">tools/vision.py</a> |
+| `VOICE_LANG` | *(unset)* | ISO-639-1 transcription hint (`tr`, `en`); unset auto-detects phantom languages. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/voice_session.py">tools/voice_session.py</a> |
+| `VOICE_MODEL` | *(unset)* | OpenAI Realtime model override (robot: `gpt-realtime-2`); unset = strands' default. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tiny.py">tiny.py</a> |
+| `VOICE_NAME` | *(unset)* | Provider voice; code default alloy/tiffany/Kore, the robot sets `shimmer`. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/voice_listener.py">voice_listener.py</a> |
+| `VOICE_PROVIDER` | `openai` | `openai` (Realtime) · `nova_sonic` · `gemini` — which bidi model voice_listener builds. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/telegram_listener.py">telegram_listener.py</a> +1 |
+| `VOICE_RELEASE_MEDIA` | `0` | 1 = release daemon media before each voice start (Lite only). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/voice_listener.py">voice_listener.py</a> |
+| `VOICE_RESTART_DELAY` | `5` | Seconds before rebuilding the voice session; doubles per fatal error. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/voice_listener.py">voice_listener.py</a> |
+| `VOICE_RESTART_DELAY_MAX` | `300` | Cap for that backoff — a bad key retries every 5 min. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/voice_listener.py">voice_listener.py</a> |
+| `VOICE_TRANSCRIBE_PROMPT` | *(unset)* | Free-text hint for the transcriber (`Turkish or English, talking to TINY`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/voice_session.py">tools/voice_session.py</a> |
+| `VOICE_TURN_DETECTION` | `server_vad` | `server_vad` or `semantic_vad` — how OpenAI decides your turn ended. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/voice_session.py">tools/voice_session.py</a> |
+| `VOICE_VAD_EAGERNESS` | `auto` | `semantic_vad` only: `low` | `medium` | `high` | `auto` turn-taking speed. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/voice_session.py">tools/voice_session.py</a> |
+| `VOICE_VAD_PREFIX_MS` | `300` | Audio kept before detected speech onset, ms (default 300). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/voice_session.py">tools/voice_session.py</a> |
+| `VOICE_VAD_SILENCE_MS` | `600` | Silence that ends a user turn, ms (default 600). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/voice_session.py">tools/voice_session.py</a> |
+| `VOICE_VAD_THRESHOLD` | `0.5` | Server-VAD speech threshold 0–1; higher makes barge-in harder. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/voice_session.py">tools/voice_session.py</a> |
+| `VOICE_XMOS_PARAMS` | `DEFAULT_PARAMS` | XVF3800 params written at every start; `PP_NLATTENONOFF=0` enables barge-in. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/xmos_audio.py">tools/xmos_audio.py</a> |
 
 ## Robot
 
-| variable | default | read by | purpose |
+| variable | default | purpose | read by |
 |---|---|---|---|
-| `REACHY_BOOT_VOLUME_MIN` | `60` | `scripts/systemd/robot/tiny-wake.py` | Minimum speaker volume tiny-wake enforces at boot (default 60) — alsa-state can persist a muted mixer across a power cycle, which boots the robot deaf. |
-| `REACHY_CAMERA_BACKEND` | `local` | `tools/reachy_camera.py` | Media backend used only while `reachy_camera`/`reachy_look_at` grab a frame through the SDK. |
-| `REACHY_CLOSE_WAIT_WARN` | `50` | `dashboard/daemonlink.py` | Warn when this many sockets on :8000 sit in CLOSE-WAIT (default 50; the incident had 614). |
-| `REACHY_CONNECTION_MODE` | `auto` | `tools/_reachy_common.py` | `auto` · `localhost_only` · `network` — passed to `ReachyMini(connection_mode=)`. The robot runs `localhost_only`. |
-| `REACHY_DAEMON_FALLBACK_HZ` | `4` | `dashboard/daemonlink.py` | Cap on REST `/api/state/full` polls while the stream is down (default 4 Hz). |
-| `REACHY_DAEMON_STREAM_HZ` | `10` | `dashboard/daemonlink.py` | Rate asked of the daemon's `/api/state/ws/full` WebSocket, the single state source for every dashboard consumer (default 10). |
-| `REACHY_DAEMON_STREAM_STALE_S` | `1.5` | `dashboard/daemonlink.py` | A stream frame older than this (default 1.5 s) triggers one REST fallback read. |
-| `REACHY_DOA_BODY_MAX_DEG` | `60` | `dashboard/doa.py` | Body yaw a DoA turn may reach (default ±60°). |
-| `REACHY_DOA_FACE_FRESH_S` | `1.5` | `dashboard/doa.py` | A tracked face younger than this blocks DoA turns — the face tracker wins (default 1.5 s). |
-| `REACHY_DOA_FRAME` | `head` | `dashboard/doa.py` | `head` (default: bearing is relative to the current head yaw) or `body` (absolute in the body frame). |
-| `REACHY_DOA_HEAD_MAX_DEG` | `45` | `dashboard/doa.py` | Head yaw the DoA turn may use before the body carries the rest (default 45°). |
-| `REACHY_DOA_MIN_CONSEC` | `6` | `dashboard/doa.py` | Consecutive speech frames (10 Hz) that must agree before a turn (default 6). |
-| `REACHY_DOA_MIN_DELTA_DEG` | `10` | `dashboard/doa.py` | Bearings closer than this to straight ahead do not move the head (default 10°). |
-| `REACHY_DOA_RAIL_DEG` | `3` | `dashboard/doa.py` | Bearings within this of 0/π are the array's rails (own speaker / no estimate) and are ignored (default 3°). |
-| `REACHY_DOA_RATE_S` | `3` | `dashboard/doa.py` | Minimum seconds between DoA turns (default 3). |
-| `REACHY_DOA_SIGN` | `1` | `dashboard/doa.py` | `1` (default, owner-confirmed) or `-1` if the head turns away from the speaker. |
-| `REACHY_DOA_SPEAK_TAIL_S` | `1.5` | `dashboard/doa.py` | Seconds after TINY stops speaking during which speech is still treated as its own voice (default 1.5). |
-| `REACHY_DOA_TOL_DEG` | `12` | `dashboard/doa.py` | How much those frames may disagree (default ±12°). |
-| `REACHY_DOA_TURN` | `1` | `dashboard/doa.py` | `1` (default) turns toward speech when face tracking has no lock; `0` starts with it off. |
-| `REACHY_DOA_TURN_DURATION_S` | `0.7` | `dashboard/doa.py` | Duration of the DoA goto (default 0.7 s). |
-| `REACHY_DOA_WINDUP_RATIO` | `0.6` | `dashboard/doa.py` | …“did not shrink” = new |delta| ≥ this × the previous one (default 0.6). |
-| `REACHY_DOA_WINDUP_S` | `10` | `dashboard/doa.py` | A same-direction turn within this window while the bearing did not shrink is refused (default 10 s). |
-| `REACHY_FD_WARN_FRACTION` | `0.6` | `dashboard/daemonlink.py` | Warn (health + cockpit pill) when the daemon's open fds exceed this fraction of its limit (default 0.6). |
-| `REACHY_HOST` | `127.0.0.1` | `dashboard/server.py`, `tools/_reachy_common.py`, `tools/xmos_audio.py`, `voice_listener.py` | Daemon host for the SDK client and the dashboard. |
-| `REACHY_MEDIA_BACKEND` | `no_media` | `tools/_reachy_common.py` | SDK media backend for the personas' shared client; `no_media` keeps the daemon owning mic + camera. |
-| `REACHY_MOVES_ACTIVE_HZ` | `5` | `dashboard/daemonlink.py` | `/api/move/running` probe rate right after the dashboard started a move (default 5 Hz). |
-| `REACHY_MOVES_IDLE_PROBE_S` | `3` | `dashboard/daemonlink.py` | Seconds between `/api/move/running` probes when nothing is in flight (default 3). |
-| `REACHY_PORT` | `8000` | `tools/_reachy_common.py`, `tools/xmos_audio.py`, `voice_listener.py` | Daemon HTTP port (Pollen daemon listens on :8000). |
-| `REACHY_SPAWN_DAEMON` | *(unset)* | `tools/_reachy_common.py` | `1` = let the SDK spawn a daemon if none answers (dev laptops only). |
-| `REACHY_USE_SIM` | *(unset)* | `tools/_reachy_common.py` | `1` = talk to the MuJoCo simulation instead of the robot (`make sim`). |
-| `TINY_CAMERA_SNAPSHOT` | `str(Path(tempfile.gettempdir()) / 'tiny_view.jpg')` | `tools/reachy_camera.py` | Where `reachy_camera` writes the frame it hands to the vision model. |
-| `TINY_DASHBOARD_TOKEN` | *(unset)* | `tools/head_tracking.py`, `tools/reachy_camera.py` | Bearer for those calls when not on loopback (falls back to `REACHY_TOKEN`). |
-| `TINY_DASHBOARD_URL` | `http://127.0.0.1:8097` | `tools/head_tracking.py`, `tools/reachy_camera.py`, `tools/turn_to_sound.py` | Dashboard base URL the personas' tools call for snapshots and tracking holds (loopback allowance). |
-| `TINY_TTS_REF_AUDIO` | `https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav` | `tools/reachy_audio.py` | Reference voice clip for that Space fallback. |
-| `TINY_TTS_SPACE` | `ResembleAI/Chatterbox-Multilingual-TTS` | `tools/reachy_audio.py` | Legacy Hugging Face Space fallback for `reachy_say` when Piper is down (upstream answers 401 today). |
-| `TINY_TTS_URL` | `http://127.0.0.1:5002` | `dashboard/robot.py`, `tools/reachy_audio.py` | Piper TTS service (`tiny-tts.service`, 127.0.0.1:5002) used by `reachy_say` and the dashboard Say. |
+| `REACHY_BOOT_VOLUME_MIN` | `60` | Minimum speaker volume tiny-wake enforces at boot — alsa-state can boot deaf. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/scripts/systemd/robot/tiny-wake.py">scripts/systemd/robot/tiny-wake.py</a> |
+| `REACHY_CAMERA_BACKEND` | `local` | Media backend for `reachy_camera` / `reachy_look_at` transient frame grabs. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_camera.py">tools/reachy_camera.py</a> |
+| `REACHY_CLOSE_WAIT_WARN` | `50` | Warn at this many CLOSE-WAIT sockets on :8000 (the incident: 614). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/daemonlink.py">dashboard/daemonlink.py</a> |
+| `REACHY_CONNECTION_MODE` | `auto` | `auto` · `localhost_only` · `network` — passed to `ReachyMini(connection_mode=)`. The robot runs `localhost_only`. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/_reachy_common.py">tools/_reachy_common.py</a> |
+| `REACHY_DAEMON_FALLBACK_HZ` | `4` | Cap on REST `/api/state/full` polls while the stream is down. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/daemonlink.py">dashboard/daemonlink.py</a> |
+| `REACHY_DAEMON_STREAM_HZ` | `10` | Rate asked of `/api/state/ws/full`, the single state source. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/daemonlink.py">dashboard/daemonlink.py</a> |
+| `REACHY_DAEMON_STREAM_STALE_S` | `1.5` | A stream frame older than this triggers one REST fallback read. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/daemonlink.py">dashboard/daemonlink.py</a> |
+| `REACHY_DOA_BODY_MAX_DEG` | `60` | Body yaw a DoA turn may reach (default ±60°). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_FACE_FRESH_S` | `1.5` | A tracked face younger than this blocks DoA turns. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_FRAME` | `head` | `head` (bearing relative to head yaw) or `body` (absolute). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_HEAD_MAX_DEG` | `45` | Head yaw a DoA turn may use before the body takes over. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_MIN_CONSEC` | `6` | Consecutive agreeing speech frames (10 Hz) before a turn. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_MIN_DELTA_DEG` | `10` | Bearings closer than this to straight ahead are ignored. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_RAIL_DEG` | `3` | Bearings within this of 0/π are the array's rails — ignored. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_RATE_S` | `3` | Minimum seconds between DoA turns (default 3). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_SIGN` | `1` | `1` (owner-confirmed) or `-1` if the head turns away from speakers. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_SPEAK_TAIL_S` | `1.5` | Seconds after TINY stops speaking that speech still counts as its own. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_TOL_DEG` | `12` | How much those frames may disagree (default ±12°). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_TURN` | `1` | `1` (default) turns toward speech when face tracking has no lock. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_TURN_DURATION_S` | `0.7` | Duration of the DoA goto (default 0.7 s). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_WINDUP_RATIO` | `0.6` | “Did not shrink” = new |delta| ≥ this × the previous one. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_DOA_WINDUP_S` | `10` | Same-direction turns within this window without a shrinking bearing are refused. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/doa.py">dashboard/doa.py</a> |
+| `REACHY_FD_WARN_FRACTION` | `0.6` | Warn when daemon open fds exceed this fraction of its limit. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/daemonlink.py">dashboard/daemonlink.py</a> |
+| `REACHY_HOST` | `127.0.0.1` | Daemon host for the SDK client and the dashboard. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py">dashboard/server.py</a> +3 |
+| `REACHY_MEDIA_BACKEND` | `no_media` | Shared client's SDK media backend; `no_media` leaves media to the daemon. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/_reachy_common.py">tools/_reachy_common.py</a> |
+| `REACHY_MOVES_ACTIVE_HZ` | `5` | `/api/move/running` probe rate right after a dashboard move. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/daemonlink.py">dashboard/daemonlink.py</a> |
+| `REACHY_MOVES_IDLE_PROBE_S` | `3` | Seconds between `/api/move/running` probes when nothing is in flight. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/daemonlink.py">dashboard/daemonlink.py</a> |
+| `REACHY_PORT` | `8000` | Daemon HTTP port (Pollen daemon listens on :8000). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/_reachy_common.py">tools/_reachy_common.py</a> +2 |
+| `REACHY_SPAWN_DAEMON` | *(unset)* | `1` = let the SDK spawn a daemon if none answers. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/_reachy_common.py">tools/_reachy_common.py</a> |
+| `REACHY_USE_SIM` | *(unset)* | `1` = the MuJoCo simulation instead of the robot (`make sim`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/_reachy_common.py">tools/_reachy_common.py</a> |
+| `TINY_CAMERA_SNAPSHOT` | `str(Path(tempfile.gettempdir()) / 'tiny_view.jpg')` | Where `reachy_camera` writes the frame it hands to the vision model. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_camera.py">tools/reachy_camera.py</a> |
+| `TINY_DASHBOARD_TOKEN` | *(unset)* | Bearer for those calls off loopback (falls back to `REACHY_TOKEN`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/head_tracking.py">tools/head_tracking.py</a> +1 |
+| `TINY_DASHBOARD_URL` | `http://127.0.0.1:8097` | Dashboard base URL the tools call for snapshots and tracking holds. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/head_tracking.py">tools/head_tracking.py</a> +2 |
+| `TINY_TTS_REF_AUDIO` | `https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav` | Reference voice clip for that Space fallback. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_audio.py">tools/reachy_audio.py</a> |
+| `TINY_TTS_SPACE` | `ResembleAI/Chatterbox-Multilingual-TTS` | Legacy Hugging Face Space fallback for `reachy_say` (answers 401 today). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_audio.py">tools/reachy_audio.py</a> |
+| `TINY_TTS_URL` | `http://127.0.0.1:5002` | Piper TTS (`tiny-tts.service`, 127.0.0.1:5002) behind `reachy_say` and dashboard Say. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/robot.py">dashboard/robot.py</a> +1 |
 
 ## Telegram
 
-| variable | default | read by | purpose |
+| variable | default | purpose | read by |
 |---|---|---|---|
-| `TELEGRAM_ALLOWED_USERS` | `(any)` | `telegram_listener.py`, `tiny.py`, `tools/telegram.py` | Comma-separated usernames/ids allowed to talk to TINY on Telegram (`(any)` = everyone). |
-| `TELEGRAM_BOT_TOKEN` | *(unset)* | `telegram_listener.py`, `tools/telegram.py` | Bot token for the telegram persona and the `telegram` tool. |
-| `TELEGRAM_DEFAULT_CHAT_ID` | *(unset)* | `tiny.py`, `tools/telegram.py` | Chat that receives unsolicited messages (thinker notes, photos). |
-| `TELEGRAM_HISTORY_LIMIT` | *(unset)* | `tools/telegram.py` | Recent messages injected per chat as context (default 20). |
+| `TELEGRAM_ALLOWED_USERS` | `(any)` | Comma-separated usernames/ids allowed to talk to TINY (`(any)` = everyone). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/telegram_listener.py">telegram_listener.py</a> +2 |
+| `TELEGRAM_BOT_TOKEN` | *(unset)* | Bot token for the telegram persona and the `telegram` tool. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/telegram_listener.py">telegram_listener.py</a> +1 |
+| `TELEGRAM_DEFAULT_CHAT_ID` | *(unset)* | Chat that receives unsolicited messages (thinker notes, photos). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tiny.py">tiny.py</a> +1 |
+| `TELEGRAM_HISTORY_LIMIT` | *(unset)* | Recent messages injected per chat as context (default 20). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/telegram.py">tools/telegram.py</a> |
 
 ## Thinker
 
-| variable | default | read by | purpose |
+| variable | default | purpose | read by |
 |---|---|---|---|
-| `THINKER_DISABLED` | *(unset)* | `thinker_loop.py` | `1` makes the thinker loop a no-op. |
-| `THINKER_INTERVAL` | `30` | `thinker_loop.py` | Seconds between thinker cycles (robot: 30). |
+| `THINKER_DISABLED` | *(unset)* | `1` makes the thinker loop a no-op. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/thinker_loop.py">thinker_loop.py</a> |
+| `THINKER_INTERVAL` | `30` | Seconds between thinker cycles (robot: 30). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/thinker_loop.py">thinker_loop.py</a> |
 
 ## Perception
 
-| variable | default | read by | purpose |
+| variable | default | purpose | read by |
 |---|---|---|---|
-| `REACHY_FACE_TRACKING` | `0` | `dashboard/server.py` | `1` enables the daemon face tracker at dashboard boot (legacy flag; see `REACHY_TRACK_AUTOSTART`). |
-| `REACHY_SPEAK_TAIL_S` | `0.8` | `tools/head_tracking.py` | Extra seconds the voice persona keeps the `speaking` hold after the last audio chunk. |
-| `REACHY_TRACK_AUTOSTART` | `1` | `dashboard/server.py` | `1` (default) turns the daemon face tracker on at dashboard boot and re-enables it after a daemon restart; `0` = manual only. |
-| `REACHY_TRACK_HOLD_TTL` | `20` | `dashboard/tracking.py` | Seconds after which an unreleased tracking hold (speaking/emotion/look) expires. |
-| `REACHY_TRACK_POLL_HZ` | `2` | `dashboard/tracking.py` | How often the dashboard polls the daemon's tracked face (default 2 Hz — daemon pressure). |
-| `REACHY_TRACK_REASSERT_MISSES` | `2` | `dashboard/tracking.py` | Consecutive face polls with `ts: null` (while weight 1, no holds) before the dashboard re-enables the daemon tracker (default 2). |
+| `REACHY_FACE_TRACKING` | `0` | Legacy `1` = face tracker at dashboard boot; see `REACHY_TRACK_AUTOSTART`. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py">dashboard/server.py</a> |
+| `REACHY_SPEAK_TAIL_S` | `0.8` | Extra seconds the `speaking` hold outlives the last audio chunk. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/head_tracking.py">tools/head_tracking.py</a> |
+| `REACHY_TRACK_AUTOSTART` | `1` | `1` (default) starts face tracking at boot and after daemon restarts. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py">dashboard/server.py</a> |
+| `REACHY_TRACK_HOLD_TTL` | `20` | Seconds after which an unreleased tracking hold (speaking/emotion/look) expires. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/tracking.py">dashboard/tracking.py</a> |
+| `REACHY_TRACK_POLL_HZ` | `2` | Dashboard poll rate of the daemon's tracked face (default 2 Hz). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/tracking.py">dashboard/tracking.py</a> |
+| `REACHY_TRACK_REASSERT_MISSES` | `2` | Consecutive `ts: null` face polls before the dashboard re-enables the tracker. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/tracking.py">dashboard/tracking.py</a> |
 
 ## Dashboard
 
-| variable | default | read by | purpose |
+| variable | default | purpose | read by |
 |---|---|---|---|
-| `REACHY_ASK_PREWARM` | `1` | `dashboard/server.py`, `dashboard/tests/test_gate.py` | `0` skips building the Ask agent at startup. |
-| `REACHY_ASK_TIMEOUT` | `60` | `dashboard/server.py` | Seconds a dashboard Ask turn may run. |
-| `REACHY_CAMERA_SOCKET` | `/tmp/reachymini_camera_socket` | `dashboard/robot.py` | Path of the daemon's camera IPC socket. |
-| `REACHY_DAEMON_URL` | `http://127.0.0.1:8000` | `dashboard/daemonlink.py`, `dashboard/robot.py`, `scripts/systemd/robot/tiny-wake.py` | Daemon base URL the dashboard talks to. |
-| `REACHY_DASH_CAMERA` | `'ipc' if _gst_ipc_possible() else 'rpicam' if shutil.which('rpicam-vid') else 'cv2'` | `dashboard/robot.py` | `ipc` (daemon camera socket — default when GStreamer can) · `rpicam` · `cv2`. Only `ipc` coexists with face tracking. |
-| `REACHY_DASH_CAMERA_INDEX` | `0` | `dashboard/robot.py` | V4L2 index for the `cv2` backend. |
-| `REACHY_DASH_CAMERA_OFF` | *(unset)* | `dashboard/robot.py`, `dashboard/tests/test_gate.py`, `dashboard/tests/test_tracking.py` | Any value disables the dashboard camera entirely. |
-| `REACHY_DASH_CAM_FPS` | `12` | `dashboard/robot.py` | MJPEG frame-rate cap. |
-| `REACHY_DASH_TTS_URL` | `os.getenv('TINY_TTS_URL', 'http://127.0.0.1:5002')` | `dashboard/robot.py` | TTS endpoint for the dashboard Say (defaults to `TINY_TTS_URL`). |
-| `REACHY_DIST` | `str(REPO / 'dashboard' / 'frontend' / 'dist')` | `dashboard/server.py` | Built frontend directory served as the SPA shell. |
-| `REACHY_HTTP_PORT` | `8097` | `dashboard/server.py` | Dashboard listen port (8097, fronted by the Cloudflare tunnel). |
-| `REACHY_LOG` | `INFO` | `dashboard/server.py` | Dashboard log level. |
-| `REACHY_MEM_DB` | `str(REPO / '.memory' / 'mem.db')` | `dashboard/robot.py` | SQLite brain the dashboard reads for the mind feed. |
-| `REACHY_NO_AUTOAPP` | *(unset)* | `dashboard/server.py` | Set in tests so importing `dashboard.server` does not build the app. |
-| `REACHY_RATE_LIMIT` | `5` | `dashboard/server.py` | Control POSTs per second per client before 429. |
-| `REACHY_STATE_CACHE_S` | `0.06` | `dashboard/robot.py` | Coalesces `/api/state` reads so many viewers cost the daemon one request per window. |
-| `REACHY_WS_HZ` | `15` | `dashboard/server.py` | State frames per second pushed on `/ws`. |
+| `REACHY_ASK_PREWARM` | `1` | `0` skips building the Ask agent at startup. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py">dashboard/server.py</a> +1 |
+| `REACHY_ASK_TIMEOUT` | `60` | Seconds a dashboard Ask turn may run. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py">dashboard/server.py</a> |
+| `REACHY_CAMERA_SOCKET` | `/tmp/reachymini_camera_socket` | Path of the daemon's camera IPC socket. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/robot.py">dashboard/robot.py</a> |
+| `REACHY_DAEMON_URL` | `http://127.0.0.1:8000` | Daemon base URL the dashboard talks to. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/daemonlink.py">dashboard/daemonlink.py</a> +2 |
+| `REACHY_DASH_CAMERA` | `*(long)*` | `ipc` (default; coexists with face tracking) · `rpicam` · `cv2`. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/robot.py">dashboard/robot.py</a> |
+| `REACHY_DASH_CAMERA_INDEX` | `0` | V4L2 index for the `cv2` backend. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/robot.py">dashboard/robot.py</a> |
+| `REACHY_DASH_CAMERA_OFF` | *(unset)* | Any value disables the dashboard camera entirely. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/robot.py">dashboard/robot.py</a> +2 |
+| `REACHY_DASH_CAM_FPS` | `12` | MJPEG frame-rate cap. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/robot.py">dashboard/robot.py</a> |
+| `REACHY_DASH_TTS_URL` | `os.getenv('TINY_TTS_URL', 'http://127.0.0.1:5002')` | TTS endpoint for the dashboard Say (defaults to `TINY_TTS_URL`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/robot.py">dashboard/robot.py</a> |
+| `REACHY_DIST` | `*(long)*` | Built frontend directory served as the SPA shell. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py">dashboard/server.py</a> |
+| `REACHY_HTTP_PORT` | `8097` | Dashboard listen port (8097, fronted by the Cloudflare tunnel). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py">dashboard/server.py</a> |
+| `REACHY_LOG` | `INFO` | Dashboard log level. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py">dashboard/server.py</a> |
+| `REACHY_MEM_DB` | `*(long)*` | SQLite brain the dashboard reads for the mind feed. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/robot.py">dashboard/robot.py</a> |
+| `REACHY_NO_AUTOAPP` | *(unset)* | Set in tests so importing `dashboard.server` does not build the app. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py">dashboard/server.py</a> |
+| `REACHY_RATE_LIMIT` | `5` | Control POSTs per second per client before 429. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py">dashboard/server.py</a> |
+| `REACHY_STATE_CACHE_S` | `0.06` | Coalesces `/api/state` reads — many viewers, one daemon request per window. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/robot.py">dashboard/robot.py</a> |
+| `REACHY_WS_HZ` | `15` | State frames per second pushed on `/ws`. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py">dashboard/server.py</a> |
 
 ## Auth
 
-| variable | default | read by | purpose |
+| variable | default | purpose | read by |
 |---|---|---|---|
-| `REACHY_AUTH_STORE` | `str(Path.home() / '.reachy-auth' / 'credentials.json')` | `dashboard/auth.py` | Passkey credential store path. |
-| `REACHY_LOOPBACK_READS` | `1` | `dashboard/auth.py` | `0` disables the documented allowance that lets the robot's own processes read without a key. |
-| `REACHY_ORIGIN` | *(unset)* | `dashboard/auth.py` | Expected WebAuthn origin(s), comma-separated (default `https://<RP_ID>`). |
-| `REACHY_REG_TOKEN` | *(unset)* | `dashboard/auth.py` | Registration token required to enrol additional passkeys after the first (TOFU). |
-| `REACHY_RP_ID` | *(unset)* | `dashboard/auth.py`, `dashboard/tests/test_gate.py` | WebAuthn relying-party id — the cockpit's public hostname. |
-| `REACHY_RP_NAME` | `REACHY` | `dashboard/auth.py` | Display name shown by the passkey prompt. |
-| `REACHY_SESSION_STORE` | `str(self.store_path.with_name('sessions.json'))` | `dashboard/auth.py` | Session cookie store path (next to the credential store). |
-| `REACHY_SESSION_TTL` | `43200` | `dashboard/auth.py` | Passkey session lifetime in seconds (12 h). |
-| `REACHY_TOKEN` | *(unset)* | `dashboard/auth.py`, `dashboard/tests/test_gate.py`, `tools/head_tracking.py`, `tools/reachy_camera.py` | Owner bearer token — full access to `/api/*` and `/ws` (`Authorization: Bearer` or `?token=`). |
-| `REACHY_USER_NAME` | `owner` | `dashboard/auth.py` | User handle the passkeys are registered under. |
+| `REACHY_AUTH_STORE` | `*(long)*` | Passkey credential store path. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py">dashboard/auth.py</a> |
+| `REACHY_LOOPBACK_READS` | `1` | `0` disables keyless reads from the robot's own processes. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py">dashboard/auth.py</a> |
+| `REACHY_ORIGIN` | *(unset)* | Expected WebAuthn origin(s), comma-separated (default `https://<RP_ID>`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py">dashboard/auth.py</a> |
+| `REACHY_REG_TOKEN` | *(unset)* | Registration token required to enrol additional passkeys after the first (TOFU). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py">dashboard/auth.py</a> |
+| `REACHY_RP_ID` | *(unset)* | WebAuthn relying-party id — the cockpit's public hostname. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py">dashboard/auth.py</a> +1 |
+| `REACHY_RP_NAME` | `REACHY` | Display name shown by the passkey prompt. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py">dashboard/auth.py</a> |
+| `REACHY_SESSION_STORE` | `str(self.store_path.with_name('sessions.json'))` | Session cookie store path (next to the credential store). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py">dashboard/auth.py</a> |
+| `REACHY_SESSION_TTL` | `43200` | Passkey session lifetime in seconds (12 h). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py">dashboard/auth.py</a> |
+| `REACHY_TOKEN` | *(unset)* | Owner bearer token — full `/api/*` and `/ws` access (`Bearer` or `?token=`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py">dashboard/auth.py</a> +3 |
+| `REACHY_USER_NAME` | `owner` | User handle the passkeys are registered under. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py">dashboard/auth.py</a> |
 
 ## Fleet
 
-| variable | default | read by | purpose |
+| variable | default | purpose | read by |
 |---|---|---|---|
-| `TINY_MCP` | `0` | `tools/tiny_mcp.py` | `1` mounts the tiny.technology fleet tools (use_device, tiny_recall, …) via the tiny-tech MCP server. |
-| `TINY_MCP_COMMAND` | *(unset)* | `tools/tiny_mcp.py` | Full command to run the server instead of the auto-detected one. |
-| `TINY_MCP_HOME` | `~/.tiny-mcp` | `tools/tiny_mcp.py` | Isolated `TINY_HOME` for the MCP server process. |
-| `TINY_MCP_MESH` | `0` | `tools/tiny_mcp.py` | `1` lets the server join the zenoh mesh (off by default: CPU on the CM4). |
-| `TINY_MCP_NODE` | *(unset)* | `tools/tiny_mcp.py` | Path to the node binary if not on PATH. |
-| `TINY_MCP_PERSONAS` | *(unset)* | `tools/tiny_mcp.py` | Personas that get fleet tools (code default `telegram,dashboard,shell`; the robot adds `voice`). |
-| `TINY_MCP_STARTUP_TIMEOUT` | `45` | `tools/tiny_mcp.py` | Seconds to wait for the MCP handshake before starting without fleet tools. |
-| `TINY_MCP_TIMEOUT` | `90` | `tools/tiny_mcp.py` | Per-call timeout for fleet tools. |
-| `TINY_MCP_TINY_TECH` | *(unset)* | `tools/tiny_mcp.py` | Path to a tiny-tech package dir (`…/node_modules/tiny-tech`). |
-| `TINY_SELF_DEVICE_IDS` | *(unset)* | `tools/tiny_mcp.py` | This robot's tiny.technology device ids — `use_device` refuses to invoke itself. |
-| `TINY_SELF_NAME` | *(unset)* | `tools/tiny_mcp.py` | Name prefixed to fleet prompts: `[fleet depth=1 from <name>]`. |
-| `TINY_TOKEN` | *(unset)* | `tools/tiny_mcp.py` | tiny.technology CLI JWT for the MCP server (`TINY_TOKEN_FILE` wins if both are set). |
-| `TINY_TOKEN_FILE` | *(unset)* | `tools/tiny_mcp.py` | Mode-600 file holding that token. Never logged. |
+| `TINY_MCP` | `0` | `1` mounts the tiny.technology fleet tools via the tiny-tech MCP server. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_MCP_COMMAND` | *(unset)* | Full command to run the server instead of the auto-detected one. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_MCP_HOME` | `~/.tiny-mcp` | Isolated `TINY_HOME` for the MCP server process. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_MCP_MESH` | `0` | `1` joins the zenoh mesh (off: CPU on the CM4). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_MCP_NODE` | *(unset)* | Path to the node binary if not on PATH. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_MCP_PERSONAS` | *(unset)* | Personas that get fleet tools (robot: `telegram,dashboard,shell,voice`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_MCP_STARTUP_TIMEOUT` | `45` | Seconds to wait for the MCP handshake before starting without fleet tools. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_MCP_TIMEOUT` | `90` | Per-call timeout for fleet tools. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_MCP_TINY_TECH` | *(unset)* | Path to a tiny-tech package dir (`…/node_modules/tiny-tech`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_SELF_DEVICE_IDS` | *(unset)* | This robot's tiny.technology device ids — `use_device` refuses to invoke itself. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_SELF_NAME` | *(unset)* | Name prefixed to fleet prompts: `[fleet depth=1 from <name>]`. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_TOKEN` | *(unset)* | tiny.technology CLI JWT for the MCP server (`TINY_TOKEN_FILE` wins). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
+| `TINY_TOKEN_FILE` | *(unset)* | Mode-600 file holding that token. Never logged. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py">tools/tiny_mcp.py</a> |
 
-_110 variables, scanned from every `os.getenv` / `os.environ` in the repo._
+_110 variables._
 <!-- /gen:env -->
 
 </div>

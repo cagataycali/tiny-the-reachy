@@ -1,7 +1,7 @@
 ---
 title: Head tracking
-description: "toggle the daemon's face tracker (reachy-mini ≥ 1.10) through the dashboard's tracking controller"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "the daemon's face tracker (≥ 1.10)"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,14 +10,7 @@ proof: code
 # Head tracking
 
 !!! abstract "In 10 seconds"
-    - 2 tools in `tools/head_tracking.py`: `head_tracking` · `head_tracking_status`.
-    - TINY head-tracking tools — follow the user's face (Pollen's `head_tracking` tool, daemon edition).
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`head_tracking`](#head_tracking) | Enable or disable following the user's face with the head. |
-| [`head_tracking_status`](#head_tracking_status) | Is TINY following a face right now? |
+    - 2 tools in `tools/head_tracking.py` — the daemon's face tracker (≥ 1.10).
 
 ## `head_tracking`
 
@@ -27,16 +20,7 @@ head_tracking(enabled: bool = True) -> dict
 
 Enable or disable following the user's face with the head.
 
-Use when asked to follow, keep looking at, look at me, track me, or stop following the user.
-The robot's daemon keeps the closest face centred in the camera; it pauses by itself while TINY
-is speaking or playing an emotion/look and drifts back to neutral a couple of seconds after the
-face is gone. Idempotent — calling it with the current state is fine.
-
-| argument | meaning |
-|---|---|
-| `enabled` | True to start following the user's face, False to stop. |
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/head_tracking.py#L63">tools/head_tracking.py:63</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/head_tracking.py#L63" title="tools/head_tracking.py:63">source ↗</a></small>
 
 ## `head_tracking_status`
 
@@ -44,6 +28,6 @@ face is gone. Idempotent — calling it with the current state is fine.
 head_tracking_status() -> dict
 ```
 
-Is TINY following a face right now? Returns enabled/paused, whether a face is detected and where.
+Is TINY following a face right now?
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/head_tracking.py#L85">tools/head_tracking.py:85</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/head_tracking.py#L85" title="tools/head_tracking.py:85">source ↗</a></small>

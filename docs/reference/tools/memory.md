@@ -1,7 +1,7 @@
 ---
 title: Memory
-description: "the cross-persona SQLite brain: remember, recall, forget"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "the shared SQLite brain"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,13 +10,7 @@ proof: code
 # Memory
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/memory.py`: `memory`.
-    - Memory tool — file system + SQLite persistence with raw SQL.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`memory`](#memory) | Persistent memory: filesystem notes + SQLite kv/log + raw SQL. |
+    - 1 tool in `tools/memory.py` — the shared SQLite brain.
 
 ## `memory`
 
@@ -36,26 +30,4 @@ memory(
 
 Persistent memory: filesystem notes + SQLite kv/log + raw SQL.
 
-**Actions**
-
-  Notes (filesystem):
-    - "note_write":  name + text → save note
-    - "note_read":   name → read note
-    - "note_list":   list all notes
-    - "note_search": query → grep across notes
-    - "note_delete": name → delete
-
-  Key/Value (SQLite):
-    - "kv_set": key + value
-    - "kv_get": key
-    - "kv_del": key
-    - "kv_list": optional query (LIKE on key)
-
-  Log (SQLite, time-series):
-    - "log_add":    text + optional tag
-    - "log_recent": optional tag, limit
-
-  Raw SQL:
-    - "sql": sql (any statement; SELECT returns rows, others return rowcount)
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/memory.py#L40">tools/memory.py:40</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/memory.py#L40" title="tools/memory.py:40">source ↗</a></small>

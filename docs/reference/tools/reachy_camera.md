@@ -1,7 +1,7 @@
 ---
 title: Camera
-description: "grab a frame, look at a pixel, ask the vision model a question about what TINY sees"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "frames, look-at, ask vision"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,15 +10,7 @@ proof: code
 # Camera
 
 !!! abstract "In 10 seconds"
-    - 3 tools in `tools/reachy_camera.py`: `reachy_camera` · `reachy_look_at` · `capture_camera`.
-    - TINY camera tool — grab a frame from the head camera via the daemon.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`reachy_camera`](#reachy_camera) | Capture a frame from TINY's head camera and save it to disk. |
-| [`reachy_look_at`](#reachy_look_at) | Make TINY look at pixel (u,v) in its camera frame (visual servoing). |
-| [`capture_camera`](#capture_camera) | Grab a frame from TINY's head camera and return it as an IMAGE block (text personas only). |
+    - 3 tools in `tools/reachy_camera.py` — frames, look-at, ask vision.
 
 ## `reachy_camera`
 
@@ -28,16 +20,7 @@ reachy_camera(save_path: str = '', timeout: float = 10.0) -> dict
 
 Capture a frame from TINY's head camera and save it to disk.
 
-Requires the client to hold a media backend (REACHY_MEDIA_BACKEND=local
-or webrtc). If the daemon owns media in no_media mode, this reconnects a
-media-capable client for the grab.
-
-| argument | meaning |
-|---|---|
-| `save_path` | where to write the JPEG (default: $TINY_CAMERA_SNAPSHOT). timeout: seconds to wait for a valid frame. |
-| `Returns` | status + path to the saved image. |
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_camera.py#L20">tools/reachy_camera.py:20</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_camera.py#L20" title="tools/reachy_camera.py:20">source ↗</a></small>
 
 ## `reachy_look_at`
 
@@ -47,10 +30,7 @@ reachy_look_at(u: int, v: int, duration: float = 1.0) -> dict
 
 Make TINY look at pixel (u,v) in its camera frame (visual servoing).
 
-Great for "look at me" / hand-tracking style behaviours. Requires a
-media-capable backend so the camera intrinsics are known.
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_camera.py#L76">tools/reachy_camera.py:76</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_camera.py#L76" title="tools/reachy_camera.py:76">source ↗</a></small>
 
 ## `capture_camera`
 
@@ -60,11 +40,4 @@ capture_camera(question: str = '', save_path: str = '') -> dict
 
 Grab a frame from TINY's head camera and return it as an IMAGE block (text personas only).
 
-For the telegram / thinker / shell personas (Bedrock Claude): the JPEG lands
-in the conversation so the model can SEE it. NOT for the realtime VOICE
-persona — OpenAI Realtime rejects image tool results and drops the session;
-voice must use take_photo() instead. Optional question is echoed for context;
-save_path defaults to $TINY_CAMERA_SNAPSHOT and is reported so a follow-up
-telegram send_photo can reuse the same file (no second capture, no image_reader).
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_camera.py#L91">tools/reachy_camera.py:91</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_camera.py#L91" title="tools/reachy_camera.py:91">source ↗</a></small>

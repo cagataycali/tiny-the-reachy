@@ -11,6 +11,8 @@ exclude_docs: |
   *.bak
   LIVE_DEPLOY.md
   hooks/
+  scripts/README.md
+  design-assets/README.md
 
 extra_css:
   - stylesheets/reachy.css
