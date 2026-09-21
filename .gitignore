@@ -21,3 +21,4 @@ dashboard/frontend/dist/
 .reachy-dashboard.env
 dashboard/frontend/public/mujoco/
 docs/SHOWCASE-RUNBOOK.md
+tools/landing/model-hi/

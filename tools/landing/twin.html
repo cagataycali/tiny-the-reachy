@@ -1,0 +1,27 @@
+<!doctype html>
+<!-- twin.html — offline render host for tools/landing/render_twin.mjs (Playwright). Not shipped.
+     Query: ?move=curious1&frame=40&w=1600&h=1200&yaw=0.62&pitch=0.28&dist=0.58  — draws ONE frame of the real move on a
+     transparent canvas; the script screenshots it. window.__ready resolves when drawn; window.__draw(frame) repaints. -->
+<html><head><meta charset="utf-8"><title>twin render</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body><canvas id="c"></canvas>
+<script type="module">
+  import { loadModel, buildRobot, applyFrame, makeStage } from '/docs/js/landing/twin.js'
+  const q = new URLSearchParams(location.search)
+  const W = +q.get('w') || 1600, H = +q.get('h') || 1200
+  const canvas = document.getElementById('c'); canvas.width = W; canvas.height = H
+  const stage = makeStage(canvas, { width: W, height: H, dpr: 1 })
+  for (const k of ['yaw', 'pitch', 'dist']) if (q.get(k) != null) stage.orbit[k] = +q.get(k)
+  if (q.get('tz') != null) stage.orbit.target.z = +q.get('tz')
+  if (q.get('fov')) { stage.cam.fov = +q.get('fov'); stage.cam.updateProjectionMatrix() }
+  stage.look()
+  const model = await loadModel(q.get('model') || '/dashboard/frontend/public/model/')
+  const robot = buildRobot(model, { shell: q.get('shell') ? parseInt(q.get('shell'), 16) : undefined })
+  stage.scene.add(robot.root)
+  const poses = await fetch(`/docs/assets/landing/poses/${q.get('move') || 'curious1'}.json`).then((r) => r.json())
+  window.__poses = poses; window.__model = { bytes: model.bytes, meshes: model.geoms.meshes.length, geoms: model.geoms.geoms.length, sha: model.geoms.sha }
+  window.__draw = (i) => { applyFrame(robot, poses, i); stage.render(); return poses.head[Math.max(0, Math.min(poses.frames.length - 1, i))] }
+  window.__orbit = (o) => { Object.assign(stage.orbit, o); stage.look(); stage.render() }
+  window.__draw(+q.get('frame') || 0)
+  window.__ready = true
+</script></body></html>

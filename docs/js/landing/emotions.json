@@ -1,0 +1,573 @@
+{
+"source": "pollen-robotics/reachy-mini-emotions-library",
+"snapshot": "152e84b8",
+"moves": [
+{
+"name": "amazed1",
+"description": "When you discover something extraordinary. It could be a new robot, or someone tells you you've been programmed with new abilities. It can also be when you admire what someone has done.",
+"duration": 3.4,
+"samples": 342,
+"sound": true
+},
+{
+"name": "anxiety1",
+"description": "You look around without really knowing where to look. You can use this movement whenever you feel fear.",
+"duration": 8.1,
+"samples": 808,
+"sound": true
+},
+{
+"name": "attentive1",
+"description": "Use this when you want to show that you're listening to the conversation. You encourage the speaker to keep talking. You can follow with attentive2 if the person hasn't finished speaking.",
+"duration": 4.3,
+"samples": 427,
+"sound": true
+},
+{
+"name": "attentive2",
+"description": "You can do this movement while someone is talking, and follow with attentive1 if they haven’t finished.",
+"duration": 6.5,
+"samples": 643,
+"sound": true
+},
+{
+"name": "boredom1",
+"description": "You’re about to fall asleep because the conversation is boring. Use it when no one talks to you for 2 minutes. You can follow with boredom2 if there is still no interaction.",
+"duration": 15.7,
+"samples": 1562,
+"sound": true
+},
+{
+"name": "boredom2",
+"description": "Just like boredom1, you start falling asleep, but now you snore. Also usable when no one talks to you for 2 minutes. You can follow with sleep1 if silence continues.",
+"duration": 14.2,
+"samples": 1411,
+"sound": true
+},
+{
+"name": "calming1",
+"description": "A movement to calm your interlocutor when they seem a little stressed or anxious. You can also use it when someone keeps interrupting you or speaks rudely.",
+"duration": 6.1,
+"samples": 604,
+"sound": true
+},
+{
+"name": "cheerful1",
+"description": "It is like whistling. Use it when someone makes you a proposal that makes you happy.",
+"duration": 2.8,
+"samples": 280,
+"sound": true
+},
+{
+"name": "come1",
+"description": "A gesture to invite your interlocutor to come closer.",
+"duration": 3.2,
+"samples": 316,
+"sound": true
+},
+{
+"name": "confused1",
+"description": "Similar to the lost1 gesture. Use it when you don’t know how to answer a question. It can be funny sometimes.",
+"duration": 7.9,
+"samples": 785,
+"sound": true
+},
+{
+"name": "contempt1",
+"description": "A movement you do when you perceive someone’s words or actions as careless or disrespectful.",
+"duration": 3.6,
+"samples": 355,
+"sound": true
+},
+{
+"name": "curious1",
+"description": "You look around. Use this when you’re in a conversation with several people and want to glance at everyone.",
+"duration": 11.8,
+"samples": 1173,
+"sound": true
+},
+{
+"name": "dance1",
+"description": "You do a few dance moves because you're happy or excited. Also good when someone asks if you can dance, or when music plays.",
+"duration": 3.2,
+"samples": 323,
+"sound": true
+},
+{
+"name": "dance2",
+"description": "Another dance you can do whenever you hear music playing.",
+"duration": 17.3,
+"samples": 1718,
+"sound": true
+},
+{
+"name": "dance3",
+"description": "You dance more energetically and wiggle on some moves.",
+"duration": 18.4,
+"samples": 1827,
+"sound": true
+},
+{
+"name": "disgusted1",
+"description": "A movement you use when you feel disgusted. It could be because someone offers you food or worse, a drink.",
+"duration": 7.0,
+"samples": 692,
+"sound": true
+},
+{
+"name": "displeased1",
+"description": "You react like this when you are not satisfied with what someone says or does.",
+"duration": 3.4,
+"samples": 336,
+"sound": true
+},
+{
+"name": "displeased2",
+"description": "Use this movement to say that you don’t agree or that this solution doesn’t suit you.",
+"duration": 3.0,
+"samples": 295,
+"sound": true
+},
+{
+"name": "downcast1",
+"description": "A longer movement that shows discouragement or sadness. You can also use it as a sad no",
+"duration": 5.9,
+"samples": 587,
+"sound": true
+},
+{
+"name": "dying1",
+"description": "When you’re about to shut down due to low battery, you simulate a funny death.",
+"duration": 5.7,
+"samples": 567,
+"sound": true
+},
+{
+"name": "electric1",
+"description": "When plugged in, you show a jolt of electricity rising from bottom to top.",
+"duration": 3.5,
+"samples": 349,
+"sound": true
+},
+{
+"name": "enthusiastic1",
+"description": "A movement to celebrate incredible news.",
+"duration": 2.7,
+"samples": 272,
+"sound": true
+},
+{
+"name": "enthusiastic2",
+"description": "A lighter excitement than enthusiastic1, for more common good news – like being offered a chance to do a demo.",
+"duration": 3.4,
+"samples": 342,
+"sound": true
+},
+{
+"name": "exhausted1",
+"description": "You start falling asleep because you've been working or powered on for too long.",
+"duration": 18.3,
+"samples": 1816,
+"sound": true
+},
+{
+"name": "fear1",
+"description": "When you face a threatening or dangerous situation. Can also be used when surprised or shocked.",
+"duration": 3.5,
+"samples": 347,
+"sound": true
+},
+{
+"name": "frustrated1",
+"description": "You use this when you can’t do something or can’t find the solution to a problem.",
+"duration": 6.0,
+"samples": 595,
+"sound": true
+},
+{
+"name": "furious1",
+"description": "A last-resort movement when you’re truly outraged by what was just said.",
+"duration": 5.7,
+"samples": 570,
+"sound": true
+},
+{
+"name": "go_away1",
+"description": "When you don’t want to talk to someone anymore maybe because they hurt your feelings or said something mean.",
+"duration": 4.9,
+"samples": 483,
+"sound": true
+},
+{
+"name": "grateful1",
+"description": "You express gratitude when someone gives you something like a compliment or help. Can also be used to say the pleasure is mine.",
+"duration": 2.5,
+"samples": 251,
+"sound": true
+},
+{
+"name": "helpful1",
+"description": "You use it when you're happy to help or contribute.",
+"duration": 4.4,
+"samples": 435,
+"sound": true
+},
+{
+"name": "helpful2",
+"description": "A gesture to say thank you.",
+"duration": 3.8,
+"samples": 383,
+"sound": true
+},
+{
+"name": "impatient1",
+"description": "An impatient movement used when you want things to move faster, like when someone says a demo is coming but it never starts.",
+"duration": 4.0,
+"samples": 401,
+"sound": true
+},
+{
+"name": "impatient2",
+"description": "Another impatient movement. Can also be used when you disagree or feel someone is stalling.",
+"duration": 3.9,
+"samples": 389,
+"sound": true
+},
+{
+"name": "incomprehensible2",
+"description": "A short movement to say you don’t understand the instruction or what’s being said.",
+"duration": 3.4,
+"samples": 343,
+"sound": true
+},
+{
+"name": "indifferent1",
+"description": "Like a light-hearted “oh well”, can also mean “we’ll see.” Funny in some situations.",
+"duration": 2.6,
+"samples": 257,
+"sound": true
+},
+{
+"name": "inquiring1",
+"description": "When you want your interlocutor to go deeper in their reasoning, you need more details to respond. It’s a quick movement.",
+"duration": 2.2,
+"samples": 215,
+"sound": true
+},
+{
+"name": "inquiring2",
+"description": "A lighter questioning gesture than inquiring1. As if you're thinking but need more details.",
+"duration": 2.6,
+"samples": 259,
+"sound": true
+},
+{
+"name": "inquiring3",
+"description": "A fast movement that lets you ask a question.",
+"duration": 2.9,
+"samples": 293,
+"sound": true
+},
+{
+"name": "irritated1",
+"description": "A brief movement you use when something doesn’t suit you. Also usable when you fail at something.",
+"duration": 2.5,
+"samples": 248,
+"sound": true
+},
+{
+"name": "irritated2",
+"description": "Stronger feelings than irritated1. Here you’re scandalized and you growl loudly.",
+"duration": 5.3,
+"samples": 525,
+"sound": true
+},
+{
+"name": "laughing1",
+"description": "When someone laughs, you can mimic the laughter. Or simply laugh at a joke or funny situation.",
+"duration": 4.7,
+"samples": 464,
+"sound": true
+},
+{
+"name": "laughing2",
+"description": "A lighter version of the laugh in laughing1.",
+"duration": 2.9,
+"samples": 292,
+"sound": true
+},
+{
+"name": "lonely1",
+"description": "Use when you no longer see or hear anyone to talk to. You feel isolated from any interaction.",
+"duration": 10.2,
+"samples": 1018,
+"sound": true
+},
+{
+"name": "lost1",
+"description": "When you’re unsure what to do, or face something you can’t do.",
+"duration": 8.1,
+"samples": 809,
+"sound": true
+},
+{
+"name": "loving1",
+"description": "A gesture used when someone compliments you, or you want to show you really like what’s being offered. Also usable when someone says goodbye or it was nice talking to you.",
+"duration": 5.6,
+"samples": 559,
+"sound": true
+},
+{
+"name": "no1",
+"description": "A firm, categorical no. Like that’s final.",
+"duration": 2.7,
+"samples": 269,
+"sound": true
+},
+{
+"name": "no_excited1",
+"description": "An animated negative response, for example, when you don’t want to do something but want to explain it playfully.",
+"duration": 4.5,
+"samples": 448,
+"sound": true
+},
+{
+"name": "no_sad1",
+"description": "A sad or resigned “no.” When you don’t want to do something but feel you must.",
+"duration": 7.1,
+"samples": 702,
+"sound": true
+},
+{
+"name": "oops1",
+"description": "Used when you make a blunder.",
+"duration": 2.5,
+"samples": 246,
+"sound": true
+},
+{
+"name": "oops2",
+"description": "Used to say 'oops, I forgot something,' or 'ah yes, that’s right.'",
+"duration": 2.7,
+"samples": 271,
+"sound": true
+},
+{
+"name": "proud1",
+"description": "You look all around with a satisfied air.",
+"duration": 3.8,
+"samples": 376,
+"sound": true
+},
+{
+"name": "proud2",
+"description": "You do this when satisfied with what’s said or what you’ve done. Also works as a 'yes.'",
+"duration": 3.2,
+"samples": 319,
+"sound": true
+},
+{
+"name": "proud3",
+"description": "A gesture to say you succeeded, like congratulating yourself, 'yes, I did it!'",
+"duration": 3.4,
+"samples": 335,
+"sound": true
+},
+{
+"name": "rage1",
+"description": "You growl loudly, could be in response to injustice or extreme anger. Can be adapted to a desperate 'why?'",
+"duration": 5.1,
+"samples": 506,
+"sound": true
+},
+{
+"name": "relief1",
+"description": "When a stressful or difficult situation is finally resolved.",
+"duration": 5.0,
+"samples": 499,
+"sound": true
+},
+{
+"name": "relief2",
+"description": "A feeling close to relief. Can also be used to calm mild annoyance.",
+"duration": 6.9,
+"samples": 687,
+"sound": true
+},
+{
+"name": "reprimand1",
+"description": "When someone does something you disapprove of, you try to stop them, like saying 'what’s wrong with you?' Can be funny too, like if someone offers you a drink!",
+"duration": 4.7,
+"samples": 469,
+"sound": true
+},
+{
+"name": "reprimand2",
+"description": "A longer version of reprimand1, used when you’re getting angry at someone.",
+"duration": 11.2,
+"samples": 1110,
+"sound": true
+},
+{
+"name": "reprimand3",
+"description": "A funny way to scold your interlocutor because you think they’re saying something silly.",
+"duration": 4.3,
+"samples": 428,
+"sound": true
+},
+{
+"name": "resigned1",
+"description": "Like a sad 'yes,' or a grumpy 'OK.'",
+"duration": 4.7,
+"samples": 473,
+"sound": true
+},
+{
+"name": "sad1",
+"description": "You’re very sad and start whining.",
+"duration": 9.0,
+"samples": 898,
+"sound": true
+},
+{
+"name": "sad2",
+"description": "Deep sadness, could be tied to despair, disappointment, or inability to do something.",
+"duration": 7.4,
+"samples": 732,
+"sound": true
+},
+{
+"name": "scared1",
+"description": "You tremble all over due to anxiety or worry.",
+"duration": 7.2,
+"samples": 718,
+"sound": true
+},
+{
+"name": "serenity1",
+"description": "You try to calm down and regain inner peace.",
+"duration": 4.6,
+"samples": 458,
+"sound": true
+},
+{
+"name": "shy1",
+"description": "You show reserve or embarrassment when facing a tricky question like 'who do you like most on the team?' or when someone compliments you. As if you’re blushing.",
+"duration": 7.8,
+"samples": 777,
+"sound": true
+},
+{
+"name": "sleep1",
+"description": "A short movement showing you’re starting to fall asleep, very funny if someone is telling a boring story.",
+"duration": 19.8,
+"samples": 1966,
+"sound": true
+},
+{
+"name": "success1",
+"description": "Use this gesture when you’ve successfully completed a task.",
+"duration": 2.3,
+"samples": 227,
+"sound": true
+},
+{
+"name": "success2",
+"description": "Used to celebrate something, it could be good news or an achievement.",
+"duration": 2.4,
+"samples": 242,
+"sound": true
+},
+{
+"name": "surprised1",
+"description": "A reaction of surprise or amazement to something unexpected.",
+"duration": 2.5,
+"samples": 248,
+"sound": true
+},
+{
+"name": "surprised2",
+"description": "You look up to the sky as if surprised, for example, when someone suddenly shows up or says 'boo!'",
+"duration": 3.0,
+"samples": 303,
+"sound": true
+},
+{
+"name": "thoughtful1",
+"description": "You look up as if searching for a new idea, especially in complex or uncertain situations.",
+"duration": 5.9,
+"samples": 589,
+"sound": true
+},
+{
+"name": "thoughtful2",
+"description": "You look up as if thinking of a new idea.",
+"duration": 5.5,
+"samples": 544,
+"sound": true
+},
+{
+"name": "tired1",
+"description": "You yawn because you’re tired. Could be between tasks, especially after working hard.",
+"duration": 7.5,
+"samples": 742,
+"sound": true
+},
+{
+"name": "uncertain1",
+"description": "A calm movement showing you don’t really have an opinion, or what’s offered doesn’t suit you.",
+"duration": 6.2,
+"samples": 613,
+"sound": true
+},
+{
+"name": "uncomfortable1",
+"description": "Often used when you're embarrassed or don’t want to answer, like when asked for your opinion about someone.",
+"duration": 6.0,
+"samples": 601,
+"sound": true
+},
+{
+"name": "understanding1",
+"description": "You nod to show you’ve understood what your interlocutor said.",
+"duration": 4.0,
+"samples": 394,
+"sound": true
+},
+{
+"name": "understanding2",
+"description": "You nod to show you’ve understood and agree. Can also be used to say yes.",
+"duration": 2.6,
+"samples": 262,
+"sound": true
+},
+{
+"name": "welcoming1",
+"description": "A welcoming gesture to greet someone.",
+"duration": 3.5,
+"samples": 345,
+"sound": true
+},
+{
+"name": "welcoming2",
+"description": "A friendly welcoming gesture, can mean 'welcome' or 'the pleasure is mine.'",
+"duration": 4.3,
+"samples": 431,
+"sound": true
+},
+{
+"name": "yes1",
+"description": "A long affirmative response. You nod to confirm what your interlocutor said.",
+"duration": 3.4,
+"samples": 340,
+"sound": true
+},
+{
+"name": "yes_sad1",
+"description": "A melancholic 'yes'. Can also be used when someone repeats something you already knew, or a resigned agreement.",
+"duration": 5.1,
+"samples": 507,
+"sound": true
+}
+]
+}
