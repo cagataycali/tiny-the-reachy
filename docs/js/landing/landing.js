@@ -47,7 +47,11 @@
     heroPosesP = fetch(heroStage.dataset.poses).then((r) => r.json()).catch(() => null);
     let poses = null; heroPosesP.then((p) => { poses = p; paintStrip(); });
     const fmt = (v) => (v < 0 ? "−" : "") + Math.abs(Math.round(v));
-    const paintStrip = () => { if (!poses) return; const h = poses.head[heroFrame], a = poses.antennas[heroFrame]; strip.t.textContent = poses.t[heroFrame].toFixed(1); strip.yaw.textContent = fmt(h.yaw); strip.roll.textContent = fmt(h.roll); strip.ant.textContent = `${fmt(a[0])} / ${fmt(a[1])}`; };
+    const motorCells = Array.from(heroStage.querySelectorAll("[data-hm]"));
+    const paintStrip = () => { if (!poses) return; const h = poses.head[heroFrame], a = poses.antennas[heroFrame]; strip.t.textContent = poses.t[heroFrame].toFixed(1); strip.yaw.textContent = fmt(h.yaw); strip.roll.textContent = fmt(h.roll); strip.ant.textContent = `${fmt(a[0])} / ${fmt(a[1])}`;
+      const m = poses.motors?.[heroFrame]; if (m) motorCells.forEach((b) => { b.textContent = fmt(m[+b.dataset.hm]); }); };
+    // hover the robot → the frame's motor command row (the daemon's IK output for this pose); pointer devices only, no layout shift
+    wrap.addEventListener("pointerenter", () => heroStage.classList.add("is-peek")); wrap.addEventListener("pointerleave", () => { if (!wrap.classList.contains("is-live")) heroStage.classList.remove("is-peek"); });
     let loaded = false, painted = -1;
     const load = () => { if (loaded) return; loaded = true; for (let i = 0; i < N; i++) { const im = new Image(); im.decoding = "async"; im.src = `${seq}${String(i).padStart(2, "0")}.webp`; im.decode().then(() => createImageBitmap(im)).then((bm) => { imgs[i] = bm; if (i === heroFrame) paint(); }).catch(() => { imgs[i] = im; }); } };
     const paint = () => { const im = imgs[heroFrame]; if (!im) return; if (painted !== heroFrame) { tctx.clearRect(0, 0, turn.width, turn.height); tctx.drawImage(im, 0, 0, turn.width, turn.height); painted = heroFrame; wrap.classList.add("is-turning"); } };

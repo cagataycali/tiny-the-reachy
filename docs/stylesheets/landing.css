@@ -71,7 +71,12 @@ html[data-landing] .md-main__inner { margin-top: 0; }
 .l-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: .25rem .9rem; font-variant-numeric: tabular-nums; }
 .l-strip b { color: var(--l-ink-3); font-weight: 600; display: inline-block; min-width: 2.2ch; text-align: right; }
 .l-caption { font-family: var(--l-mono); font-size: .78rem !important; color: var(--l-ink-2); text-align: center; margin: 1rem auto 0; max-width: 44ch !important; line-height: 1.6; }
-.l-caption--hero { display: grid; gap: .15rem; } .l-caption__k { display: block; }
+.l-caption--hero { display: grid; gap: .15rem; max-width: 27rem !important; } .l-caption__k { display: block; }
+/* the motor-command row: real per-frame IK output, revealed on hover; keeps its height so the hero never shifts */
+.l-strip--motors { visibility: hidden; opacity: 0; transition: opacity .25s var(--l-ease); font-size: .7rem; color: var(--l-ink-2); gap: .1rem .6rem; line-height: 1.5; }
+.l-strip--motors b { min-width: 2.6ch; } .l-strip__k { color: var(--l-accent-ink); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: .62rem; }
+@media (hover: hover) and (min-width: 60em) { .l-stage--hero.is-peek .l-strip--motors, .l-stage--hero:has(.l-figwrap:focus-visible) .l-strip--motors { visibility: visible; opacity: 1; } }
+@media not ((hover: hover) and (min-width: 60em)) { .l-strip--motors { display: none; } }
 .l-caption__k { text-transform: uppercase; letter-spacing: .1em; font-size: .66rem; color: var(--l-accent-ink); }
 .l-caption__hint { color: var(--l-ink-2); }
 .l-caption code { background: transparent; border: 0; padding: 0; color: var(--l-ink-3); font-weight: 600; }

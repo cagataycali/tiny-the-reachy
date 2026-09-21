@@ -12,7 +12,9 @@ Ground truth, nothing invented:
 Output: docs/assets/landing/poses/<name>.json
   {"move": name, "description": <the json's own description>, "duration": s, "bodies": [17 names],
    "frames": [[x,y,z,qw,qx,qy,qz] * bodies] * N, "t": [s] * N, "head": [{"roll","pitch","yaw","z"}] * N (deg / mm),
-   "antennas": [[right,left] deg] * N, "body_yaw": [deg] * N, "ranges": {...}}
+   "antennas": [[right,left] deg] * N, "body_yaw": [deg] * N, "ranges": {...},
+   "motor_names": [9 names], "motors": [[deg] * 9] * N — the daemon's motor command at that frame: yaw_body + stewart_1..6 from
+   its own IK, then the two antennas (the landing's hero readout shows this vector on hover; nothing on the page is interpolated)}
 Also `--index` writes docs/js/landing/emotions.json = [{name, description, duration, samples}] for all moves in the cache.
 
 Run (lane venv):  ~/.tiny/reachy-landing-20260921/.venv/bin/python tools/landing/emotion_poses.py curious1 --fps 12
@@ -115,7 +117,7 @@ def compute(name: str, fps: float, settle_s: float = 0.6) -> dict:
 
     h = model.opt.timestep
     sample_t = np.arange(0.0, t[-1] + 1e-9, 1.0 / fps)
-    frames, heads, ants, byaw, tt = [], [], [], [], []
+    frames, heads, ants, byaw, tt, motors = [], [], [], [], [], []
     sim_t = 0.0; ti = 0
     for st in sample_t:
         # advance the sim to st, updating ctrl from the recorded trajectory as time passes (100 Hz recording)
@@ -133,6 +135,8 @@ def compute(name: str, fps: float, settle_s: float = 0.6) -> dict:
         s = traj[min(ti, len(traj) - 1)]
         ants.append([round(math.degrees(s["antennas"][0]), 1), round(math.degrees(s["antennas"][1]), 1)])
         byaw.append(round(math.degrees(s["body_yaw"]), 1)); tt.append(round(float(st), 3))
+        j = targets(min(ti, len(traj) - 1))       # what the daemon commands at this instant: 7 IK joints + antennas (ctrl sign undone)
+        motors.append([round(math.degrees(v), 1) for v in j[:7]] + [round(-math.degrees(v), 1) for v in j[7:]])
 
     def rng(xs): return [round(min(xs), 1), round(max(xs), 1)]
     ranges = {"head_yaw": rng([x["yaw"] for x in heads]), "head_pitch": rng([x["pitch"] for x in heads]), "head_roll": rng([x["roll"] for x in heads]),
@@ -140,7 +144,8 @@ def compute(name: str, fps: float, settle_s: float = 0.6) -> dict:
     return {"move": name, "source": "pollen-robotics/reachy-mini-emotions-library", "snapshot": snapshot_dir().name[:8],
             "description": move["description"], "duration": round(float(t[-1]), 2), "samples": len(t), "fps": fps,
             "model": MODEL_XML.relative_to(ROOT).as_posix(), "mujoco": mujoco.__version__, "bodies": bodies, "t": tt,
-            "frames": frames, "head": heads, "antennas": ants, "body_yaw": byaw, "ranges": ranges}
+            "frames": frames, "head": heads, "antennas": ants, "body_yaw": byaw, "ranges": ranges,
+            "motor_names": MOTOR_JOINTS, "motors": motors}
 
 
 def write_index() -> int:
