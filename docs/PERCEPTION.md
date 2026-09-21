@@ -6,37 +6,35 @@ proof: robot
 verified: 2026-09-17
 ---
 
-# Perception — face tracking · turn to sound · daemon pressure
+# Perception
 
 !!! abstract "In 10 seconds"
     - Three layers, one daemon WebSocket (`dashboard/daemonlink.py`).
-    - An explicit look / say holds the tracker and blocks DoA; a face lock blocks DoA; DoA acts only when nobody is in view.
-    - New code: **read `robot.stream`, never poll the daemon, never release media from a retry loop.**
+    - A look / say holds the tracker; a face lock blocks DoA — it acts only when nobody is in view.
+    - New code: **read `robot.stream`, never poll the daemon.**
 
 | layer | source | module | switch |
 |---|---|---|---|
-| **face tracking** | daemon YuNet | `dashboard/tracking.py` | 👁 / `F` · `head_tracking()` |
-| **turn to sound** | ReSpeaker DoA | `dashboard/doa.py` | 🔊 / `K` · `turn_to_sound()` |
+| **face tracking** | daemon YuNet | `dashboard/tracking.py` | 👁 `F` · `head_tracking()` |
+| **turn to sound** | ReSpeaker DoA | `dashboard/doa.py` | 🔊 `K` · `turn_to_sound()` |
 | **IMU** | daemon `imu` | `state.imu` | twin badge |
 
-## Face tracking (daemon edition)
+## Face tracking
 
-The detector runs inside the daemon, so the **daemon must own the sensor** — the dashboard re-acquires media when an SDK client releases it and only toggles weight: `1` follow, `0` paused, `disable` off. Details: [FACE-TRACKING.md](FACE-TRACKING.md).
+The detector runs inside the daemon — the dashboard only toggles weight: `1` follow, `0` paused. Details: [FACE-TRACKING.md](FACE-TRACKING.md).
 
 ## Turn to sound (DoA)
 
-**0 = left, π/2 = front/back, π = right** — a linear array cannot tell front from back, so `delta = SIGN · (π/2 − angle)`.
+**0 = left, π/2 = front/back, π = right** — a linear array cannot tell front from back. A turn fires when **all** hold:
 
-A turn fires when **all** hold:
-
-1. speech on ≥ 6 consecutive frames agreeing within ±12°;
-2. not a **rail** (within 3° of 0 or π — its own speaker, or "no estimate");
-3. TINY **not speaking** (+ 1.5 s tail — never chases its own voice);
-4. no face lock, no hold, no move in flight, ≥ 3 s since the last;
+1. speech on ≥ 6 frames agreeing within ±12°;
+2. not a **rail** (within 3° of 0 or π — its own speaker);
+3. TINY **not speaking** (+ 1.5 s tail);
+4. no face lock, hold or move in flight; ≥ 3 s since the last;
 5. |delta| ≥ 10°;
-6. **windup guard**: a same-direction turn within 10 s whose bearing did not shrink 40 % is refused — the sound moved with the head, so it is not a person. v1 wound the body to −143° in two minutes.
+6. **windup guard**: a same-direction turn within 10 s whose bearing did not shrink 40 % is refused — the sound moved with the head.
 
-Then one `goto`, head to ±45°, body carries the rest. `GET /api/doa` shows `why`; thresholds are `REACHY_DOA_*` ([env](reference/env.md)).
+Then one `goto`: head to ±45°, body carries the rest. `GET /api/doa` shows `why`.
 
 ## Fields the cockpit consumes
 
@@ -52,4 +50,4 @@ Then one `goto`, head to ±45°, body carries the rest. `GET /api/doa` shows `wh
 
 ## Daemon pressure
 
-After the EMFILE incident: one session, one WebSocket for every consumer — **≈160 requests/min, 0 CLOSE-WAIT**. ⚠ pill at fds &gt; 60 % or ≥ 50 CLOSE-WAIT. Timeline: [Operations](guide/operations.md).
+After the EMFILE incident: one WebSocket for every consumer — **≈160 requests/min, 0 CLOSE-WAIT**. Timeline: [Operations](guide/operations.md).

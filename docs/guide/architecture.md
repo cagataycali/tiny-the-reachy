@@ -9,18 +9,17 @@ verified: 2026-09-21
 # Architecture
 
 !!! abstract "In 10 seconds"
-    - **Pollen's daemon** (`:8000`) alone touches motors, camera, mics, speaker. TINY is a pure HTTP/WS client.
-    - **One tool list** (19 `reachy_*` + 8 cross-persona) and **one factory** (`tiny.py build_agent(persona)`) serve five faces.
+    - **Pollen's daemon** (`:8000`) alone touches motors, camera, mics, speaker. TINY is an HTTP/WS client.
+    - **One tool list** (19 `reachy_*` + 8 shared) and **one factory** (`build_agent(persona)`) serve five faces.
     - **One brain**: a SQLite file every persona reads first and writes last ([the brain](brain.md)).
-    - Beside them: the cockpit (`:8097`), a tunnel, the optional fleet bridge.
 
 ## The body
 
 <figure class="anatomy" data-anatomy="body" data-base="../../" markdown>
-<figcaption>The MuJoCo twin (<code>model/twin.xml</code>, 18 bodies, 41 meshes). Each hotspot opens the tool that drives that part.</figcaption>
+<figcaption>The MuJoCo twin. Each hotspot opens the tool that drives that part.</figcaption>
 </figure>
 
-No arms, no legs. Everything TINY *is* comes out of a 6-DOF head, a rotating base, two antennas, one camera, four mics, a speaker.
+No arms, no legs: a 6-DOF head, a rotating base, two antennas, a camera, four mics, a speaker.
 
 ## Physical layout
 
@@ -45,10 +44,10 @@ flowchart TB
   FLEET["tiny.technology fleet<br/>TINY_MCP=1 · use_device"] -.-> V & T & K & DB
 ```
 
-A Lite is the same picture on your laptop; `REACHY_USE_SIM=1` swaps in a headless MuJoCo daemon. Every tool shares one cached `get_mini()` client that rebuilds itself when the daemon restarts.
+A Lite is the same picture on a laptop; `REACHY_USE_SIM=1` swaps in MuJoCo. Every tool shares one cached `get_mini()` client that rebuilds itself after a daemon restart.
 
 !!! danger "Never construct a second `ReachyMini()`"
-    Two clients fight the daemon — flaky motion. Always `get_mini()`.
+    Two clients fight the daemon. Always `get_mini()`.
 
 ```
 # the SDK surface TINY relies on
@@ -68,7 +67,7 @@ flowchart LR
   R --> U(["speaker · chat · log"])
 ```
 
-A persona wakes up knowing what the others did and where its head is. Gestures go **in the same turn as speech** — [expression](../showcase/expression.md).
+A persona wakes knowing what the others did and where its head is. Gestures go **in the same turn as speech**.
 
 ## The tool layers
 
@@ -76,13 +75,13 @@ A persona wakes up knowing what the others did and where its head is. Gestures g
 
 | layer | modules | what |
 |---|---|---|
-| **Robot** | `reachy_motion` · `reachy_expression` · `reachy_state` · `reachy_camera` · `head_tracking` · `turn_to_sound` · `reachy_audio` | 19 `reachy_*` wrappers, every angle clamped — [safety](safety.md) |
-| **Brain** | `memory` · `voice_bridge` · `dispatch` · `telegram` · `vision` · `prompts` · `manage_*` | 8 shared tools: remember, hand over, speak through the voice — [the brain](brain.md) |
-| **Fleet** | `tiny_mcp` | `use_device` & co, `TINY_MCP=1` only, never on a turn from another device — [fleet](../MCP.md) |
+| **Robot** | `reachy_motion` · `reachy_expression` · `reachy_state` · `reachy_camera` · `head_tracking` · `turn_to_sound` · `reachy_audio` | 19 wrappers, every angle clamped — [safety](safety.md) |
+| **Brain** | `memory` · `voice_bridge` · `dispatch` · `telegram` · `vision` · `prompts` · `manage_*` | 8 shared tools — [the brain](brain.md) |
+| **Fleet** | `tiny_mcp` | `use_device` & co, `TINY_MCP=1` only — [fleet](../MCP.md) |
 
 </div>
 
-## One source of truth — `tiny.py`
+## `tiny.py`
 
 ```python
 build_tools()            # text personas: everything above (+ use_github/use_spotify when importable)
@@ -92,9 +91,4 @@ build_shell_agent()      # the REPL you get from `make run`
 build_voice_agent()      # the bidi voice persona (openai · nova_sonic · gemini)
 ```
 
-Change a tool once, every face gets it. [`prompts`](../reference/tools/prompts.md) edits a persona at runtime — appended, `FULL:` replaces.
-
-## What is *not* here
-
-- Daemon down → every tool returns an error string the model can read aloud; nothing else breaks.
-- No secrets in the tree — [env](../reference/env.md).
+Change a tool once, every face gets it. Daemon down → every tool returns an error string the model can read aloud.

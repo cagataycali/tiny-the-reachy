@@ -6,14 +6,14 @@ proof: robot
 verified: 2026-09-17
 ---
 
-# Operations — keeping TINY alive
+# Operations
 
 !!! abstract "In 10 seconds"
-    - Run the health check first.
-    - The daemon's fd limit and media release/acquire cycles caused every early outage; `restart`, never `stop`.
-    - Before a demo: `demo on`, fds &lt; ~800. After: `demo off`.
+    - Health check first. `restart`, never `stop`.
+    - The daemon's fd limit and media release cycles caused every early outage.
+    - Before a demo: `demo on`, fds &lt; ~800.
 
-## The 60-second health check
+## Health check
 
 ```bash
 ssh reachy 'systemctl --user is-active tiny-wake tiny-tts tiny-voice tiny-telegram tiny-thinker reachy-dashboard reachy-tunnel; \
@@ -22,7 +22,7 @@ ssh reachy 'systemctl --user is-active tiny-wake tiny-tts tiny-voice tiny-telegr
 curl -s $COCKPIT/api/health | jq '{daemon: .daemon, camera: .camera.fps, pressure: .pressure, stream: .stream}'
 ```
 
-Healthy: seven `active`, load 3–4, 300–600 fds, `close_wait` 0.
+Healthy: seven `active`, load 3–4, 300–600 fds.
 
 ```bash
 journalctl _SYSTEMD_USER_UNIT=tiny-voice.service --since "10 min ago" -o cat        # journalctl --user finds nothing on the CM4
@@ -31,16 +31,16 @@ journalctl -u reachy-mini-daemon --since "5 min ago" -o cat | grep -oE '"(GET|PO
 
 ## Incident log
 
-| when (BST) | what you saw | root cause | fix |
+| when | seen | cause | fix |
 |---|---|---|---|
-| 09-16 23:00 | every persona *"Lost connection"* 12 min after a daemon restart | SDK client never reconnects | `get_mini()` rebuilds it |
-| 09-17 03:05 | cockpit dark 2 min | `stop` + SIGKILL; uvicorn waits on MJPEG clients | `timeout_graceful_shutdown=2` |
-| 09-17 05:29 | perception dead 10 min | **1024/1024 fds**, 614 CLOSE-WAIT — ~1300 req/min on fresh TCP; `tiny-mhs` crash-looping | one session + one WebSocket; `LimitNOFILE=65536`; watchdog; mhs gated |
-| 09-17 06:20 | fds climbing ~1/s, 0 CLOSE-WAIT | `tiny-voice` crash-looped on a bad key, **releasing media every retry** — ~30 leaked unix sockets each | `prlimit` live; release once, back off (`3fc0e23`) |
+| 09-16 23:00 | personas *"Lost connection"* 12 min | SDK client never reconnects | `get_mini()` rebuilds it |
+| 09-17 03:05 | cockpit dark 2 min | `stop`; uvicorn waits on MJPEG clients | `timeout_graceful_shutdown=2` |
+| 09-17 05:29 | perception dead 10 min | **1024/1024 fds**, 614 CLOSE-WAIT — ~1300 req/min | one WebSocket; `LimitNOFILE=65536`; watchdog |
+| 09-17 06:20 | fds climbing ~1/s | `tiny-voice` crash-looped, **releasing media every retry** | release once, back off |
 
-**A persona that cannot start must not touch the daemon's media** — and watch fds, not CLOSE-WAIT.
+**A persona that cannot start must not touch the daemon's media.**
 
-## Live mitigations (no reboot)
+## Live mitigations
 
 ```bash
 P=$(pgrep -f "reachy_mini.daemon.app.main"); sudo prlimit --pid $P --nofile=65536:524288   # fd limit, mid-demo
@@ -55,22 +55,22 @@ sudo systemctl restart reachy-mini-daemon                                       
 
 | resource | idle | face tracking | camera | note |
 |---|---|---|---|---|
-| load (4 cores) | ~2.5 | +1.0–1.5 | +0.5 | `F` when the temperature pill is amber |
+| load (4 cores) | ~2.5 | +1.0–1.5 | +0.5 | `F` when the temperature pill goes amber |
 | daemon CPU | ~60 % | ~135 % | — | YuNet |
 | daemon fds | 300–600 | — | — | +≈30 per release/acquire |
-| requests to :8000 | ≈160/min | — | — | face poll is the largest |
+| requests to :8000 | ≈160/min | — | — | face poll leads |
 | disk | 89 % | | | 1.5 GB free |
 
 ## Before a demo
 
-1. `POST /api/control/demo {"on":true}` (`D`) — thinker off.
+1. `demo on` (`D`) — thinker off.
 2. Health check; fds under ~800.
-3. `POST /api/volume {"level":60}`.
-4. After: `demo off` — the heartbeat feeds the Telegram photos.
+3. Volume 60.
+4. After: `demo off`.
 
 ## What we never do
 
-- `git push` from the robot — the repo is public.
+- `git push` from the robot.
 - Expose `:8000` — no auth.
-- Poll the daemon from new code — read `robot.stream`.
-- `pip install` on the CM4 without `df -h`.
+- Poll the daemon — read `robot.stream`.
+- `pip install` without `df -h`.
