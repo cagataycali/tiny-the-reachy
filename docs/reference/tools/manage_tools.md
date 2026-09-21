@@ -1,7 +1,7 @@
 ---
 title: Manage tools
-description: "list, create and hot-load new tools at runtime"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "create and hot-load tools at runtime"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,13 +10,7 @@ proof: code
 # Manage tools
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/manage_tools.py`: `manage_tools`.
-    - Runtime tool management — add/remove/list tools on the calling agent.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`manage_tools`](#manage_tools) | Manage the calling agent's tool registry at runtime. |
+    - 1 tool in `tools/manage_tools.py` — create and hot-load tools at runtime.
 
 ## `manage_tools`
 
@@ -32,13 +26,4 @@ manage_tools(
 
 Manage the calling agent's tool registry at runtime.
 
-**Actions**
-
-  - "list":     show currently registered tools
-  - "add":      tools='pkg:tool1,tool2' → load and register
-  - "remove":   name='toolname' → unregister
-  - "discover": tools='package_name' → list @tool callables in that module
-  - "create":   code='...python source defining @tool decorated functions...'
-                → exec and register them on this agent
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/manage_tools.py#L48">tools/manage_tools.py:48</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/manage_tools.py#L48" title="tools/manage_tools.py:48">source ↗</a></small>

@@ -52,7 +52,9 @@ jobs:
         run: mkdocs build --clean --strict
 
       - name: Docs drift tests (undocumented env var / tool / route, secrets in docs)
-        run: pip install pytest && pytest tests/test_docs.py -q
+        run: pip install pytest && pytest tests/test_docs.py tests/test_docs_budget.py -q
+      - name: Docs word budget
+        run: python tools/docs_budget.py
 
       - name: Warn if a generated page was committed stale (the deployed site is already fresh)
         run: git diff --quiet -- docs/reference || echo '::warning::docs/reference on GitHub is behind the code — run mkdocs build locally and commit the regenerated pages'

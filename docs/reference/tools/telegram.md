@@ -1,7 +1,7 @@
 ---
 title: Telegram
-description: "send text and photos to the owner's chat from any persona"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "text and photos to the owner's chat"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,13 +10,7 @@ proof: code
 # Telegram
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/telegram.py`: `telegram`.
-    - Telegram tool — rich actions + per-chat conversation memory.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`telegram`](#telegram) | Telegram bot — rich set of actions. |
+    - 1 tool in `tools/telegram.py` — text and photos to the owner's chat.
 
 ## `telegram`
 
@@ -41,24 +35,4 @@ telegram(
 
 Telegram bot — rich set of actions.
 
-**Actions**
-
-  Messages:
-    - "send_message":   chat_id + text       → send text (auto-records to history)
-    - "edit_message":   chat_id + message_id + new_text
-    - "delete_message": chat_id + message_id
-    - "send_photo":     chat_id + file_path [+ caption]
-    - "send_document":  chat_id + file_path [+ caption]
-    - "send_poll":      chat_id + question + options[]
-  Info:
-    - "get_me":         bot identity
-    - "get_chat":       chat_id → chat info
-    - "get_updates":    last N updates (no listener needed)
-    - "ping":           connectivity check
-  History:
-    - "get_history":    chat_id [+ limit] → last N msgs from local DB
-    - "clear_history":  chat_id → wipe local history for that chat
-
-chat_id falls back to TELEGRAM_DEFAULT_CHAT_ID if omitted.
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/telegram.py#L123">tools/telegram.py:123</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/telegram.py#L123" title="tools/telegram.py:123">source ↗</a></small>

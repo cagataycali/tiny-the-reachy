@@ -1,7 +1,7 @@
 ---
 title: Prompts
-description: "read and override each persona's system prompt (override = personality note appended; `FULL:` replaces)"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "read and override persona prompts"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,13 +10,7 @@ proof: code
 # Prompts
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/prompts.py`: `prompts`.
-    - Persona system prompt store — SQLite-backed, hot-editable by any agent.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`prompts`](#prompts) | Manage persona system prompts. |
+    - 1 tool in `tools/prompts.py` — read and override persona prompts.
 
 ## `prompts`
 
@@ -29,17 +23,6 @@ prompts(
 ) -> str
 ```
 
-Manage persona system prompts. SQLite-backed, takes effect on next agent invocation.
+Manage persona system prompts.
 
-**Actions**
-
-  - "get":     persona → return current effective prompt (override OR default-marker)
-  - "set":     persona + text → persist override (used on next build_agent call)
-  - "reset":   persona → drop override, revert to hardcoded default
-  - "history": persona [+limit] → show last N versions
-  - "list":    show all personas + whether they're overridden
-  - "diff":    persona → show how override differs from default (size only)
-
-Personas: shell | thinker | telegram | voice
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/prompts.py#L89">tools/prompts.py:89</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/prompts.py#L89" title="tools/prompts.py:89">source ↗</a></small>

@@ -1,7 +1,7 @@
 ---
 title: Tools reference
 description: "Every @tool TINY can call, generated from the code — 28 tools in 16 modules."
-for: tool authors · prompt writers · anyone checking what a call really does
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,38 +10,28 @@ proof: code
 # Tools reference
 
 !!! abstract "In 10 seconds"
-    - **28 tools in 16 modules**, generated from the `@tool` functions in `tools/` at every docs build (`scripts/tooldoc.py`).
-    - Signatures come from the AST, descriptions from the docstrings the model itself reads — if a page here disagrees with the robot, the docstring is wrong; fix it there.
-    - Two builders in `tiny.py` decide who gets what: `build_tools()` for the text personas, `build_voice_tools()` for voice and the dashboard Ask.
+    - **28 tools in 16 modules**, generated from the `@tool` docstrings — fix the docstring, not the page.
+    - Who gets which: [Personas](../../showcase/personas.md). Fleet tools only with `TINY_MCP=1`: [Fleet](../../MCP.md).
 
 <div class="cards cards--3" markdown>
 
 | module | tools | what it covers |
 |---|---|---|
-| [Motion](reachy_motion.md) | `reachy_look` `reachy_antennas` `reachy_body_turn` `reachy_home` `reachy_wake` | head pose, antennas, body yaw, home, wake/sleep — every angle clamped before it reaches the daemon [reference](reachy_motion.md) |
-| [Expression](reachy_expression.md) | `reachy_express` `reachy_list_emotions` | the recorded-move library (emotions, dances) the personas fire while they talk [reference](reachy_expression.md) |
-| [State](reachy_state.md) | `reachy_get_state` `reachy_motors` | read the live pose and switch motor modes [reference](reachy_state.md) |
-| [Camera](reachy_camera.md) | `reachy_camera` `reachy_look_at` `capture_camera` | grab a frame, look at a pixel, ask the vision model a question about what TINY sees [reference](reachy_camera.md) |
-| [Audio](reachy_audio.md) | `reachy_play_sound` `reachy_say` `reachy_volume` | speak (Piper TTS on the CM4), play a sound, set the speaker volume — “silent” means 0 [reference](reachy_audio.md) |
-| [Head tracking](head_tracking.md) | `head_tracking` `head_tracking_status` | toggle the daemon's face tracker (reachy-mini ≥ 1.10) through the dashboard's tracking controller [reference](head_tracking.md) |
-| [Turn to sound](turn_to_sound.md) | `turn_to_sound` `turn_to_sound_status` | turn toward whoever is talking (ReSpeaker direction of arrival) when face tracking has no lock — the dashboard's DoA turner [reference](turn_to_sound.md) |
-| [Vision](vision.md) | `take_photo` | take_photo — a frame plus a question for the multimodal model, shared by every persona [reference](vision.md) |
-| [Voice bridge](voice_bridge.md) | `voice_say` | text → the voice persona's mouth (say/mute) from the text personas [reference](voice_bridge.md) |
-| [Dispatch](dispatch.md) | `dispatch` | hand a task to another persona (voice/telegram/thinker) through the shared brain [reference](dispatch.md) |
-| [Memory](memory.md) | `memory` | the cross-persona SQLite brain: remember, recall, forget [reference](memory.md) |
-| [Telegram](telegram.md) | `telegram` | send text and photos to the owner's chat from any persona [reference](telegram.md) |
-| [Prompts](prompts.md) | `prompts` | read and override each persona's system prompt (override = personality note appended; `FULL:` replaces) [reference](prompts.md) |
-| [Manage messages](manage_messages.md) | `manage_messages` | inspect and compact the running agent's own conversation [reference](manage_messages.md) |
-| [Manage tools](manage_tools.md) | `manage_tools` | list, create and hot-load new tools at runtime [reference](manage_tools.md) |
-| [Fleet (tiny.technology MCP)](tiny_mcp.md) | `use_device` | use_device and the other fleet tools, mounted only when `TINY_MCP=1` — with the self-refusal guard [reference](tiny_mcp.md) |
+| [Motion](reachy_motion.md) | `reachy_look` `reachy_antennas` `reachy_body_turn` `reachy_home` `reachy_wake` | head, antennas, body yaw, wake/sleep — clamped |
+| [Expression](reachy_expression.md) | `reachy_express` `reachy_list_emotions` | recorded moves, fired while talking |
+| [State](reachy_state.md) | `reachy_get_state` `reachy_motors` | live pose and motor modes |
+| [Camera](reachy_camera.md) | `reachy_camera` `reachy_look_at` `capture_camera` | frames, look-at, ask vision |
+| [Audio](reachy_audio.md) | `reachy_play_sound` `reachy_say` `reachy_volume` | Piper speech, sounds, speaker volume |
+| [Head tracking](head_tracking.md) | `head_tracking` `head_tracking_status` | the daemon's face tracker (≥ 1.10) |
+| [Turn to sound](turn_to_sound.md) | `turn_to_sound` `turn_to_sound_status` | ReSpeaker direction of arrival, no face locked |
+| [Vision](vision.md) | `take_photo` | a frame plus a question, any persona |
+| [Voice bridge](voice_bridge.md) | `voice_say` | text personas → voice persona queue |
+| [Dispatch](dispatch.md) | `dispatch` | hand a task to another persona |
+| [Memory](memory.md) | `memory` | the shared SQLite brain |
+| [Telegram](telegram.md) | `telegram` | text and photos to the owner's chat |
+| [Prompts](prompts.md) | `prompts` | read and override persona prompts |
+| [Manage messages](manage_messages.md) | `manage_messages` | compact the running agent's history |
+| [Manage tools](manage_tools.md) | `manage_tools` | create and hot-load tools at runtime |
+| [Fleet (tiny.technology MCP)](tiny_mcp.md) | `use_device` | fleet tools, only with `TINY_MCP=1` |
 
 </div>
-
-## Who gets what
-
-Two builders in `tiny.py` decide which of these a persona can call:
-
-- **`build_tools()`** — shell, telegram, thinker: everything above plus `use_github`/`use_spotify` when importable.
-- **`build_voice_tools()`** — voice and the dashboard Ask: the latency-slim list (motion, expression, state, camera, head tracking, `reachy_volume`, memory, prompts, dispatch, telegram, voice_say, take_photo) — see [Personas](../../showcase/personas.md).
-
-Fleet tools (`use_device`, `tiny_recall`, `tiny_learn`, …) ride along only when `TINY_MCP=1` and the persona is in `TINY_MCP_PERSONAS`, never on a turn that itself arrived from another device — see [Fleet](../../MCP.md).

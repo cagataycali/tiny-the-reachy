@@ -108,14 +108,18 @@ def markdown(vars_: dict[str, dict]) -> str:
         names = by_group.get(g)
         if not names:
             continue
-        lines += [f"## {g}", "", "| variable | default | read by | purpose |", "|---|---|---|---|"]
+        lines += [f"## {g}", "", "| variable | default | purpose | read by |", "|---|---|---|---|"]
         for n in names:
             r = vars_[n]
             d = r["default"] if r["default"] is not None else "*(unset)*"
-            files = ", ".join(f"`{f}`" for f in r["files"])
-            lines.append(f"| `{n}` | `{d}` | {files} | {r['purpose']} |".replace("`*(unset)*`", "*(unset)*"))
+            if len(d.split()) > 4:  # a prompt-sized default is not a table cell — the reading site has it
+                d = "*(long)*"
+            f0 = r["files"][0]
+            more = f" +{len(r['files']) - 1}" if len(r["files"]) > 1 else ""
+            link = f'<a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/{f0}">{f0}</a>{more}'
+            lines.append(f"| `{n}` | `{d}` | {r['purpose']} | {link} |".replace("`*(unset)*`", "*(unset)*"))
         lines.append("")
-    lines.append(f"_{len(vars_)} variables, scanned from every `os.getenv` / `os.environ` in the repo._")
+    lines.append(f"_{len(vars_)} variables._")
     return "\n".join(lines) + "\n"
 
 

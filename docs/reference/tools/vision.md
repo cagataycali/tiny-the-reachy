@@ -1,7 +1,7 @@
 ---
 title: Vision
-description: "take_photo — a frame plus a question for the multimodal model, shared by every persona"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "a frame plus a question, any persona"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,13 +10,7 @@ proof: code
 # Vision
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/vision.py`: `take_photo`.
-    - Vision tool — capture a TINY camera frame and inject it into the bidi voice agent's multimodal context (BidiImageInputEvent), so the realtime model SEES the image natively. Adapted from neon/tools/vision.py.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`take_photo`](#take_photo) | LOOK. |
+    - 1 tool in `tools/vision.py` — a frame plus a question, any persona.
 
 ## `take_photo`
 
@@ -24,17 +18,6 @@ proof: code
 async take_photo(question: str = '', device: int = 0) -> dict
 ```
 
-LOOK. Capture a frame from TINY's head camera and put it in front of the
-voice model right now — the model sees the image and answers in audio.
+LOOK.
 
-Call this FIRST whenever someone says "look at me", "what do you see",
-"who's there", "what is this", "can you see …" — never answer about what
-you see without calling it, and never say "I'll take a look" instead of
-calling it.
-
-| argument | meaning |
-|---|---|
-| `question` | what to answer about the image (default: describe what you see). |
-| `device` | dev fallback camera index (macOS). Ignored on the robot. |
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/vision.py#L152">tools/vision.py:152</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/vision.py#L152" title="tools/vision.py:152">source ↗</a></small>

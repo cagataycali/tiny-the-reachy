@@ -1,7 +1,7 @@
 ---
 title: Audio
-description: "speak (Piper TTS on the CM4), play a sound, set the speaker volume — “silent” means 0"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "Piper speech, sounds, speaker volume"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,15 +10,7 @@ proof: code
 # Audio
 
 !!! abstract "In 10 seconds"
-    - 3 tools in `tools/reachy_audio.py`: `reachy_play_sound` · `reachy_say` · `reachy_volume`.
-    - TINY audio tools — play a sound file + speak text (TTS) with head-wobble sync.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`reachy_play_sound`](#reachy_play_sound) | Play a local/daemon sound file through TINY's speaker. |
-| [`reachy_say`](#reachy_say) | Make TINY SPEAK text aloud via TTS, with synced head-wobble. |
-| [`reachy_volume`](#reachy_volume) | Read or set TINY's SPEAKER volume via the daemon (0-100). |
+    - 3 tools in `tools/reachy_audio.py` — Piper speech, sounds, speaker volume.
 
 ## `reachy_play_sound`
 
@@ -28,12 +20,7 @@ reachy_play_sound(sound_file: str, wobble: bool = True) -> dict
 
 Play a local/daemon sound file through TINY's speaker.
 
-| argument | meaning |
-|---|---|
-| `sound_file` | path to a WAV/audio file the daemon can read, or a builtin name like 'wake_up.wav' / 'go_sleep.wav'. |
-| `wobble` | enable head-wobble-on-audio during playback. |
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_audio.py#L26">tools/reachy_audio.py:26</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_audio.py#L26" title="tools/reachy_audio.py:26">source ↗</a></small>
 
 ## `reachy_say`
 
@@ -41,27 +28,13 @@ Play a local/daemon sound file through TINY's speaker.
 reachy_say(text: str, lang: str = 'en', wobble: bool = True) -> dict
 ```
 
-Make TINY SPEAK text aloud via TTS, with synced head-wobble. USE to talk.
-
-This is TINY's voice for the shell/telegram/thinker/dashboard personas (the
-always-on voice persona uses the realtime bidi model instead). Synthesizes
-speech — local Piper service first (offline, TINY_TTS_URL), HF Space as a
-fallback — plays it on the speaker through the daemon, wobbles the head.
-
-| argument | meaning |
-|---|---|
-| `text` | what to say (<=300 chars per request works best). |
-| `lang` | ISO 639-1 code (en, fr, es, de, it, ja, zh, ...). Local voice is English. |
-| `wobble` | bob the head while speaking. |
-
-**Examples**
+Make TINY SPEAK text aloud via TTS, with synced head-wobble.
 
 ```python
 reachy_say("Hi, I'm TINY!")
-reachy_say("Bonjour tout le monde", lang="fr")
 ```
 
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_audio.py#L76">tools/reachy_audio.py:76</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_audio.py#L76" title="tools/reachy_audio.py:76">source ↗</a></small>
 
 ## `reachy_volume`
 
@@ -69,11 +42,6 @@ reachy_say("Bonjour tout le monde", lang="fr")
 reachy_volume(level: str = '') -> dict
 ```
 
-Read or set TINY's SPEAKER volume via the daemon (0-100). Call with no level to read.
+Read or set TINY's SPEAKER volume via the daemon (0-100).
 
-level: a number 0-100, or a word: "silent"/"mute"/"shush"/"quiet" -> 0,
-"quieter" -> half of current, "low" -> 25, "normal" -> 60, "louder" -> +20, "max" -> 100.
-"silent" is IMMEDIATE — call it BEFORE replying so the confirmation is not shouted.
-Volume 0 mutes the speaker only: TINY still hears, so "speak up" can restore it.
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_audio.py#L122">tools/reachy_audio.py:122</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_audio.py#L122" title="tools/reachy_audio.py:122">source ↗</a></small>

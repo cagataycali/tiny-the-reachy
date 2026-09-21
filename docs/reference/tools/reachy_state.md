@@ -1,7 +1,7 @@
 ---
 title: State
-description: "read the live pose and switch motor modes"
-for: tool authors · prompt writers · anyone checking what a call really does
+description: "live pose and motor modes"
+for: tool authors · prompt writers
 proof: code
 ---
 
@@ -10,14 +10,7 @@ proof: code
 # State
 
 !!! abstract "In 10 seconds"
-    - 2 tools in `tools/reachy_state.py`: `reachy_get_state` · `reachy_motors`.
-    - TINY state tools — IMU, joint positions, current head pose. Read-only, safe.
-    - Signatures and defaults are read from the AST at every docs build; the descriptions are the docstrings the model itself reads.
-
-| tool | does |
-|---|---|
-| [`reachy_get_state`](#reachy_get_state) | Read TINY's live state: current head pose, joint positions, IMU (if present). |
-| [`reachy_motors`](#reachy_motors) | Set TINY's motor torque mode. |
+    - 2 tools in `tools/reachy_state.py` — live pose and motor modes.
 
 ## `reachy_get_state`
 
@@ -27,10 +20,7 @@ reachy_get_state() -> dict
 
 Read TINY's live state: current head pose, joint positions, IMU (if present).
 
-IMU is only available on the Wireless (CM4) version — returns null on Lite.
-Cheap + safe; call before/after motion to verify.
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_state.py#L7">tools/reachy_state.py:7</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_state.py#L7" title="tools/reachy_state.py:7">source ↗</a></small>
 
 ## `reachy_motors`
 
@@ -40,8 +30,4 @@ reachy_motors(mode: str = 'enabled') -> dict
 
 Set TINY's motor torque mode.
 
-| argument | meaning |
-|---|---|
-| `mode` | "enabled" (torque on, holds pose) \| "disabled" (limp — safe to move by hand) \| "gravity_compensation" (float / marionette mode). |
-
-<small>source: <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_state.py#L34">tools/reachy_state.py:34</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_state.py#L34" title="tools/reachy_state.py:34">source ↗</a></small>
