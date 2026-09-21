@@ -160,10 +160,10 @@
       layers: ['base', 'stewart', 'head', 'antennas'],
       alt: 'The Reachy Mini twin exploded into four layers: base body, Stewart platform, head with camera, and the two antennas',
       spots: [
-        { x: 50, y: 8, n: 1, k: 'Antennas', v: 'two servos, degrees, the “ears” — every recorded emotion moves them', href: '../../reference/tools/reachy_expression/', layer: 'antennas' },
-        { x: 50, y: 30, n: 2, k: 'Head · camera', v: 'wide camera in the face; the daemon\'s face tracker (≥ 1.10) steers the gaze', href: '../../reference/tools/head_tracking/', layer: 'head' },
-        { x: 50, y: 55, n: 3, k: 'Stewart platform', v: '6-DOF neck — x y z roll pitch yaw, clamped before the daemon sees them', href: '../../reference/tools/reachy_motion/', layer: 'stewart' },
-        { x: 50, y: 84, n: 4, k: 'Body · CM4 · speaker · mics', v: 'rotating base, the CM4 that runs TINY, XMOS mic array + speaker', href: '../../reference/tools/reachy_audio/', layer: 'base' },
+        { x: 66, y: 17, n: 1, k: 'Antennas', v: 'two servos, degrees, the “ears” — every recorded emotion moves them', href: '../../reference/tools/reachy_expression/', layer: 'antennas' },
+        { x: 64, y: 43, n: 2, k: 'Head · camera', v: 'wide camera in the face; the daemon\'s face tracker (≥ 1.10) steers the gaze', href: '../../reference/tools/head_tracking/', layer: 'head' },
+        { x: 63, y: 63, n: 3, k: 'Stewart platform', v: '6-DOF neck — x y z roll pitch yaw, clamped before the daemon sees them', href: '../../reference/tools/reachy_motion/', layer: 'stewart' },
+        { x: 61, y: 80, n: 4, k: 'Body · CM4 · speaker · mics', v: 'rotating base, the CM4 that runs TINY, XMOS mic array + speaker', href: '../../reference/tools/reachy_audio/', layer: 'base' },
       ],
     },
   }
@@ -175,7 +175,9 @@
       const imgs = spec.layers.map((l) => `<img src="${base}assets/landing/body/${l}.webp" width="1100" height="1300" alt="" data-layer="${l}" decoding="async" loading="lazy">`).join('')
       const spots = spec.spots.map((s) => `<a class="anatomy__spot" href="${s.href}" style="--x:${s.x}%;--y:${s.y}%" data-n="${s.n}" aria-label="${s.n} — ${esc(s.k)}: ${esc(s.v)}"><span class="anatomy__dot">${s.n}</span></a>`).join('')
       const legend = spec.spots.map((s) => `<li class="anatomy__row" data-n="${s.n}"><a href="${s.href}"><span class="anatomy__num">${s.n}</span><span class="anatomy__k">${esc(s.k)}</span><span class="anatomy__v">${esc(s.v)}</span></a></li>`).join('')
-      fig.innerHTML = `<div class="anatomy__stage" role="img" aria-label="${esc(spec.alt)}">${imgs}${spots}</div><ol class="anatomy__legend">${legend}</ol>`
+      const cap = fig.querySelector('figcaption')  // the markdown caption survives the render
+      fig.innerHTML = `<div class="anatomy__stage"><div class="anatomy__layers" role="img" aria-label="${esc(spec.alt)}">${imgs}</div>${spots}</div><ol class="anatomy__legend">${legend}</ol>`  // links must not sit inside role=img (axe nested-interactive)
+      if (cap) fig.append(cap)
       const rows = $$('.anatomy__row', fig), dots = $$('.anatomy__spot', fig), layers = $$('img[data-layer]', fig)
       const hi = (n) => {
         for (const el of [...rows, ...dots]) el.classList.toggle('is-hot', n != null && el.dataset.n === String(n))
