@@ -34,7 +34,7 @@ MODEL_XML = ROOT / "dashboard" / "frontend" / "public" / "model" / "twin.xml"
 OUT_DIR = ROOT / "docs" / "assets" / "landing" / "poses"
 INDEX_OUT = ROOT / "docs" / "js" / "landing" / "emotions.json"
 HF_GLOB = os.path.expanduser("~/.cache/huggingface/hub/datasets--pollen-robotics--reachy-mini-emotions-library/snapshots/*/")
-KIN_DATA = Path(os.environ.get("KINEMATICS_DATA", os.path.expanduser("~/.tiny/reachy-landing-20260921/kinematics_data.json")))
+KIN_DATA = Path(os.path.expanduser("~/.tiny/reachy-landing-20260921/kinematics_data.json"))  # --kin overrides; from the reachy_mini 1.10.0 wheel (assets/kinematics_data.json)
 MOTOR_JOINTS = ["yaw_body", "stewart_1", "stewart_2", "stewart_3", "stewart_4", "stewart_5", "stewart_6", "right_antenna", "left_antenna"]
 
 
@@ -82,12 +82,15 @@ def load_move(name: str) -> dict:
     return json.load(open(p))
 
 
+KIN = KIN_DATA
+
+
 def compute(name: str, fps: float, settle_s: float = 0.6) -> dict:
     import mujoco
 
     move = load_move(name)
     t = np.array(move["time"], dtype=float); traj = move["set_target_data"]
-    ik = DaemonIK(KIN_DATA)
+    ik = DaemonIK(KIN)
     model = mujoco.MjModel.from_xml_path(str(MODEL_XML)); data = mujoco.MjData(model)
     act = {mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_ACTUATOR, i): i for i in range(model.nu)}
     slot = [act[j] for j in MOTOR_JOINTS]
@@ -153,7 +156,10 @@ def write_index() -> int:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("moves", nargs="*"); ap.add_argument("--fps", type=float, default=12); ap.add_argument("--index", action="store_true")
+    ap.add_argument("--kin", type=Path, default=KIN_DATA, help="kinematics_data.json from the reachy_mini wheel")
     a = ap.parse_args()
+    global KIN
+    KIN = a.kin
     if a.index:
         print("index:", write_index(), "moves →", INDEX_OUT.relative_to(ROOT))
     for name in a.moves:
