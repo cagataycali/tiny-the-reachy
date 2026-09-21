@@ -2,7 +2,7 @@
 // lazily-live hero: on a desktop with WebGL, after the page is idle, the still (hero-curious1-f24.webp) is replaced by the
 // SAME frame drawn by three.js from the cockpit twin's meshes (dashboard/frontend/public/model/, 1.1 MB, served at /model/ by
 // docs/hooks/gen.py on_files) so the visitor can drag TINY around. Camera parameters are the
-// ones render_twin.mjs used for the still (dist 1.15, pitch .18, yaw .62, target z .19 y .06) — no jump on hand-over.
+// ones render_twin.mjs used for the still (twin.js VIEWS.hero: one lens for every asset on the page) — no jump on hand-over.
 // Vanilla, no deps; three.js arrives only through the dynamic import in twin.js. Reduced motion: still only, no orbit.
 (() => {
   const doc = document.documentElement;
@@ -94,7 +94,7 @@
       const W = 1100, H = 1300, dpr = Math.min(devicePixelRatio || 1, 2);
       canvas.width = W * dpr / 2; canvas.height = H * dpr / 2;
       const stage = T.makeStage(canvas, { width: canvas.width, height: canvas.height, dpr: 1, shadows: true });
-      Object.assign(stage.orbit, { yaw: 0.62, pitch: 0.18, dist: 1.15 }); stage.orbit.target.set(0, 0.06, 0.19); stage.look();
+      const HOME = T.VIEWS.hero; Object.assign(stage.orbit, { yaw: HOME.yaw, pitch: HOME.pitch, dist: HOME.dist }); stage.orbit.target.set(...HOME.target); stage.look();
       const robot = T.buildRobot(model); stage.scene.add(robot.root);
       T.applyFrame(robot, poses, 24); stage.render();
       const hint = document.querySelector(".l-caption__hint"); if (hint) hint.hidden = false;
@@ -106,7 +106,7 @@
       wrap.addEventListener("pointermove", (e) => { if (!dragging) return; stage.orbit.yaw -= (e.clientX - lx) * 0.008; stage.orbit.pitch = Math.max(-0.1, Math.min(1.1, stage.orbit.pitch + (e.clientY - ly) * 0.006)); lx = e.clientX; ly = e.clientY; dirty = true; idle = 0; requestAnimationFrame(paint); });
       const up = () => { dragging = false; wrap.classList.remove("is-dragging"); };
       wrap.addEventListener("pointerup", up); wrap.addEventListener("pointercancel", up);
-      const drift = () => { if (!dragging && document.visibilityState === "visible") { const dy = 0.62 - stage.orbit.yaw, dp = 0.18 - stage.orbit.pitch; if (Math.abs(dy) > 0.002 || Math.abs(dp) > 0.002) { stage.orbit.yaw += dy * 0.03; stage.orbit.pitch += dp * 0.03; dirty = true; paint(); } } setTimeout(() => requestAnimationFrame(drift), 33); };
+      const drift = () => { if (!dragging && document.visibilityState === "visible") { const dy = HOME.yaw - stage.orbit.yaw, dp = HOME.pitch - stage.orbit.pitch; if (Math.abs(dy) > 0.002 || Math.abs(dp) > 0.002) { stage.orbit.yaw += dy * 0.03; stage.orbit.pitch += dp * 0.03; dirty = true; paint(); } } setTimeout(() => requestAnimationFrame(drift), 33); };
       setTimeout(drift, 1200);
       addEventListener("resize", () => { dirty = true; requestAnimationFrame(paint); });
     } catch (e) { console.warn("landing: live hero unavailable —", e); }
