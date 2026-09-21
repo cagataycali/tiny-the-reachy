@@ -33,7 +33,7 @@ flowchart TD
 | `reachy-mini-daemon` | system | Pollen's daemon — motors, camera, audio. Drop-in `LimitNOFILE=65536` (it hit 1024) |
 | `reachy-daemon-watchdog.timer` | system | every 30 s; restarts the daemon after three failed `GET /api/daemon/status` |
 | `tiny-wake` | user, oneshot | energises the motors once, **hard-exits** so no SDK socket lingers. **Boot volume floor**: a robot unplugged while silent boots deaf — anything under `REACHY_BOOT_VOLUME_MIN` (60) is raised |
-| `tiny-tts` | user | offline Piper (~2.6 s/sentence) for the text personas and **Say** |
+| `tiny-tts` | user | offline Piper `en_US-lessac-medium` (~2.6 s/sentence) for the text personas and **Say** |
 | `tiny-voice` · `tiny-telegram` · `tiny-thinker` | user | the personas, `Restart=on-failure`; demo mode stops exactly `tiny-thinker` |
 | `reachy-dashboard` | user | the cockpit: `Restart=always`, `TimeoutStopSec=8`; env = `.env` + `~/.reachy-dashboard.env` |
 | `reachy-tunnel` | user | Cloudflare tunnel → `:8097`, everything else `404` |
