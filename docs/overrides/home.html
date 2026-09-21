@@ -21,19 +21,24 @@
 {% block extrahead %}
   {{ super() }}
   <link rel="stylesheet" href="{{ 'stylesheets/landing.css' | url }}">
-  <link rel="preload" as="image" href="{{ 'assets/landing/hero-curious1-f24.webp' | url }}" imagesrcset="{{ 'assets/landing/hero-curious1-f24-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f24.webp' | url }} 1100w" imagesizes="(max-width: 60em) 78vw, 27rem" fetchpriority="high">
+  <link rel="preload" as="image" media="(prefers-reduced-motion: no-preference)" href="{{ 'assets/landing/hero-curious1-f00.webp' | url }}" imagesrcset="{{ 'assets/landing/hero-curious1-f00-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f00.webp' | url }} 1100w" imagesizes="(max-width: 60em) 78vw, 27rem" fetchpriority="high">
+  <link rel="preload" as="image" media="(prefers-reduced-motion: reduce)" href="{{ 'assets/landing/hero-curious1-f24.webp' | url }}" imagesrcset="{{ 'assets/landing/hero-curious1-f24-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f24.webp' | url }} 1100w" imagesizes="(max-width: 60em) 78vw, 27rem" fetchpriority="high">
   <script>document.documentElement.classList.add("l-js"); document.documentElement.dataset.landing = "";</script>
 {% endblock %}
 
 {% block hero %}
 <div class="landing" id="landing">
 
-  {# ------------------------------------------------------------------ 1 · HERO
-     Still: docs/assets/landing/hero-curious1-f24.webp = frame 24 (t = 2.0 s) of the recorded move `curious1`
-     (pollen-robotics/reachy-mini-emotions-library, HF snapshot 152e84b8), rendered from the cockpit twin's own meshes by
-     tools/landing/render_twin.mjs after tools/landing/emotion_poses.py ran the daemon's IK + MuJoCo 3.13.0 on model/twin.xml.
-     Numbers in the caption = docs/assets/landing/poses/curious1.json → head[24], antennas[24]. #}
-  <section class="l-hero" aria-labelledby="l-h1">
+  {# ------------------------------------------------------------------ 1 · HERO — it turns to you
+     The first screen is itself a scrub: poses 0..24 of the recorded move `curious1` (t 0 → 2.0 s, the head yaws 40° toward the
+     camera and one antenna snaps up), rendered from the hero camera (twin.js VIEWS.hero) into docs/assets/landing/seq/hero/NN.webp
+     by tools/landing/render_all.sh heroseq. The LCP still is pose 0 (hero-curious1-f00.webp); reduced motion gets pose 24
+     (hero-curious1-f24.webp) via <picture>. Everything comes from the cockpit twin's own meshes posed by tools/landing/
+     emotion_poses.py (daemon IK + MuJoCo 3.13.0 on model/twin.xml); the instrument strip reads poses/curious1.json live.
+     PHOTO SLOT: a real photo replaces the still 1:1 — same 1100×1300 frame, robot centred with its foot at 88 % height and the
+     antenna tips inside the top 6 % (see OWNER-BRIEF); with a photo, drop data-seq and the strip shows the photo's caption. #}
+  <section class="l-stage l-stage--hero" id="hero" data-stage data-frames="25" data-seq="{{ 'assets/landing/seq/hero/' | url }}" data-poses="{{ 'assets/landing/poses/curious1.json' | url }}" aria-labelledby="l-h1">
+    <div class="l-sticky l-hero">
     <div class="l-copy">
       <p class="l-kicker">Reachy Mini Wireless · CM4 · daemon 1.10 · Strands</p>
       <h1 class="l-h1" id="l-h1"><span class="l-w">A</span> <span class="l-w">robot</span> <span class="l-w">that</span> <span class="l-w">moves</span> <span class="l-w">when</span> <span class="l-w">it</span> <span class="l-w l-w--accent">talks.</span></h1>
@@ -46,16 +51,22 @@
     </div>
     <figure class="l-fig">
       <div class="l-figwrap" id="l-figwrap">
-        <img class="l-still" src="{{ 'assets/landing/hero-curious1-f24.webp' | url }}" srcset="{{ 'assets/landing/hero-curious1-f24-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f24.webp' | url }} 1100w" sizes="(max-width: 60em) 78vw, 27rem" width="1100" height="1300" fetchpriority="high" decoding="async"
-             alt="TINY, a Reachy Mini: a cream rounded body, a flat cream head with two dark camera eyes turned toward you, one antenna standing straight up and the other lying flat to the side">
+        <picture>
+          <source media="(prefers-reduced-motion: reduce)" srcset="{{ 'assets/landing/hero-curious1-f24-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f24.webp' | url }} 1100w" sizes="(max-width: 60em) 78vw, 27rem">
+          <img class="l-still" src="{{ 'assets/landing/hero-curious1-f00.webp' | url }}" srcset="{{ 'assets/landing/hero-curious1-f00-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f00.webp' | url }} 1100w" sizes="(max-width: 60em) 78vw, 27rem" width="1100" height="1300" fetchpriority="high" decoding="async"
+               alt="TINY, a Reachy Mini: a cream rounded body on a dark printed foot, a flat cream head with two dark camera eyes, two thin black antennas — it turns its head toward you as you scroll">
+        </picture>
+        <canvas class="l-turn" width="660" height="780" aria-hidden="true"></canvas>
         <canvas class="l-orbit" width="1100" height="1300" aria-hidden="true"></canvas>
+        <p class="l-scrollhint" aria-hidden="true"><span>scroll</span></p>
       </div>
       <figcaption class="l-caption l-caption--hero">
-        <span class="l-caption__k">rendered from the twin's own meshes</span>
-        <span><code>curious1</code> · t&nbsp;=&nbsp;2.0&nbsp;s · head yaw&nbsp;40° · antennas 5°&nbsp;/&nbsp;77°</span>
+        <span class="l-caption__k">rendered from the twin's own meshes · <code>curious1</code></span>
+        <span class="l-strip"><span class="l-strip__c">t <b data-hro="t">0.0</b> s</span><span class="l-strip__c">head yaw <b data-hro="yaw">5</b>°</span><span class="l-strip__c">roll <b data-hro="roll">4</b>°</span><span class="l-strip__c">antennas <b data-hro="ant">5 / 13</b>°</span></span>
         <span class="l-caption__hint" hidden>drag it to turn it</span>
       </figcaption>
     </figure>
+    </div>
   </section>
 
   {# ------------------------------------------------------------------ 2 · THE EMOTION
