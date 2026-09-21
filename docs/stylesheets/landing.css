@@ -4,19 +4,18 @@
    frontend/src/styles.css), darkened to AA on paper for light mode. Motion contract: JS writes --p ∈ [0,1] on [data-stage] and
    --sy on <html>; CSS animates transform / clip-path only (opacity fades fail axe mid-fade). No JS → everything revealed
    (tokens also match body:has(#landing) so the page keeps its palette when the inline data-landing script never runs). */
+/* Tokens: the landing ALIASES the site's design system (docs/stylesheets/reachy.css §1, published by the REACHY-INNER lane in
+   ~/.tiny/reachy-inner-20260921/TOKENS.md). The values there are this page's palette verbatim; the --l-* names stay so the rules
+   below need no rewrite, and each carries the reachy.css value as its fallback for the no-JS / no-reachy.css case. */
 html[data-landing], body:has(> #landing), body:has(#landing) {
-  --l-paper: #f6f5f1; --l-ink-0: #fdfcfa; --l-ink-1: rgba(23,24,26,.14); --l-ink-2: #5a5c60; --l-ink-3: #17181a;
-  --l-shell: #f4f2ec; --l-part: #4d4d4d; --l-lens: #1a1a1a;
-  --l-accent: #0b8577; --l-accent-ink: #086b60; --l-accent-glow: rgba(94,234,212,.35);
-  --l-hair: 1px solid var(--l-ink-1); --l-ease: cubic-bezier(.2,.7,.2,1);
-  --l-mono: var(--md-code-font-family); --l-sans: var(--md-text-font-family);
-}
-html[data-landing] [data-md-color-scheme="slate"], body[data-md-color-scheme="slate"]:has(#landing) {
-  --l-paper: #0c0d0f; --l-ink-0: #15171a; --l-ink-1: rgba(242,241,236,.14); --l-ink-2: #b1b3b8; --l-ink-3: #f2f1ec;
-  --l-accent: #5eead4; --l-accent-ink: #7ff0de; --l-accent-glow: rgba(94,234,212,.25);
+  --l-paper: var(--paper, #f6f5f1); --l-ink-0: var(--ink-0, #fdfcfa); --l-ink-1: var(--ink-1, rgba(23,24,26,.14)); --l-ink-2: var(--ink-2, #5a5c60); --l-ink-3: var(--ink-3, #17181a);
+  --l-shell: var(--shell, #f4f2ec); --l-part: var(--part, #4d4d4d); --l-lens: var(--lens, #1a1a1a);
+  --l-accent: var(--accent, #0b8577); --l-accent-ink: var(--accent-ink, #086b60); --l-accent-glow: var(--accent-glow, rgba(94,234,212,.35)); --l-accent-sub: var(--accent-sub, rgba(11,133,119,.10));
+  --l-hair: 1px solid var(--l-ink-1); --l-ease: var(--ease, cubic-bezier(.2,.7,.2,1));
+  --l-mono: var(--mono, var(--md-code-font-family)); --l-sans: var(--sans, var(--md-text-font-family));
 }
 /* the manual's lavender accent becomes the cockpit teal on this page only (tabs underline, focus, links) */
-html[data-landing] body[data-md-color-scheme][data-md-color-primary], body[data-md-color-scheme][data-md-color-primary]:has(#landing) { --accent: var(--l-accent); --accent-ink: var(--l-accent-ink); --bg: var(--l-paper); --focus: var(--l-accent); }
+/* reachy.css already maps Material's palette to --accent/--paper on every page; nothing to remap here any more. */
 html[data-landing] .md-main__inner { margin-top: 0; }
 
 .landing { color: var(--l-ink-3); background: var(--l-paper); overflow-x: clip; font-family: var(--l-sans); }
