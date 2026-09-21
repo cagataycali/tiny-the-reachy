@@ -5,7 +5,7 @@ site_author: Cagatay Cali
 repo_url: https://github.com/cagataycali/tiny-the-reachy
 repo_name: cagataycali/tiny-the-reachy
 edit_uri: edit/main/docs/
-copyright: "🤖 tiny · Expression · Language · Presence — on the desk"
+copyright: "tiny · expression · language · presence — on the desk"
 
 exclude_docs: |
   *.bak
@@ -13,11 +13,10 @@ exclude_docs: |
   hooks/
 
 extra_css:
-  - stylesheets/tiny.css?v=2
+  - stylesheets/reachy.css
 
 extra_javascript:
-  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
-  - javascripts/mermaid-init.js?v=1
+  - js/docs/docs.js
 
 nav:
   - Home: index.md
@@ -78,21 +77,20 @@ theme:
     code: JetBrains Mono
   palette:
     - scheme: default
-      primary: white
-      accent: purple
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-night
         name: switch to dark
     - scheme: slate
-      primary: black
-      accent: purple
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-sunny
         name: switch to light
   features:
     - navigation.instant
     - navigation.instant.prefetch
-    - navigation.instant.progress
     - navigation.tracking
     - navigation.tabs
     - navigation.tabs.sticky
@@ -147,7 +145,8 @@ plugins:
       lang: en
 
 hooks:
-  - docs/hooks/gen.py   # regenerates reference/tools/*, reference/env.md, reference/api.md from the code
+  - docs/hooks/gen.py     # regenerates reference/tools/*, reference/env.md, reference/api.md from the code
+  - docs/hooks/opener.py  # page opener (eyebrow · dek · chips) + the footer's build ledger
 
 extra:
   generator: false

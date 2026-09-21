@@ -1,24 +1,73 @@
 {% extends "base.html" %}
 
-{% block site_meta %}
-  {{ super() }}
-  <meta property="og:title" content="{{ page.title if page else 'Page not found' }} · tiny" />
-  <meta property="og:description" content="A field guide to TINY: expression, language and presence in a Reachy Mini. Built with Strands Agents." />
-  <meta property="og:image" content="{{ 'assets/tiny-mark.svg' | url }}" />
+{% block extrahead %}
+  {% set title = page.title if page and page.title else config.site_name %}
+  {% set full_title = config.site_name if title == config.site_name else title ~ " · " ~ config.site_name %}
+  {% set desc = page.meta.description if page and page.meta and page.meta.description else config.site_description %}
+  {% set image = config.site_url.rstrip("/") ~ "/assets/landing/hero-curious1-f24.webp" %}
   <meta property="og:type" content="website" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="theme-color" content="#f5f6f7" />
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#121416" />
+  <meta property="og:title" content="{{ full_title }}" />
+  <meta property="og:description" content="{{ desc }}" />
+  <meta property="og:url" content="{{ page.canonical_url }}" />
+  <meta property="og:image" content="{{ image }}" />
+  <meta property="og:image:alt" content="TINY — a Reachy Mini mid-curious, rendered from its own MuJoCo twin." />
+  <meta property="og:site_name" content="tiny-the-reachy" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{{ full_title }}" />
+  <meta name="twitter:description" content="{{ desc }}" />
+  <meta name="twitter:image" content="{{ image }}" />
+  <meta name="theme-color" content="#f6f5f1" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c0d0f" />
+  <meta name="color-scheme" content="light dark" />
+  {% if page and page.meta and page.meta.reading_time %}
+  <meta name="reading-time" content="{{ page.meta.reading_time }}" />
+  <meta name="word-count" content="{{ page.meta.word_count }}" />
+  {% endif %}
+  {# Material's header stats ask api.github.com twice per page (repo + releases/latest → 403 rate-limited / 404 no releases = console
+     errors on every page). Seed its sessionStorage cache with the one fact we can state. Key = __md_scope.pathname + ".__source". #}
+  <script>try{var k=new URL("{{ base_url }}/",location).pathname.replace(/\/\/$/,"/")+".__source";sessionStorage.getItem(k)||sessionStorage.setItem(k,JSON.stringify({version:"daemon {{ config.extra.ledger.daemon }}"}))}catch(e){}</script>
+  {% if page and page.markdown and "```mermaid" in page.markdown %}
+  {# Material fetches mermaid from unpkg only when window.mermaid is undefined — pre-load from jsDelivr (unpkg 403s some clients → blank diagram) #}
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js" crossorigin="anonymous"></script>
+  <script>
+    /* mermaid's own theme wins over Material's plain rules — bind the leftovers to the same tokens; wide LR charts scroll inside their card */
+    (function () { if (!window.mermaid) return; var init = mermaid.initialize.bind(mermaid)
+      var extra = '.actor-line{stroke:var(--md-mermaid-sequence-actor-line-color)!important;stroke-width:1px!important}'
+        + '.loopLine{stroke:var(--md-mermaid-sequence-loop-border-color)!important;fill:var(--md-mermaid-sequence-loop-bg-color)!important}'
+        + '#sequencenumber,defs circle{fill:var(--md-mermaid-sequence-number-bg-color)!important;stroke:none!important}'
+        + '.labelBox{fill:var(--md-mermaid-sequence-label-bg-color)!important;stroke:var(--md-mermaid-sequence-loop-border-color)!important}'
+        + '.node rect,.node polygon,.node circle{rx:8;ry:8}'
+      mermaid.initialize = function (cfg) { cfg = cfg || {}; cfg.themeCSS = (cfg.themeCSS || '') + extra
+        cfg.flowchart = Object.assign({ useMaxWidth: false, padding: 12, nodeSpacing: 40, rankSpacing: 56 }, cfg.flowchart || {}); cfg.themeVariables = Object.assign({ fontSize: '15px' }, cfg.themeVariables || {})
+        return init(cfg) } })()
+  </script>
+  {% endif %}
 {% endblock %}
 
-{% block content %}
-  {% if not (page and page.is_homepage) %}
-    <div class="rh-manual-label" aria-hidden="true">TINY / FIELD GUIDE</div>
+{% block footer %}
+  {% if page and not (page.meta and page.meta.template == "home.html") %}
+  {% set L = config.extra.ledger %}
+  <nav class="family" aria-label="Family of projects and build">
+    <div class="family__inner md-grid">
+      <p class="family__row">
+        <span class="family__eyebrow">a body in the tiny family</span>
+        <a href="https://cagataycali.github.io/scout-the-rover/">scout</a>
+        <a href="https://cagataycali.github.io/sticky-the-reterminal/">sticky</a>
+        <b aria-current="true">reachy</b>
+        <a href="https://cagataycali.github.io/fomo-the-arm/">fomo</a>
+        <a href="https://cagataycali.github.io/lord-the-ring/">ring</a>
+        <a href="https://github.com/cagataycali/q-the-brain">q</a>
+        <a href="https://github.com/cagataycali/raspberry-the-pi">raspberry</a>
+      </p>
+      <p class="family__row family__row--build">
+        <span class="family__pill"><span class="family__k">daemon</span> {{ L.daemon }}</span>
+        <span class="family__pill"><span class="family__k">twin</span> MuJoCo {{ L.mujoco }}</span>
+        <a class="family__pill" href="{{ 'reference/tools/' | url }}"><span class="family__k">tools</span> {{ L.tools }} in {{ L.modules }} modules</a>
+        <span class="family__pill"><span class="family__k">built</span> {{ build_date_utc.strftime("%Y-%m-%d") }}</span>
+        <a class="family__pill" href="{{ config.repo_url }}/commits/main"><span class="family__k">source</span> {{ L.commit or "main" }} ⇢</a>
+      </p>
+    </div>
+  </nav>
   {% endif %}
   {{ super() }}
-{% endblock %}
-
-{% block scripts %}
-  {{ super() }}
-  <script src="{{ 'javascripts/design.js?v=1' | url }}" defer></script>
 {% endblock %}
