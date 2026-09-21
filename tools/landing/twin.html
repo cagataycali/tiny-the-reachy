@@ -1,6 +1,6 @@
 <!doctype html>
 <!-- twin.html — offline render host for tools/landing/render_twin.mjs (Playwright). Not shipped.
-     Query: ?move=curious1&frame=40&w=1600&h=1200&yaw=0.62&pitch=0.28&dist=0.58[&only=xl_330,null&noshadow=1]  — draws ONE frame of the real move on a
+     Query: ?move=curious1&frame=40&w=1600&h=1200&view=hero|emotion|body[&yaw=&pitch=&dist=&only=xl_330,null&noshadow=1]  (VIEWS in twin.js)  — draws ONE frame of the real move on a
      transparent canvas; the script screenshots it. window.__ready resolves when drawn; window.__draw(frame) repaints. -->
 <html><head><meta charset="utf-8"><title>twin render</title>
 <style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
@@ -10,7 +10,7 @@
   const q = new URLSearchParams(location.search)
   const W = +q.get('w') || 1600, H = +q.get('h') || 1200
   const canvas = document.getElementById('c'); canvas.width = W; canvas.height = H
-  const stage = makeStage(canvas, { width: W, height: H, dpr: 1, shadows: !q.get('noshadow') })
+  const stage = makeStage(canvas, { width: W, height: H, dpr: 1, shadows: !q.get('noshadow'), view: q.get('view') || 'hero' })
   for (const k of ['yaw', 'pitch', 'dist']) if (q.get(k) != null) stage.orbit[k] = +q.get(k)
   if (q.get('tz') != null) stage.orbit.target.z = +q.get('tz'); if (q.get('ty') != null) stage.orbit.target.y = +q.get('ty'); if (q.get('tx') != null) stage.orbit.target.x = +q.get('tx')
   if (q.get('fov')) { stage.cam.fov = +q.get('fov'); stage.cam.updateProjectionMatrix() }
