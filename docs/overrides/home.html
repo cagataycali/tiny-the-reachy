@@ -193,7 +193,7 @@
     <div class="l-flat__in l-start__grid">
       <div>
         <p class="l-kicker">run it yourself · robot or MuJoCo sim</p>
-        <h2 id="l-start-h">Five lines to a robot that talks back.</h2>
+        <h2 id="l-start-h">Six lines to a robot that talks back.</h2>
         <p class="l-lede">Bring a Reachy Mini and a Bedrock or OpenAI key — or no robot at all: <code>make sim</code> spawns a headless MuJoCo daemon.</p>
         <p class="l-cta"><a class="l-btn l-btn--primary" href="{{ 'start/quickstart/' | url }}">Quickstart</a> <a class="l-btn l-btn--ghost" href="{{ 'showcase/' | url }}">Showcase</a> <a class="l-btn l-btn--ghost" href="https://github.com/cagataycali/tiny-the-reachy">GitHub</a></p>
       </div>
@@ -201,7 +201,8 @@
 cd tiny-the-reachy
 cp .env.example .env &amp;&amp; $EDITOR .env   # your keys
 make venv                              # .venv + deps
-make run                               # REPL → the daemon · make sim = no robot</code></pre>
+make run                               # REPL → the daemon
+make sim                               # …or no robot at all</code></pre>
     </div>
   </section>
 
