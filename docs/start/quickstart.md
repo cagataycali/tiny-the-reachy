@@ -9,18 +9,17 @@ verified: 2026-09-21
 # Quickstart
 
 !!! abstract "In 10 seconds"
-    - `make venv && make run` talks to a Reachy Mini daemon on `:8000`; `make sim` spawns a MuJoCo one when you have no robot.
-    - Default brain is Bedrock (`TINY_MODEL_ID=global.anthropic.claude-opus-4-8`, `tiny.py:25`); voice is OpenAI Realtime (`VOICE_PROVIDER=openai`, `voice_listener.py:19`).
-    - Every gesture is clamped before it reaches the daemon, so the first commands below cannot hurt the robot.
-    - Commands re-checked against `Makefile` and `.env.example` on 2026-09-21.
+    - `make venv && make run` talks to a daemon on `:8000`; `make sim` spawns a MuJoCo one instead.
+    - Default brain: Bedrock (`TINY_MODEL_ID`, `tiny.py:25`); voice: OpenAI Realtime (`voice_listener.py:19`).
+    - Every gesture is clamped — the first commands cannot hurt the robot.
 
 <div class="cards cards--3" markdown>
 
 | mode | what runs where | when |
 |---|---|---|
-| **Lite** | daemon on your laptop over USB, TINY beside it | you own a Lite, or you develop tools → [connect](#3-connect-to-the-robot) |
-| **Wireless** | daemon + TINY on the robot's CM4, as systemd units | the robot lives on a desk and should not need your laptop → [systemd](systemd.md) |
-| **Simulation** | `REACHY_USE_SIM=1` spawns a headless MuJoCo daemon | no hardware, CI, or trying a new emotion safely → [docker](docker.md) |
+| **Lite** | daemon on your laptop over USB, TINY beside it | developing tools → [connect](#3-connect-to-the-robot) |
+| **Wireless** | daemon + TINY on the CM4 | a robot on a desk, no laptop → [systemd](systemd.md) |
+| **Simulation** | `REACHY_USE_SIM=1`, headless MuJoCo | no hardware, CI, a new emotion tried safely → [docker](docker.md) |
 
 </div>
 
@@ -34,16 +33,13 @@ make venv                              # .venv + deps
 make run                               # REPL against the Reachy daemon
 ```
 
-No hardware handy? Run against the MuJoCo simulator instead:
-
 ```bash
-make sim        # REACHY_USE_SIM=1 — spawns a headless daemon, no robot
+make sim        # no robot: REACHY_USE_SIM=1 spawns a headless MuJoCo daemon
 ```
 
 ## 2. Pick a model
 
-TINY runs on a Bedrock model by default. Provide Bedrock credentials before
-`make run`:
+Bedrock by default:
 
 ```bash
 export AWS_BEARER_TOKEN_BEDROCK=...                    # Bedrock bearer token (preferred)
@@ -51,13 +47,9 @@ export AWS_DEFAULT_REGION=us-west-2
 export TINY_MODEL_ID=global.anthropic.claude-opus-4-8  # override the default
 ```
 
-Voice uses OpenAI Realtime by default — set `OPENAI_API_KEY` for the voice
-persona (or switch `VOICE_PROVIDER` to `nova_sonic` / `gemini`).
+Voice: `OPENAI_API_KEY`, or `VOICE_PROVIDER=nova_sonic|gemini`.
 
 ## 3. Connect to the robot
-
-The **Reachy Mini daemon** owns the hardware and exposes an HTTP/WS API on
-`:8000`. TINY is a pure client of it.
 
 === "Lite (USB → laptop)"
 
@@ -91,8 +83,7 @@ The **Reachy Mini daemon** owns the hardware and exposes an HTTP/WS API on
 <span class="ok">reachy_express("cheerful1") · reachy_antennas(wiggle) — there is no "happy" in the library; TINY picks the closest of 81</span>
 </div>
 
-The REPL is a Strands agent with the same tools as the personas — [all 28, with signatures](../reference/tools/index.md).
-`reachy_list_emotions` prints the recorded-move names the daemon actually has.
+Same tools as the personas — [all 28](../reference/tools/index.md).
 
 ## Safe first commands
 
@@ -102,9 +93,7 @@ The REPL is a Strands agent with the same tools as the personas — [all 28, wit
     `what emotions do you know?` · `go home`
 
 !!! note "Expression is the whole point"
-    Reachy Mini has no arms or legs. Its personality is head + body + antennas
-    + the recorded-emotion library. Ask it to *feel* something, not just *do*
-    something — `be curious`, `look excited`, `act shy`.
+    No arms, no legs — head, body, antennas and 81 recorded moves. Ask it to *feel* something, not *do* something: `be curious`, `look excited`, `act shy`.
 
 ## One-shot mode
 
@@ -114,9 +103,8 @@ make ask Q="say hi and wobble your antennas"
 
 ## On the real robot
 
-The Wireless Reachy Mini runs all of this **on its own CM4** as systemd units — voice, Telegram, the
-thinker, the cockpit and the tunnel — so nothing on your laptop needs to stay up.
+The Wireless runs all of this **on its own CM4** as systemd units — nothing on your laptop stays up.
 
 [How TINY boots (systemd) →](systemd.md){ .md-button .md-button--primary }
 [Deploying to the robot →](robot.md){ .md-button }
-[Meet the four personas →](../showcase/personas.md){ .md-button }
+[Meet the personas →](../showcase/personas.md){ .md-button }

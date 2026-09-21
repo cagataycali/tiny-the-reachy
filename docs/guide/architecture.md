@@ -9,19 +9,18 @@ verified: 2026-09-21
 # Architecture
 
 !!! abstract "In 10 seconds"
-    - **Pollen's daemon** (`reachy-mini-daemon`, FastAPI, `:8000`) is the only process that touches motors, camera, mics and speaker. TINY is a pure HTTP/WS client of it — no DDS, no realsense, no motor bus.
-    - **One tool list** (`tools/__init__.py`: 19 `reachy_*` robot tools + 8 cross-persona tools) and **one factory** (`tiny.py` `build_agent(persona)`) serve five faces: shell, voice, telegram, thinker, dashboard Ask.
-    - **One brain**: a SQLite file every persona reads at the top of each turn and writes at the end ([the brain](brain.md)).
-    - Beside them on the CM4: the cockpit (`dashboard.server`, `:8097`), a named Cloudflare tunnel, and the optional tiny.technology fleet bridge (`TINY_MCP=1`).
+    - **Pollen's daemon** (`:8000`) alone touches motors, camera, mics, speaker. TINY is a pure HTTP/WS client.
+    - **One tool list** (19 `reachy_*` + 8 cross-persona) and **one factory** (`tiny.py build_agent(persona)`) serve five faces.
+    - **One brain**: a SQLite file every persona reads first and writes last ([the brain](brain.md)).
+    - Beside them: the cockpit (`:8097`), a tunnel, the optional fleet bridge.
 
 ## The body
 
 <figure class="anatomy" data-anatomy="body" data-base="../../" markdown>
-<figcaption>The dashboard's MuJoCo twin (<code>model/twin.xml</code>, 18 bodies, 41 meshes) split by body group. Each hotspot opens the tool page that drives that part.</figcaption>
+<figcaption>The MuJoCo twin (<code>model/twin.xml</code>, 18 bodies, 41 meshes). Each hotspot opens the tool that drives that part.</figcaption>
 </figure>
 
-Reachy Mini has no arms and no legs. Everything TINY *is* comes out of a 6-DOF head on a Stewart platform, a rotating base, two antenna
-servos, one wide camera, a four-mic XMOS array and a speaker — plus an IMU the daemon exposes with the pose.
+No arms, no legs. Everything TINY *is* comes out of a 6-DOF head, a rotating base, two antennas, one camera, four mics, a speaker.
 
 ## Physical layout
 
@@ -46,10 +45,7 @@ flowchart TB
   FLEET["tiny.technology fleet<br/>TINY_MCP=1 · use_device"] -.-> V & T & K & DB
 ```
 
-The Lite variant is the same picture with the daemon and TINY on your laptop over USB; the simulator (`REACHY_USE_SIM=1`) swaps the
-daemon for a headless MuJoCo one. Connection mode and host are read once in `tools/_reachy_common.py` (`REACHY_CONNECTION_MODE`,
-`REACHY_HOST`, `REACHY_PORT`) and every tool goes through its cached `get_mini()` client — which rebuilds itself when the daemon restarts
-underneath it ([systemd → lessons](../start/systemd.md#the-units-as-installed)).
+A Lite is the same picture on your laptop; `REACHY_USE_SIM=1` swaps in a headless MuJoCo daemon. Every tool shares one cached `get_mini()` client that rebuilds itself when the daemon restarts.
 
 ## One turn
 
@@ -62,9 +58,7 @@ flowchart LR
   R --> U(["speaker · chat · log"])
 ```
 
-Every turn starts by injecting the shared log and the live pose into the prompt, so a persona wakes up already knowing what the others did
-and where the head is. The playbook in `prompts/base.md` asks for gestures **in the same turn as speech**, never before or after — that is
-the whole point of the [expression showcase](../showcase/expression.md).
+A persona wakes up knowing what the others did and where its head is. `prompts/base.md` wants gestures **in the same turn as speech** — [expression](../showcase/expression.md).
 
 ## The tool layers
 
@@ -72,17 +66,15 @@ the whole point of the [expression showcase](../showcase/expression.md).
 
 | layer | modules | what |
 |---|---|---|
-| **Robot tools** | `reachy_motion` · `reachy_expression` · `reachy_state` · `reachy_camera` · `head_tracking` · `turn_to_sound` · `reachy_audio` | 19 `reachy_*` wrappers, every angle clamped before it reaches the daemon — [safety envelope](safety.md) |
-| **Cross-persona brain** | `memory` · `voice_bridge` · `dispatch` · `telegram` · `vision` · `prompts` · `manage_*` | 8 tools shared by the faces: remember, hand a task over, speak through the voice persona — [the brain](brain.md) |
-| **Fleet** | `tiny_mcp` | `use_device` and friends, mounted only when `TINY_MCP=1` and the persona is in `TINY_MCP_PERSONAS`, never on a turn that arrived from another device — [fleet](../MCP.md) |
+| **Robot** | `reachy_motion` · `reachy_expression` · `reachy_state` · `reachy_camera` · `head_tracking` · `turn_to_sound` · `reachy_audio` | 19 `reachy_*` wrappers, every angle clamped — [safety](safety.md) |
+| **Brain** | `memory` · `voice_bridge` · `dispatch` · `telegram` · `vision` · `prompts` · `manage_*` | 8 shared tools: remember, hand over, speak through the voice — [the brain](brain.md) |
+| **Fleet** | `tiny_mcp` | `use_device` & co, `TINY_MCP=1` only, never on a turn from another device — [fleet](../MCP.md) |
 
 </div>
 
-The exact roster, with signatures, is generated from the code at every build: [tools reference](../reference/tools/index.md).
+Signatures, generated from the code: [tools reference](../reference/tools/index.md).
 
-## One source of truth
-
-All persona, tool and prompt wiring lives in `tiny.py`:
+## One source of truth — `tiny.py`
 
 ```python
 build_tools()            # text personas: everything above (+ use_github/use_spotify when importable)
@@ -92,11 +84,9 @@ build_shell_agent()      # the REPL you get from `make run`
 build_voice_agent()      # the bidi voice persona (openai · nova_sonic · gemini)
 ```
 
-Change a tool once and every face gets it. Change a prompt at runtime with the [`prompts`](../reference/tools/prompts.md) tool and the
-override is appended to that persona's system prompt (`FULL:` replaces it).
+Change a tool once, every face gets it. [`prompts`](../reference/tools/prompts.md) edits a persona at runtime — appended, `FULL:` replaces.
 
 ## What is *not* here
 
-- No ROS, no DDS, no CycloneDDS, no librealsense build — Reachy control is plain HTTP/WS, so the Docker image is small and the CM4 runs bare-metal.
-- No process of ours talks to hardware. If the daemon is down, every tool returns an error string the model can read aloud, and nothing else breaks.
-- No secrets in the tree: `.env`, `~/.reachy-dashboard.env`, `~/.tiny-mcp.env` — see [env vars](../reference/env.md).
+- Daemon down → every tool returns an error string the model can read aloud; nothing else breaks.
+- No secrets in the tree — [env](../reference/env.md).

@@ -38,16 +38,15 @@ PAGE_TOOL = 120
 PAGE_TOOLS_INDEX = 200
 PAGE_TABLE_MAX = {"reference/env.md": 1600, "reference/api.md": 900}  # tables only; 110 vars × (name+default+≤12 words+link) cannot fit 900 — see JOURNAL it5
 SITE_TARGET = 6400
-SITE_CEILING = 11000     # ratchet — lower with every cut, never raise (16,044 → 12,102 it5 → 10,9xx it6)
+SITE_CEILING = 9800      # ratchet — lower with every cut, never raise (16,044 → 12,102 it5 → 10,532 it6 → 9,7xx it7)
 SOUL = {"showcase/personas.md", "start/robot.md", "start/systemd.md"}
 TABLES = {"reference/env.md", "reference/api.md"}
 SKIP = {"index.md", "scripts/README.md", "design-assets/README.md", "LIVE_DEPLOY.md"}  # landing (HQ lane) + mkdocs exclude_docs (dev notes, not pages)
 GRACE: set[str] = {      # pages not yet rewritten under this budget: reported, not failed. Only ever shrinks.
-    "DASHBOARD.md", "PERCEPTION.md",
-    "guide/architecture.md", "guide/brain.md", "guide/operations.md", "guide/safety.md", "guide/troubleshooting.md",
+    "PERCEPTION.md",
+    "guide/brain.md", "guide/operations.md", "guide/safety.md", "guide/troubleshooting.md",
     "reference/daemon.md", "reference/family.md",
     "showcase/expression.md",
-    "start/quickstart.md", "start/systemd.md",
     "tools/catalog.md", "tools/expression.md", "tools/motion.md", "tools/sensing.md",
 }
 
