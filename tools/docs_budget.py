@@ -38,16 +38,15 @@ PAGE_TOOL = 120
 PAGE_TOOLS_INDEX = 200
 PAGE_TABLE_MAX = {"reference/env.md": 1600, "reference/api.md": 900}  # tables only; 110 vars × (name+default+≤12 words+link) cannot fit 900 — see JOURNAL it5
 SITE_TARGET = 6400
-SITE_CEILING = 9800      # ratchet — lower with every cut, never raise (16,044 → 12,102 it5 → 10,532 it6 → 9,7xx it7)
+SITE_CEILING = 8600      # ratchet — lower with every cut, never raise (16,044 → 12,102 it5 → 10,532 it6 → 9,582 it7 → 8,468 it8)
 SOUL = {"showcase/personas.md", "start/robot.md", "start/systemd.md"}
 TABLES = {"reference/env.md", "reference/api.md"}
 SKIP = {"index.md", "scripts/README.md", "design-assets/README.md", "LIVE_DEPLOY.md"}  # landing (HQ lane) + mkdocs exclude_docs (dev notes, not pages)
 GRACE: set[str] = {      # pages not yet rewritten under this budget: reported, not failed. Only ever shrinks.
     "PERCEPTION.md",
-    "guide/brain.md", "guide/operations.md", "guide/safety.md", "guide/troubleshooting.md",
+    
     "reference/daemon.md", "reference/family.md",
     "showcase/expression.md",
-    "tools/catalog.md", "tools/expression.md", "tools/motion.md", "tools/sensing.md",
 }
 
 _FENCE = re.compile(r"^(\s*)(```|~~~)")

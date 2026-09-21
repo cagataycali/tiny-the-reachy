@@ -33,10 +33,7 @@ nav:
       - Dashboard (twin PiP): DASHBOARD.md
       - Perception (tracking · DoA · pressure): PERCEPTION.md
   - Tools:
-      - Catalog: tools/catalog.md
-      - Motion: tools/motion.md
-      - Expression: tools/expression.md
-      - Sensing: tools/sensing.md
+      - Playbook: tools/playbook.md
   - Guide:
       - Architecture: guide/architecture.md
       - Safety envelope: guide/safety.md
@@ -145,6 +142,12 @@ markdown_extensions:
 plugins:
   - search:
       lang: en
+  - redirects:
+      redirect_maps:
+        tools/catalog.md: tools/playbook.md
+        tools/motion.md: tools/playbook.md
+        tools/sensing.md: tools/playbook.md
+        tools/expression.md: tools/playbook.md
 
 hooks:
   - docs/hooks/gen.py     # regenerates reference/tools/*, reference/env.md, reference/api.md from the code
