@@ -144,6 +144,67 @@
     </div>
   </section>
 
+  {# ------------------------------------------------------------------ 5 · THE TOOLS (static — breath after four pinned stages)
+     Modules + tool names + one-liners mirror docs/reference/tools/index.md, which scripts/tooldoc.py regenerates from the @tool
+     functions at every build (28 tools, 16 modules). Keep the two in step — tests/test_landing_tools.py pins the names. #}
+  <section class="l-flat l-tools" id="tools" aria-labelledby="l-tools-h">
+    <div class="l-flat__in">
+      <p class="l-kicker">28 tools · 16 modules · <code>@tool</code> functions in <code>tools/</code></p>
+      <h2 id="l-tools-h">Everything it can do is a function the model can read.</h2>
+      <p class="l-lede">Every ability is a Python <code>@tool</code> with a docstring — the same text the model sees is what the <a href="{{ 'reference/tools/' | url }}">reference</a> prints at build time. Angles are clamped before they reach the daemon.</p>
+      <ul class="l-toolwall" aria-label="Tool modules">
+        <li><a href="{{ 'reference/tools/reachy_motion/' | url }}"><b>Motion</b><span><code>reachy_look</code> <code>reachy_antennas</code> <code>reachy_body_turn</code> <code>reachy_home</code> <code>reachy_wake</code></span><small>head pose, antennas, body yaw, home, wake/sleep</small></a></li>
+        <li><a href="{{ 'reference/tools/reachy_expression/' | url }}"><b>Expression</b><span><code>reachy_express</code> <code>reachy_list_emotions</code></span><small>the 81 recorded moves the personas fire while they talk</small></a></li>
+        <li><a href="{{ 'reference/tools/reachy_state/' | url }}"><b>State</b><span><code>reachy_get_state</code> <code>reachy_motors</code></span><small>live pose, IMU, motor modes</small></a></li>
+        <li><a href="{{ 'reference/tools/reachy_camera/' | url }}"><b>Camera</b><span><code>reachy_camera</code> <code>reachy_look_at</code> <code>capture_camera</code></span><small>grab a frame, look at a pixel</small></a></li>
+        <li><a href="{{ 'reference/tools/vision/' | url }}"><b>Vision</b><span><code>take_photo</code></span><small>a frame plus a question for the multimodal model</small></a></li>
+        <li><a href="{{ 'reference/tools/reachy_audio/' | url }}"><b>Audio</b><span><code>reachy_play_sound</code> <code>reachy_say</code> <code>reachy_volume</code></span><small>Piper TTS on the CM4, sounds, volume — "silent" means 0</small></a></li>
+        <li><a href="{{ 'reference/tools/head_tracking/' | url }}"><b>Head tracking</b><span><code>head_tracking</code> <code>head_tracking_status</code></span><small>the daemon's face tracker (reachy-mini ≥ 1.10)</small></a></li>
+        <li><a href="{{ 'reference/tools/turn_to_sound/' | url }}"><b>Turn to sound</b><span><code>turn_to_sound</code> <code>turn_to_sound_status</code></span><small>toward whoever is talking — ReSpeaker direction of arrival</small></a></li>
+        <li><a href="{{ 'reference/tools/voice_bridge/' | url }}"><b>Voice bridge</b><span><code>voice_say</code></span><small>text → the voice persona's mouth</small></a></li>
+        <li><a href="{{ 'reference/tools/dispatch/' | url }}"><b>Dispatch</b><span><code>dispatch</code></span><small>hand a task to another persona through the shared brain</small></a></li>
+        <li><a href="{{ 'reference/tools/memory/' | url }}"><b>Memory</b><span><code>memory</code></span><small>the cross-persona SQLite brain: remember, recall, forget</small></a></li>
+        <li><a href="{{ 'reference/tools/telegram/' | url }}"><b>Telegram</b><span><code>telegram</code></span><small>text and photos to the owner's chat</small></a></li>
+        <li><a href="{{ 'reference/tools/prompts/' | url }}"><b>Prompts</b><span><code>prompts</code></span><small>read and override each persona's system prompt</small></a></li>
+        <li><a href="{{ 'reference/tools/manage_messages/' | url }}"><b>Manage messages</b><span><code>manage_messages</code></span><small>inspect and compact its own conversation</small></a></li>
+        <li><a href="{{ 'reference/tools/manage_tools/' | url }}"><b>Manage tools</b><span><code>manage_tools</code></span><small>list, create and hot-load new tools at runtime</small></a></li>
+        <li><a href="{{ 'reference/tools/tiny_mcp/' | url }}"><b>Fleet</b><span><code>use_device</code></span><small>tiny.technology MCP, mounted only with <code>TINY_MCP=1</code></small></a></li>
+      </ul>
+    </div>
+  </section>
+
+  {# ------------------------------------------------------------------ 6 · THE COCKPIT (static; the three real screenshots in
+     docs/assets, captioned as the owner's private cockpit — deliberately NO link to reachy.cagatay.my, see INBOX) #}
+  <section class="l-flat l-cockpit" id="cockpit" aria-labelledby="l-cockpit-h">
+    <div class="l-flat__in">
+      <p class="l-kicker">the owner's private cockpit · passkey gate · not linked here</p>
+      <h2 id="l-cockpit-h">The owner sees all of it.</h2>
+      <p class="l-lede">A FastAPI dashboard runs on the CM4 itself behind a Cloudflare tunnel: the live camera, the same MuJoCo twin you just scrolled, every transcript and tool call from all personas, and the tracking controls. Only <code>/api/health</code> is public; everything else wants a passkey.</p>
+      <div class="l-shots">
+        <figure class="l-shot l-shot--wide"><img src="{{ 'assets/cockpit-desktop.jpg' | url }}" width="1440" height="900" loading="lazy" decoding="async" alt="The cockpit on a desktop: camera view, transcript feed and controls."><figcaption>desktop · camera, feed, controls</figcaption></figure>
+        <figure class="l-shot l-shot--wide"><img src="{{ 'assets/cockpit-desktop-twin.jpg' | url }}" width="1440" height="900" loading="lazy" decoding="async" alt="The cockpit showing the MuJoCo digital twin mirroring the robot's pose."><figcaption>desktop · the twin, live</figcaption></figure>
+        <figure class="l-shot l-shot--tall"><img src="{{ 'assets/cockpit-phone.jpg' | url }}" width="390" height="844" loading="lazy" decoding="async" alt="The cockpit on a phone."><figcaption>phone</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  {# ------------------------------------------------------------------ 7 · GET STARTED (verbatim from docs/start/quickstart.md §1) #}
+  <section class="l-flat l-start" id="start" aria-labelledby="l-start-h">
+    <div class="l-flat__in l-start__grid">
+      <div>
+        <p class="l-kicker">run it yourself · robot or MuJoCo sim</p>
+        <h2 id="l-start-h">Five lines to a robot that talks back.</h2>
+        <p class="l-lede">Bring a Reachy Mini and a Bedrock or OpenAI key — or no robot at all: <code>make sim</code> spawns a headless MuJoCo daemon.</p>
+        <p class="l-cta"><a class="l-btn l-btn--primary" href="{{ 'start/quickstart/' | url }}">Quickstart</a> <a class="l-btn l-btn--ghost" href="{{ 'showcase/' | url }}">Showcase</a> <a class="l-btn l-btn--ghost" href="https://github.com/cagataycali/tiny-the-reachy">GitHub</a></p>
+      </div>
+      <pre class="l-code" tabindex="0"><code>git clone https://github.com/cagataycali/tiny-the-reachy.git
+cd tiny-the-reachy
+cp .env.example .env &amp;&amp; $EDITOR .env   # your keys
+make venv                              # .venv + deps
+make run                               # REPL → the daemon · make sim = no robot</code></pre>
+    </div>
+  </section>
+
 </div>
 <script src="{{ 'js/landing/landing.js' | url }}" defer></script>
 {% endblock %}

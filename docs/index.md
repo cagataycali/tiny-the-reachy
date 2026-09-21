@@ -10,4 +10,4 @@ hide:
 <!-- The landing is rendered by docs/overrides/home.html (owned by the reachy-landing lane). This body is the no-template fallback. -->
 # TINY — a robot that moves when it talks
 
-A Reachy Mini Wireless with a Strands agent inside. [Run it yourself](start/quickstart.md) · [The 26 tools](reference/tools/index.md).
+A Reachy Mini Wireless with a Strands agent inside. [Run it yourself](start/quickstart.md) · [The 28 tools](reference/tools/index.md).
