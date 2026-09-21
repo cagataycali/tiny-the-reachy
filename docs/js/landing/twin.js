@@ -138,7 +138,7 @@ export function makeStage(canvas, { width, height, alpha = true, dpr = 1, shadow
   const ground = new THREE.Mesh(new THREE.CircleGeometry(0.7, 72), new THREE.ShadowMaterial({ opacity: 0.28 }))
   ground.receiveShadow = true; ground.position.z = -0.0006; scene.add(ground)
   const ao = new THREE.Mesh(new THREE.CircleGeometry(0.115, 64), new THREE.MeshBasicMaterial({ map: contactTexture(), transparent: true, depthWrite: false, opacity: 0.55 }))
-  ao.position.z = -0.0003; scene.add(ao)
+  ao.position.z = -0.0003; if (shadows) scene.add(ao) // noshadow=1 layers (THE BODY) carry no ground at all
   const v = VIEWS[view] || VIEWS.hero
   const orbit = { yaw: v.yaw, pitch: v.pitch, dist: v.dist, target: new THREE.Vector3(...v.target) }
   const look = () => {
