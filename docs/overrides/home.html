@@ -150,7 +150,26 @@
             <span class="l-playhead" aria-hidden="true"></span>
           </div>
           <figcaption class="l-caption">schematic of one turn — positions are not to scale; the tail is <code>SPEAK_TAIL_S = 0.8</code> (tools/head_tracking.py:28), mic 16 kHz resampled to the model (tiny.py:451)</figcaption>
-        </figure>
+            {# the one sound on the page, labelled for what it is: the OFFLINE voice. tiny-tts.service on the CM4 = Piper en_US-lessac-medium
+               (docs/start/systemd.md); reachy_say() plays it through the speaker (tools/reachy_audio.py) — the text personas and the
+               dashboard sound like this. The live conversation voice is the realtime model's. The line is reachy_say's own docstring
+               example, synthesized offline from the same public voice model by tools/landing/voice.sh (5 KB Opus + AAC for Safari).
+               Never autoplays. #}
+            <div class="l-voice" id="l-voice">
+              <button type="button" class="l-voice__play" aria-label="Play: Hi, I'm TINY — the offline Piper voice, 1.3 seconds" data-play>
+                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path class="l-voice__ico-play" d="M4 2.5v11l9-5.5z" fill="currentColor"/><path class="l-voice__ico-stop" d="M3.5 3.5h9v9h-9z" fill="currentColor"/></svg>
+              </button>
+              <span class="l-voice__meter" aria-hidden="true"><i></i></span>
+              <span class="l-voice__t">
+                <code>reachy_say("Hi, I'm TINY!")</code>
+                <small class="l-voice__long">the offline voice · Piper <code>en_US-lessac-medium</code> on the CM4 (<code>tiny-tts.service</code>) · what the text personas sound like; the live call speaks with the realtime model · <b data-voice-t>1.3 s</b></small><small class="l-voice__short">offline Piper voice · <code>en_US-lessac-medium</code> · 1.3 s</small>
+              </span>
+              <audio preload="none" data-voice-audio>
+                <source src="{{ 'assets/landing/voice/hi-im-tiny.opus' | url }}" type="audio/ogg; codecs=opus">
+                <source src="{{ 'assets/landing/voice/hi-im-tiny.m4a' | url }}" type="audio/mp4">
+              </audio>
+            </div>
+          </figure>
       </div>
     </div>
   </section>

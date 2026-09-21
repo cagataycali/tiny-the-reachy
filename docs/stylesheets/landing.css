@@ -111,6 +111,19 @@ html[data-landing] .md-main__inner { margin-top: 0; }
 .l-swatch__b[aria-pressed="true"] { border-color: var(--l-accent); background: var(--l-accent-sub); color: var(--l-ink-3); box-shadow: inset 0 0 0 1px var(--l-accent); }
 .l-swatch__b:focus-visible { outline: 2px solid var(--l-accent); outline-offset: 2px; }
 .landing .l-move[hidden] { display: none; }
+/* the offline voice: play button + real playback meter + the label that says exactly which voice this is */
+.l-voice { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: .7rem; row-gap: .35rem; align-items: center; margin: .9rem auto 0; max-width: 34rem; padding: .7rem .85rem; border: var(--l-hair); border-radius: 12px; background: var(--l-ink-0); }
+.l-voice__play { grid-row: 1 / 3; width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 0; background: var(--l-accent); color: var(--on-accent, #fff); display: grid; place-items: center; cursor: pointer; transition: transform .15s var(--l-ease), background .15s; }
+.l-voice__play:hover { transform: scale(1.06); } .l-voice__play:focus-visible { outline: 2px solid var(--l-accent); outline-offset: 3px; }
+.l-voice__ico-stop { display: none; } .l-voice.is-playing .l-voice__ico-stop { display: block; } .l-voice.is-playing .l-voice__ico-play { display: none; }
+.l-voice__meter { display: block; height: 3px; border-radius: 2px; background: var(--l-ink-1); overflow: hidden; }
+.l-voice__meter i { display: block; height: 100%; width: 100%; background: var(--l-accent); transform-origin: left; transform: scaleX(var(--v, 0)); }
+.l-voice__t { display: grid; gap: .15rem; font-size: .8rem; color: var(--l-ink-2); line-height: 1.35; }
+.l-voice__t > code { font-family: var(--l-mono); font-size: .78rem; color: var(--l-ink-3); background: none; border: 0; padding: 0; }
+.l-voice__t small { font-size: .72rem; } .l-voice__t small code { font-size: .95em; }
+.l-voice__t b { color: var(--l-ink-3); font-weight: 600; font-variant-numeric: tabular-nums; }
+.l-voice.is-unavailable .l-voice__play { background: var(--l-ink-2); }
+.l-voice__short { display: none; }
 .landing .l-notes { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; max-width: 46ch; font-size: clamp(.95rem, 1.15vw, 1.05rem); }
 .l-note { position: relative; padding-left: 1.4rem; color: var(--l-ink-2); line-height: 1.4; transition: color .3s, transform .5s var(--l-ease); transform: translateX(.4rem); }
 .l-note::before { content: ""; position: absolute; left: 0; top: .55em; width: .55rem; height: .55rem; border-radius: 50%; border: 1.5px solid var(--l-ink-1); background: var(--l-paper); transition: background .3s, border-color .3s, transform .3s; }
@@ -232,6 +245,7 @@ html:not(.l-js) .l-hs, .l-stage.is-static .l-hs { opacity: 1; transform: transla
   html.l-js .l-emotion:not(.is-static) .l-note:not(.is-now) { display: none; }
   html.l-js .l-emotion:not(.is-static) .l-notes:not(:has(.is-now)) .l-note:first-child { display: block; color: var(--l-ink-2); }
   .l-caption--seq .l-caption__k { display: none; }
+  .l-voice { margin-top: .5rem; padding: .5rem .65rem; } .l-voice__long { display: none; } .l-voice__short { display: block; }
   .l-hs b, .l-hs small { display: none; } .l-hs i::after { display: none; } .l-hs, .l-hs.is-on { transform: translate(-50%, -50%); }
   .l-frame { width: min(46vw, 15rem, 34vh * 660 / 780); }
   .l-split--rev .l-copy { order: 1; } .l-split--rev .l-fig { order: 0; }
