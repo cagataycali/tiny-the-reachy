@@ -2,8 +2,8 @@
    Opt-in by markup; everything degrades to the plain markup without JS. Re-runs on Material's instant navigation (document$).
    1. <div class="cards" markdown> table </div>            → grid of cards (col 1 title · col 2 where · last col body; the row's last link = the card's link)
    2. h2 "3. Talk to it" (≥ 3 of them)                     → numbered step rail
-   3. <div class="filterable" data-id="env" markdown> table </div>
-                                                            → filter box + `#env-NAME` row anchors on the first column + status/method pills
+   3. <div class="filterable" data-id="env" data-key="1" markdown> table </div>
+                                                            → filter box + `#env-NAME` row anchors on column data-key (1-based) + status/gate/method pills
       (table cells: `robot` `sim` `code` `stale` words in a "status" column → pills; GET/POST/… in a "method" column → method pills)
    4. reference/tools/*: every `## tool_name` block          → tool card (signature · envelope facts pulled from the text · "fires while speaking")
    5. <figure class="anatomy" data-anatomy="body" data-base="../../"> → exploded twin layers with hotspots (ANATOMY below)
@@ -12,7 +12,8 @@
 (() => {
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)]
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
-  const slug = (s) => s.trim().toLowerCase().replace(/[^a-z0-9_.:/-]+/g, '-').replace(/^-|-$/g, '')
+  const outerOf = (t) => t.closest('.md-typeset__scrollwrap') || t.closest('.md-typeset__table') || t  // Material: scrollwrap > table-wrap > table
+  const slug = (s) => s.trim().replace(/[^A-Za-z0-9_.-]+/g, '-').replace(/-{2,}/g, '-').replace(/^-|-$/g, '')
 
   // ── 1. cards
   function cards(root) {
@@ -53,11 +54,12 @@
   }
 
   // ── 3. filterable tables: anchors, pills, filter box
-  const STATUS = [[/^(robot|proven|live)\b/i, 'robot', 'robot'], [/^sim\b/i, 'sim', 'sim'], [/^(code|inferred)\b/i, 'code', 'from code'], [/^(stale|todo|recheck)\b/i, 'stale', 'stale']]
+  const STATUS = [[/^(robot|proven|live)\b/i, 'robot', 'robot'], [/^sim\b/i, 'sim', 'sim'], [/^(code|inferred)\b/i, 'code', 'from code'], [/^(stale|todo|recheck)\b/i, 'stale', 'stale'],
+    [/^(✅\s*)?public\b/i, 'public', 'public'], [/^(🔒\s*)?key\b/i, 'key', 'key'], [/^(🔒\s*)?owner\b/i, 'key', 'owner']]
   const METHOD = /^(GET|POST|PUT|PATCH|DELETE|WS)\b/
   function pills(table) {
     const head = [...table.tHead?.rows[0]?.cells || []].map((c) => c.textContent.trim().toLowerCase())
-    const statusCol = head.findIndex((h) => h.startsWith('status') || h === 'proof')
+    const statusCol = head.findIndex((h) => h.startsWith('status') || h === 'proof' || h.startsWith('anonymous') || h === 'gate')
     const methodCol = head.findIndex((h) => h.startsWith('method') || h === 'verb')
     for (const tr of table.tBodies[0].rows) {
       if (statusCol >= 0 && tr.cells[statusCol]) {
@@ -74,13 +76,13 @@
     for (const wrap of $$('.filterable', root)) {
       const tables = $$('table', wrap)
       if (!tables.length || wrap.querySelector('.filter')) continue
-      const id = wrap.dataset.id || 'row'
+      const id = wrap.dataset.id || 'row', keyCol = Math.max(0, (parseInt(wrap.dataset.key, 10) || 1) - 1)  // data-key = 1-based column that names the row
       let rows = 0
       for (const t of tables) {
         pills(t)
         for (const tr of t.tBodies[0].rows) {
           rows++
-          const c = tr.cells[0]; if (!c) continue
+          const c = tr.cells[keyCol]; if (!c) continue
           c.classList.add('cell--id')
           const key = slug(c.textContent)
           if (key && !tr.id) { tr.id = `${id}-${key}`; c.innerHTML = `<a class="row-anchor" href="#${tr.id}" aria-label="link to ${esc(c.textContent.trim())}">${c.innerHTML}</a>` }
@@ -90,7 +92,7 @@
         const box = document.createElement('div')
         box.className = 'filter'
         box.innerHTML = `<label><span class="filter__label">filter</span><input type="search" placeholder="${esc(wrap.dataset.placeholder || 'name, value, note…')}" autocomplete="off" spellcheck="false" /></label><output aria-live="polite"></output>`
-        ;(tables[0].closest('.md-typeset__table') || tables[0]).before(box)
+        wrap.prepend(box)  // above the first group heading, so a filter that empties the first group hides its heading too
         const input = box.querySelector('input'), out = box.querySelector('output')
         const all = tables.flatMap((t) => [...t.tBodies[0].rows])
         const apply = () => {
@@ -98,9 +100,9 @@
           for (const tr of all) { const hit = !q || tr.textContent.toLowerCase().includes(q); tr.hidden = !hit; if (hit) hits++ }
           for (const t of tables) {
             const any = [...t.tBodies[0].rows].some((r) => !r.hidden)
-            ;(t.closest('.md-typeset__table') || t).classList.toggle('is-empty', !any)
+            const wrapEl = outerOf(t); wrapEl.classList.toggle('is-empty', !any)
             // a heading right before an emptied table hides with it
-            const wrapEl = t.closest('.md-typeset__table') || t, prev = wrapEl.previousElementSibling
+            const prev = wrapEl.previousElementSibling
             if (prev && /^H[2-4]$/.test(prev.tagName)) prev.classList.toggle('is-empty', !any)
           }
           out.textContent = q ? `${hits} of ${all.length}` : ''

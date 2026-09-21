@@ -353,6 +353,7 @@ html { scroll-padding-top: 5.4rem; }
 .md-typeset .pill--robot { color: var(--ok); } .md-typeset .pill--sim { color: var(--lab); } .md-typeset .pill--code { color: var(--accent-ink); } .md-typeset .pill--stale { color: var(--dead); }
 .md-typeset .pill--get { color: var(--accent-ink); } .md-typeset .pill--post { color: var(--ok); } .md-typeset .pill--put, .md-typeset .pill--patch { color: var(--lab); } .md-typeset .pill--delete { color: var(--dead); } .md-typeset .pill--ws { color: var(--ink-3); }
 .md-typeset .pill--method::before { display: none; }
+.md-typeset .pill--public { color: var(--ok); } .md-typeset .pill--key { color: var(--accent-ink); }
 .md-typeset .filter { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin: 1.2rem 0 .8rem; }
 .md-typeset .filter label { display: flex; align-items: center; gap: .6rem; flex: 1 1 18rem; border: var(--hairline); border-radius: 999px; background: var(--ink-0); padding: .2rem .35rem .2rem .9rem;
   transition: border-color var(--fast), box-shadow var(--fast); }

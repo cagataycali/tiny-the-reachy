@@ -137,7 +137,7 @@ def markdown(rs: list[dict]) -> str:
     rest = [r for r in rs if id(r) not in seen]
     if rest:
         lines += ["### Other", "", "| method | path | params | anonymous? | what |", "|---|---|---|---|---|"]
-        lines += [f"| `{r['method']}` | `{r['path']}` | {r['params']} | {'✅' if r['public'] else '🔒'} | {r['doc'] or '—'} |" for r in rest]
+        lines += [f"| `{r['method']}` | `{r['path']}` | {r['params']} | {'✅ public' if r['public'] else '🔒 key'} | {r['doc'] or '—'} |" for r in rest]
         lines.append("")
     n_pub = sum(1 for r in rs if r["public"])
     lines.append(f"_{len(rs)} routes; {n_pub} answer without a key (health, the auth handshake and the SPA shell), the rest 401 anonymous callers and close a WebSocket with 4401._")
