@@ -9,23 +9,22 @@ verified: 2026-09-17
 # Deploying to the robot
 
 !!! abstract "In 10 seconds"
-    - `/home/pollen/tiny-the-reachy/` is an **rsync target, not a clone** — the Mac checkout is the source of truth.
-    - Python goes into Pollen's `/venvs/apps_venv`; the daemon's `/venvs/mini_daemon` is hands-off.
-    - Ship with `rsync`, restart only what you touched; dashboard via `dashboard/deploy/sync.sh`; `dist/` needs no restart.
-    - Verify: `systemctl --user is-active …` + `curl localhost:8097/api/health`.
+    - `~/tiny-the-reachy/` on the CM4 is an **rsync target, not a clone** — the Mac checkout is the truth.
+    - Python goes into Pollen's `/venvs/apps_venv`; `/venvs/mini_daemon` is hands-off.
+    - `rsync`, then restart only what you touched; `dist/` needs no restart.
 
 ## Where things live
 
 | on the CM4 (Debian 13, aarch64, 4 GB, 14 GB SD) | what |
 |---|---|
-| `~/tiny-the-reachy/` | this repo, rsync'd — `git status` there says *not a git repo* |
-| `~/tiny-the-reachy/.env` | keys — never in git, never in docs |
+| `~/tiny-the-reachy/` | this repo, rsync'd — *not a git repo* there |
+| `~/tiny-the-reachy/.env` | keys — never in git |
 | `~/.reachy-dashboard.env` | `REACHY_TOKEN`, `REACHY_REG_TOKEN`, `REACHY_RP_ID`, `REACHY_ORIGIN` |
 | `~/.tiny-mcp.env` (600) | tiny.technology token for the fleet tools |
-| `/venvs/apps_venv` | Pollen's Python 3.12 — we install into it, never replace it |
-| `/venvs/mini_daemon` | the daemon's venv — hands off |
+| `/venvs/apps_venv` | Pollen's Python 3.12 — install into it, never replace it |
+| `/venvs/mini_daemon` | the daemon's — hands off |
 | `~/tts-venv` + `~/tiny-tts/` | Piper TTS |
-| `~/.local/node` + `~/.local/lib/tiny-mcp` | node 22 + `tiny-tech` MCP server |
+| `~/.local/node` + `~/.local/lib/tiny-mcp` | node 22 + the MCP server |
 | `~/.config/systemd/user/` | [the eight units](systemd.md) |
 | `~/.cloudflared/` | tunnel credentials + `config.yml` |
 
@@ -56,7 +55,7 @@ verified: 2026-09-17
     rsync -az dist/ pollen@reachy-mini.local:tiny-the-reachy/dashboard/frontend/dist/
     ```
 
-    No restart: `index.html`, `sw.js`, manifest are `no-cache`; assets content-hashed (Cloudflare caches `*.js` 4 h).
+    No restart: `index.html` is `no-cache`, assets are content-hashed.
 
 ## Verify it came back
 
@@ -67,25 +66,25 @@ curl -s localhost:8097/api/health | jq '{daemon: .daemon.state, camera: .camera.
 
 ## Network and constraints
 
-- Wi-Fi: home network priority 10; hotspot **`neon_net`** at −10, autoconnect (verified 2026-09-16). `reachy-mini.local` resolves on either.
-- `:8000` (daemon) is unauthenticated — never exposed; the tunnel publishes `:8097` only, from the CM4 itself.
-- Disk 89 % full: no new venvs, `df -h /` before any `pip install`.
-- Load ~3 on four cores; face tracking +1.5, IPC camera +0.5 — `F` turns tracking off when the temperature pill goes amber.
-- Camera is imx708 behind libcamera: `cv2.VideoCapture("/dev/video0")` returns nothing — use the daemon's IPC socket or `rpicam-vid`.
-- `journalctl --user` has no journal on the CM4: `journalctl _SYSTEMD_USER_UNIT=tiny-voice.service`.
+- Wi-Fi: home network first, hotspot **`neon_net`** as fallback; `reachy-mini.local` resolves on either.
+- `:8000` is unauthenticated — never exposed; the tunnel publishes `:8097` only.
+- Disk 89 % full: `df -h /` before any `pip install`.
+- Load ~3 on four cores; tracking +1.5 — `F` turns it off when the temperature pill goes amber.
+- Camera is imx708 behind libcamera: `cv2.VideoCapture` returns nothing — use the daemon's IPC socket.
+- `journalctl --user` finds nothing: `journalctl _SYSTEMD_USER_UNIT=tiny-voice.service`.
 
 ## First-time setup on a fresh CM4
 
-1. Flash Pollen's image, join Wi-Fi via their app, `curl localhost:8000/api/daemon/status`.
-2. `ssh-copy-id pollen@reachy-mini.local` — change the factory password.
-3. Raise the daemon's fd limit before it bites:
+1. Flash Pollen's image, join Wi-Fi, `curl localhost:8000/api/daemon/status`.
+2. `ssh-copy-id pollen@reachy-mini.local`; change the factory password.
+3. Raise the daemon's fd limit first:
    ```bash
    sudo mkdir -p /etc/systemd/system/reachy-mini-daemon.service.d
    printf '[Service]\nLimitNOFILE=65536\n' | sudo tee /etc/systemd/system/reachy-mini-daemon.service.d/nofile.conf
    sudo systemctl daemon-reload && sudo systemctl restart reachy-mini-daemon
    ```
 4. rsync (above); `/venvs/apps_venv/bin/pip install -r requirements-robot.txt`.
-5. `cp scripts/systemd/robot/*.service ~/.config/systemd/user/`; `loginctl enable-linger pollen`; `systemctl --user enable --now tiny-wake tiny-voice tiny-telegram tiny-thinker`.
+5. `cp scripts/systemd/robot/*.service ~/.config/systemd/user/`; `loginctl enable-linger pollen`; `systemctl --user enable --now` the units.
 6. Dashboard: `~/.reachy-dashboard.env`, `dashboard/deploy/sync.sh`, enrol your passkey — **the gate is open until the first credential (TOFU)**.
-7. Tunnel: `cloudflared tunnel create reachy`, DNS route, `config.yml`, user unit `Restart=always` — **after** step 6.
-8. Optional: Piper, tiny-mcp token, watchdog timer.
+7. Tunnel: `cloudflared tunnel create reachy`, `config.yml`, user unit — **after** step 6.
+8. Optional: Piper, tiny-mcp token, watchdog.
