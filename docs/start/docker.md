@@ -1,6 +1,18 @@
-# docker
+---
+title: Docker — laptop and Lite
+description: "The three-persona compose stack for a laptop beside a Reachy Mini Lite or a dev box on the robot's network — not what the CM4 runs."
+for: laptop + Lite owners · dev boxes
+proof: code
+verified: 2026-09-21
+---
 
-<span class="read-badge">⏱ 90s · full stack</span>
+# Docker — laptop and Lite
+
+!!! abstract "In 10 seconds"
+    - `make build && make up` → three containers (`tiny-voice`, `tiny-telegram`, `tiny-thinker`, `docker-compose.yml`) sharing one SQLite brain, host networking to the daemon.
+    - The image is light: no DDS, no realsense — Reachy control is plain HTTP/WS to `:8000`.
+    - The Wireless CM4 has **no Docker** (disk 89 %); it runs the same personas bare-metal under [systemd](systemd.md).
+    - `make install-compose-service` makes the stack come up at boot on the laptop.
 
 !!! note "Not what the robot runs"
     The Wireless CM4 has **no Docker** and no room for it (disk 89 %). Compose is for a laptop next to a
@@ -12,7 +24,7 @@ SQLite brain, all connecting to the Reachy daemon over host networking. The
 image is **light** — no DDS, no CycloneDDS, no librealsense build (unlike
 neon), because Reachy control is pure HTTP/WS to the daemon.
 
-## build & up
+## Build and up
 
 ```bash
 cp .env.example .env && $EDITOR .env
@@ -20,7 +32,7 @@ make build      # build the tiny image
 make up         # docker compose up -d  → voice + telegram + thinker
 ```
 
-## the three containers
+## The three containers
 
 | container | role |
 |---|---|
@@ -31,7 +43,7 @@ make up         # docker compose up -d  → voice + telegram + thinker
 All three mount `.memory/mem.db` — the shared cross-persona brain — and reach
 the daemon over host networking (`REACHY_HOST` from `.env`).
 
-## operate
+## Operate
 
 ```bash
 make ps           # container status
@@ -41,7 +53,7 @@ make restart      # restart the whole stack
 make down         # stop everything
 ```
 
-## live voice control
+## Live voice control
 
 ```bash
 make mute         # silence the voice agent (persists in mem.db)
@@ -49,7 +61,7 @@ make unmute
 make voice-status
 ```
 
-## boot on power-on
+## Boot on power-on
 
 ```bash
 make install-compose-service   # user systemd unit → docker compose up -d at boot
