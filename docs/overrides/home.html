@@ -168,7 +168,7 @@
     </div>
   </section>
 
-  {# ------------------------------------------------------------------ 5 · THE TOOLS (static — breath after four pinned stages)
+  {# ------------------------------------------------------------------ 5 · THE TOOLS (static — breath after three pinned stages; a spec sheet in four groups Motion/Sense/Speak/Brain, not a wall)
      Modules + tool names + one-liners mirror docs/reference/tools/index.md, which scripts/tooldoc.py regenerates from the @tool
      functions at every build (28 tools, 16 modules). Keep the two in step — tests/test_landing_tools.py pins the names. #}
   <section class="l-flat l-tools" id="tools" aria-labelledby="l-tools-h">
@@ -176,19 +176,23 @@
       <p class="l-kicker">28 tools · 16 modules · <code>@tool</code> functions in <code>tools/</code></p>
       <h2 id="l-tools-h">Everything it can do is a function the model can read.</h2>
       <p class="l-lede">Every ability is a Python <code>@tool</code> with a docstring — the same text the model sees is what the <a href="{{ 'reference/tools/' | url }}">reference</a> prints at build time. Angles are clamped before they reach the daemon.</p>
-      <ul class="l-toolwall" aria-label="Tool modules">
+      <ul class="l-toolwall" aria-label="Tool modules, grouped: Motion, Sense, Speak, Brain">
+        <li class="l-toolwall__g" aria-hidden="true"><span>Motion</span><small>9 tools · it moves</small></li>
         <li><a href="{{ 'reference/tools/reachy_motion/' | url }}"><b>Motion</b><span><code>reachy_look</code> <code>reachy_antennas</code> <code>reachy_body_turn</code> <code>reachy_home</code> <code>reachy_wake</code></span><small>head pose, antennas, body yaw, home, wake/sleep</small></a></li>
         <li><a href="{{ 'reference/tools/reachy_expression/' | url }}"><b>Expression</b><span><code>reachy_express</code> <code>reachy_list_emotions</code></span><small>the 81 recorded moves the personas fire while they talk</small></a></li>
         <li><a href="{{ 'reference/tools/reachy_state/' | url }}"><b>State</b><span><code>reachy_get_state</code> <code>reachy_motors</code></span><small>live pose, IMU, motor modes</small></a></li>
+        <li class="l-toolwall__g" aria-hidden="true"><span>Sense</span><small>8 tools · it sees and hears</small></li>
         <li><a href="{{ 'reference/tools/reachy_camera/' | url }}"><b>Camera</b><span><code>reachy_camera</code> <code>reachy_look_at</code> <code>capture_camera</code></span><small>grab a frame, look at a pixel</small></a></li>
         <li><a href="{{ 'reference/tools/vision/' | url }}"><b>Vision</b><span><code>take_photo</code></span><small>a frame plus a question for the multimodal model</small></a></li>
-        <li><a href="{{ 'reference/tools/reachy_audio/' | url }}"><b>Audio</b><span><code>reachy_play_sound</code> <code>reachy_say</code> <code>reachy_volume</code></span><small>Piper TTS on the CM4, sounds, volume — "silent" means 0</small></a></li>
         <li><a href="{{ 'reference/tools/head_tracking/' | url }}"><b>Head tracking</b><span><code>head_tracking</code> <code>head_tracking_status</code></span><small>the daemon's face tracker (reachy-mini ≥ 1.10)</small></a></li>
         <li><a href="{{ 'reference/tools/turn_to_sound/' | url }}"><b>Turn to sound</b><span><code>turn_to_sound</code> <code>turn_to_sound_status</code></span><small>toward whoever is talking — ReSpeaker direction of arrival</small></a></li>
+        <li class="l-toolwall__g" aria-hidden="true"><span>Speak</span><small>5 tools · it talks</small></li>
+        <li><a href="{{ 'reference/tools/reachy_audio/' | url }}"><b>Audio</b><span><code>reachy_play_sound</code> <code>reachy_say</code> <code>reachy_volume</code></span><small>Piper TTS on the CM4, sounds, volume — "silent" means 0</small></a></li>
         <li><a href="{{ 'reference/tools/voice_bridge/' | url }}"><b>Voice bridge</b><span><code>voice_say</code></span><small>text → the voice persona's mouth</small></a></li>
+        <li><a href="{{ 'reference/tools/telegram/' | url }}"><b>Telegram</b><span><code>telegram</code></span><small>text and photos to the owner's chat</small></a></li>
+        <li class="l-toolwall__g" aria-hidden="true"><span>Brain</span><small>6 tools · it remembers and delegates</small></li>
         <li><a href="{{ 'reference/tools/dispatch/' | url }}"><b>Dispatch</b><span><code>dispatch</code></span><small>hand a task to another persona through the shared brain</small></a></li>
         <li><a href="{{ 'reference/tools/memory/' | url }}"><b>Memory</b><span><code>memory</code></span><small>the cross-persona SQLite brain: remember, recall, forget</small></a></li>
-        <li><a href="{{ 'reference/tools/telegram/' | url }}"><b>Telegram</b><span><code>telegram</code></span><small>text and photos to the owner's chat</small></a></li>
         <li><a href="{{ 'reference/tools/prompts/' | url }}"><b>Prompts</b><span><code>prompts</code></span><small>read and override each persona's system prompt</small></a></li>
         <li><a href="{{ 'reference/tools/manage_messages/' | url }}"><b>Manage messages</b><span><code>manage_messages</code></span><small>inspect and compact its own conversation</small></a></li>
         <li><a href="{{ 'reference/tools/manage_tools/' | url }}"><b>Manage tools</b><span><code>manage_tools</code></span><small>list, create and hot-load new tools at runtime</small></a></li>
