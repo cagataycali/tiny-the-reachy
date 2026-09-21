@@ -42,5 +42,17 @@ def test_landing_scripts_block_pins_materials_bundle():
 
 def test_every_tool_count_on_the_landing_is_the_reference_count():
     html = (ROOT / "docs/overrides/home.html").read_text()
-    counts = {int(n) for n in re.findall(r"(\d+) tools", html)}
+    wall = html.split('class="l-toolwall"', 1)[1].split("</ul>", 1)[0]
+    outside = html.replace(wall, "")
+    counts = {int(n) for n in re.findall(r"(\d+) tools", outside)}
     assert counts == {len(_reference_tools())}, counts
+    # the four group headers (Motion / Sense / Speak / Brain) each carry their own count: it must equal the tools listed under them
+    groups = re.split(r'<li class="l-toolwall__g"', wall)[1:]
+    assert len(groups) == 4, len(groups)
+    seen = 0
+    for g in groups:
+        n = int(re.search(r"(\d+) tools", g).group(1))
+        tools = set(re.findall(r"<code>([a-z_]+)</code>", g)) - {"TINY_MCP"}
+        assert n == len(tools), (g[:60], n, sorted(tools))
+        seen += n
+    assert seen == len(_reference_tools())

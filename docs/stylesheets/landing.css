@@ -40,7 +40,7 @@ html[data-landing] .md-main__inner { margin-top: 0; }
 
 /* ---- 1 · hero: copy left, the real body right; words rise; the body floats and parallaxes on --sy ---- */
 /* the hero is a short pinned stage: 100vh of screen + 75vh of travel during which poses 0→24 play (it turns to you) */
-.landing .l-stage--hero { height: 175vh; }
+.landing .l-stage.l-stage--hero { height: 175vh; }
 .l-sticky.l-hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 3rem; align-items: center; max-width: 72rem; margin: 0 auto; padding: clamp(4.5rem, 10vh, 6rem) 1.25rem 1.5rem; }
 .l-hero > * { min-width: 0; }
 .l-h1 .l-w { display: inline-block; transform: translateY(.6em) rotate(1.2deg); animation: l-word .8s var(--l-ease) forwards; }
@@ -55,6 +55,8 @@ html[data-landing] .md-main__inner { margin-top: 0; }
 .l-figwrap { position: relative; margin: 0 auto; width: min(100%, 27rem); aspect-ratio: 1100 / 1300; cursor: grab; -webkit-tap-highlight-color: transparent; }
 .l-figwrap.is-dragging { cursor: grabbing; }
 .l-figwrap::before { content: ""; position: absolute; inset: 60% 12% 4%; border-radius: 50%; background: radial-gradient(closest-side, var(--l-accent-glow), transparent 75%); filter: blur(34px); z-index: 0; opacity: .55; }
+/* slate: the antennas are black on near-black — a faint, top-weighted paper halo behind the figure gives them an edge (both hero and emotion frames) */
+[data-md-color-scheme="slate"] .l-figwrap::after, [data-md-color-scheme="slate"] .l-frame::after { content: ""; position: absolute; inset: -6% 18% 45%; border-radius: 50%; background: radial-gradient(closest-side, rgba(242,241,236,.13), transparent 78%); filter: blur(28px); z-index: 0; pointer-events: none; }
 .l-still, .l-turn, .l-orbit { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; }
 .l-figwrap picture { display: contents; }
 .l-turn, .l-orbit { display: none; }
@@ -76,7 +78,16 @@ html[data-landing] .md-main__inner { margin-top: 0; }
 
 /* ---- pinned stages: JS writes --p (0→1) while the section scrolls; the inner block is sticky for its whole travel ---- */
 .landing .l-stage { max-width: none; padding: 0; height: 320vh; position: relative; }
-.l-sticky { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; box-sizing: border-box; padding: clamp(3.5rem, 8vh, 5rem) 1.25rem 1.5rem; }
+/* rhythm (measured @1440 with measure.mjs): hero 1.75 · emotion 2.6 · speak 2.8 (the dark spine) · body 2.4 screens */
+.landing .l-stage.l-emotion { height: 260vh; } .landing .l-stage.l-speak { height: 280vh; } .landing .l-stage.l-body { height: 240vh; }
+/* the ONE dark stage: the speech score. Tokens = reachy.css slate values (TOKENS.md), fixed here so the stage is dark in both schemes;
+   in slate the band is one step lighter than the page so it still reads as a stage. */
+.landing .l-speak { --l-paper: #0c0d0f; --l-ink-0: #15171a; --l-ink-1: rgba(242,241,236,.14); --l-ink-2: #b1b3b8; --l-ink-3: #f2f1ec;
+  --l-accent: #5eead4; --l-accent-ink: #7ff0de; --l-accent-glow: rgba(94,234,212,.25); --l-accent-sub: rgba(94,234,212,.12);
+  background: var(--l-paper); color: var(--l-ink-3); }
+[data-md-color-scheme="slate"] .landing .l-speak { --l-paper: #15171a; --l-ink-0: #0c0d0f; }
+/* padding-top clears Material's header + tabs (96 px) at every desktop height — the kicker was slipping under the tabs at 1440×900 */
+.l-sticky { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; box-sizing: border-box; padding: clamp(6.5rem, 12vh, 7.5rem) 1.25rem 1.5rem; }
 .l-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 3rem; align-items: center; width: 100%; max-width: 72rem; margin: 0 auto; }
 .l-split > * { min-width: 0; }
 
@@ -149,14 +160,22 @@ html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html
 .l-flat h2 { max-width: 22ch; }
 .l-lede { max-width: 60ch; color: var(--l-ink-2); font-size: 1.05rem; line-height: 1.55; }
 .l-lede a { color: var(--l-accent-ink); text-decoration: underline; text-underline-offset: .15em; }
-.l-toolwall { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); gap: .7rem; }
-.landing .l-toolwall li { margin: 0; }
-.l-toolwall a { display: flex; flex-direction: column; gap: .35rem; height: 100%; box-sizing: border-box; padding: .85rem .95rem; border: var(--l-hair); border-radius: 12px; background: var(--l-ink-0); color: inherit; text-decoration: none; transition: border-color .15s, transform .15s; }
-.l-toolwall a:hover, .l-toolwall a:focus-visible { border-color: var(--l-accent); transform: translateY(-2px); outline: none; }
+/* the tools: a spec sheet, not a wall — 4 groups (Motion / Sense / Speak / Brain), 16 module rows, chips inline with the one-liner */
+.l-toolwall { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; grid-template-columns: minmax(7rem, 10rem) 1fr; column-gap: 1.5rem; border-bottom: var(--l-hair); }
+.landing .l-toolwall li { margin: 0; grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; }
+.l-toolwall__g { align-items: baseline; padding: 1.6rem 0 .45rem; font-family: var(--l-mono); }
+.l-toolwall__g span { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--l-accent-ink); font-weight: 700; display: flex; align-items: center; gap: .5rem; }
+.l-toolwall__g span::before { content: ""; width: .42rem; height: .42rem; border-radius: 50%; background: var(--l-accent); box-shadow: 0 0 10px var(--l-accent-glow); }
+.l-toolwall__g small { font-size: .7rem; color: var(--l-ink-2); }
+.l-toolwall a { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: baseline; padding: .6rem 0 .65rem; border-top: var(--l-hair); color: inherit; text-decoration: none; }
+.l-toolwall a:hover b, .l-toolwall a:focus-visible b { color: var(--l-accent-ink); text-decoration: underline; text-decoration-color: var(--l-accent); text-underline-offset: .2em; }
+.l-toolwall a:focus-visible { outline: 2px solid var(--l-accent); outline-offset: 2px; border-radius: 4px; }
 .l-toolwall b { font-weight: 700; color: var(--l-ink-3); font-size: .95rem; }
-.l-toolwall span { display: flex; flex-wrap: wrap; gap: .3rem; }
-.l-toolwall span code { font-size: .68rem; padding: .1rem .4rem; border-radius: 6px; background: var(--l-paper); border: var(--l-hair); color: var(--l-accent-ink); }
+.l-toolwall a > span { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .35rem; }
+.l-toolwall span code { font-size: .68rem; padding: .1rem .4rem; border-radius: 6px; background: var(--l-ink-0); border: var(--l-hair); color: var(--l-accent-ink); }
 .l-toolwall small { font-size: .78rem; color: var(--l-ink-2); line-height: 1.4; }
+.l-toolwall a > small { grid-column: 2; margin-top: .2rem; }
+@supports not (grid-template-columns: subgrid) { .l-toolwall a, .landing .l-toolwall li { grid-template-columns: minmax(7rem, 10rem) 1fr; } }
 .l-shots { display: grid; grid-template-columns: 1fr 1fr minmax(0, .42fr); gap: 1rem; margin-top: 2rem; align-items: start; }
 .l-shot { margin: 0; }
 .l-shot img { display: block; width: 100%; height: auto; border-radius: 12px; border: var(--l-hair); box-shadow: 0 18px 50px -24px rgb(0 0 0 / .35); }
@@ -180,7 +199,8 @@ html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html
 
 /* ---- fallbacks ---- */
 @media (max-width: 60em) {
-  .landing .l-stage { height: 260vh; }
+  .landing .l-stage { height: 260vh; } .landing .l-stage.l-emotion { height: 220vh; } .landing .l-stage.l-speak { height: 240vh; } .landing .l-stage.l-body { height: 200vh; }
+  .l-toolwall, .landing .l-toolwall li, .l-toolwall a { grid-template-columns: 1fr; } .l-toolwall a > small { grid-column: 1; } .l-toolwall a > span { margin-top: .25rem; } .l-toolwall__g { padding-top: 1.2rem; }
   .l-sticky { align-items: flex-start; padding-top: 4rem; }
   .l-split { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
   .l-split .l-copy h2 { font-size: clamp(1.5rem, 6.5vw, 2rem); }
@@ -202,7 +222,7 @@ html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html
   .l-notes--code code { font-size: .74rem; }
   .landing .l-quote p { font-size: .95rem !important; }
   /* phone: no pin — the hero is taller than the screen, so the turn plays over the first few hundred px of natural scroll */
-  .landing .l-stage--hero { height: auto; } .l-sticky.l-hero { position: static; height: auto; grid-template-columns: minmax(0, 1fr); gap: 1rem; padding-top: 3.5rem; }
+  .landing .l-stage.l-stage--hero { height: auto; } .l-sticky.l-hero { position: static; height: auto; grid-template-columns: minmax(0, 1fr); gap: 1rem; padding-top: 3.5rem; }
   .l-fig { order: -1; } .l-figwrap { width: min(62vw, 18rem); }
   .l-caption--hero { font-size: .7rem !important; }
 }
