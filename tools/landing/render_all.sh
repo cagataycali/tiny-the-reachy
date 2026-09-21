@@ -1,5 +1,6 @@
 #!/bin/sh
 # render_all.sh — every landing asset from the same look (twin.js VIEWS): hero still (+660w), the 48-frame curious1 sequence,
+# the 36-frame fear1 sequence (the emotion swatch's second move), the 25-frame hero turn,
 # the four THE BODY layers. Offline, from the full-res pack tools/landing/model-hi (gitignored; build_twin_model.py without decimation).
 # usage: sh tools/landing/render_all.sh [hero|seq|body|all]   (~10 min for all on SwiftShader)
 set -e
@@ -14,12 +15,14 @@ if [ "$what" = hero ] || [ "$what" = all ]; then
   NOTRIM=1 $R still curious1 24 docs/assets/landing/hero-curious1-f24.webp 1100 1300 "view=hero&$HI"
   NOTRIM=1 $R still curious1 24 docs/assets/landing/hero-curious1-f24-660.webp 660 780 "view=hero&$HI"
 fi
+# sequences are WEBP_Q=76 (stills stay 88): both moves + the hero turn must stay under 1.2 MB together (tests/test_landing_emotion.py)
 if [ "$what" = seq ] || [ "$what" = all ]; then
-  RESUME=1 NOTRIM=1 $R seq curious1 docs/assets/landing/seq/curious1 48 660 780 "view=emotion&$HI"
+  WEBP_Q=76 RESUME=1 NOTRIM=1 $R seq curious1 docs/assets/landing/seq/curious1 48 660 780 "view=emotion&$HI"
+  WEBP_Q=76 RESUME=1 NOTRIM=1 $R seq fear1 docs/assets/landing/seq/fear1 36 660 780 "view=emotion&$HI"
 fi
 if [ "$what" = heroseq ] || [ "$what" = all ]; then
   # the hero's scroll-turn: poses 0..24 of curious1 (t 0 → 2.0 s) from the hero camera; frame 24 = the still
-  SEQ_FROM=0 SEQ_TO=24 RESUME=1 NOTRIM=1 $R seq curious1 docs/assets/landing/seq/hero 25 660 780 "view=hero&$HI"
+  WEBP_Q=76 SEQ_FROM=0 SEQ_TO=24 RESUME=1 NOTRIM=1 $R seq curious1 docs/assets/landing/seq/hero 25 660 780 "view=hero&$HI"
 fi
 if [ "$what" = body ] || [ "$what" = all ]; then
   # one camera, NOTRIM, so the four layers stack pixel-exact; only the base keeps the ground shadow

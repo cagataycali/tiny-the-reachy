@@ -32,7 +32,7 @@
   // notes: [data-at] children light up once p passes their timestamp; the latest passed one is "now"
   function notes(stage, p) {
     let now = null;
-    for (const n of stage.querySelectorAll("[data-at]")) { const on = p >= +n.dataset.at; n.classList.toggle("is-on", on); if (on) now = n; }
+    for (const n of stage.querySelectorAll("[data-at]")) { if (n.closest("[hidden]")) { n.classList.remove("is-on", "is-now"); continue; } const on = p >= +n.dataset.at; n.classList.toggle("is-on", on); if (on) now = n; }
     for (const n of stage.querySelectorAll("[data-at].is-now")) if (n !== now) n.classList.remove("is-now");
     now?.classList.add("is-now");
   }
@@ -65,33 +65,48 @@
     if (document.readyState === "complete") setTimeout(idle, 600); else addEventListener("load", () => setTimeout(idle, 600), { once: true });
   }
 
-  // ---- 2 · the emotion: paint frame round(p·47) of the rendered sequence; readout from the poses json ----------------
+  // ---- 2 · the emotion: two real moves behind a swatch; paint frame round(p·(N-1)) of the picked move's sequence; readout from its poses json
   const emo = document.getElementById("emotion");
   if (emo && !reduce.matches) {
-    const frameBox = emo.querySelector(".l-frame"), canvas = emo.querySelector(".l-frame__canvas"), ctx = canvas.getContext("2d");
-    const N = +emo.dataset.frames, seq = emo.dataset.seq, imgs = new Array(N);
+    const frameBox = emo.querySelector(".l-frame"), canvas = emo.querySelector(".l-frame__canvas"), ctx = canvas.getContext("2d"), still = emo.querySelector(".l-frame__still");
     const ro = Object.fromEntries(Array.from(emo.querySelectorAll("[data-ro]")).map((b) => [b.dataset.ro, b]));
-    let poses = null, loaded = 0, painted = -1, wanted = 0, armed = false;
     const fmt = (v) => (v < 0 ? "−" : "") + Math.abs(Math.round(v));
+    // one record per swatch button: frames + poses load lazily, only for the picked move (fear1 costs nothing until you ask)
+    const moves = new Map(Array.from(emo.querySelectorAll(".l-swatch__b")).map((b) => [b.dataset.pick, { btn: b, name: b.dataset.pick, N: +b.dataset.frames, seq: b.dataset.seq, posesUrl: b.dataset.poses, still: b.dataset.still, imgs: new Array(+b.dataset.frames), poses: null, loaded: 0, armed: false }]));
+    let cur = moves.get(emo.dataset.move), p = 0, painted = "";
     const paint = () => {
-      const im = imgs[wanted]; if (!im || (im instanceof HTMLImageElement && (!im.complete || !im.naturalWidth))) return;
-      if (painted !== wanted) { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(im, 0, 0, canvas.width, canvas.height); painted = wanted; frameBox.classList.add("is-live"); }
-      if (poses) {
-        const i = Math.min(poses.frames.length - 1, Math.round(wanted / (N - 1) * (poses.frames.length - 1)));
-        const h = poses.head[i], a = poses.antennas[i];
-        ro.t.textContent = poses.t[i].toFixed(1); ro.yaw.textContent = fmt(h.yaw); ro.roll.textContent = fmt(h.roll);
-        ro.ant.textContent = `${fmt(a[0])} / ${fmt(a[1])}`; ro.body.textContent = fmt(poses.body_yaw[i]);
+      const m = cur, wanted = Math.round(p * (m.N - 1)), im = m.imgs[wanted];
+      if (!im || (im instanceof HTMLImageElement && (!im.complete || !im.naturalWidth))) return;
+      const key = `${m.name}:${wanted}`;
+      if (painted !== key) { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(im, 0, 0, canvas.width, canvas.height); painted = key; frameBox.classList.add("is-live"); }
+      if (m.poses) {
+        const ps = m.poses, i = Math.min(ps.frames.length - 1, Math.round(wanted / (m.N - 1) * (ps.frames.length - 1)));
+        const h = ps.head[i], a = ps.antennas[i];
+        ro.name.textContent = m.name; ro.t.textContent = ps.t[i].toFixed(1); ro.yaw.textContent = fmt(h.yaw); ro.roll.textContent = fmt(h.roll);
+        ro.ant.textContent = `${fmt(a[0])} / ${fmt(a[1])}`; ro.body.textContent = fmt(ps.body_yaw[i]);
       }
     };
-    const arm = () => {
-      if (armed) return; armed = true;
-      fetch(emo.dataset.poses).then((r) => r.json()).then((j) => { poses = j; paint(); }).catch(() => {});
-      // decode off the scroll path: each frame becomes an ImageBitmap once (else the first drawImage of a frame costs ~100 ms mid-scrub)
-      for (let k = 0; k < N; k++) { const im = new Image(); im.decoding = "async"; im.src = `${seq}${String(k).padStart(2, "0")}.webp`; imgs[k] = im;
-        im.onload = () => { const ready = () => { loaded++; if (k === wanted || loaded === N) paint(); }; if ("createImageBitmap" in window) createImageBitmap(im).then((bm) => { imgs[k] = bm; ready(); }, ready); else ready(); }; }
+    const arm = (m) => {
+      if (m.armed) return; m.armed = true;
+      fetch(m.posesUrl).then((r) => r.json()).then((j) => { m.poses = j; paint(); }).catch(() => {});
+      // decode off the scroll path: each frame becomes an ImageBitmap once (else the first drawImage of a frame costs ~100 ms mid-scrub);
+      // the wanted frame first, so a pick mid-scrub lands in one round trip
+      const order = Array.from({ length: m.N }, (_, k) => k); const w = Math.round(p * (m.N - 1)); order.splice(order.indexOf(w), 1); order.unshift(w);
+      for (const k of order) { const im = new Image(); im.decoding = "async"; im.src = `${m.seq}${String(k).padStart(2, "0")}.webp`; m.imgs[k] = im;
+        im.onload = () => { const ready = () => { m.loaded++; paint(); }; if ("createImageBitmap" in window) createImageBitmap(im).then((bm) => { m.imgs[k] = bm; ready(); }, ready); else ready(); }; }
     };
-    new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) arm(); }, { rootMargin: "260% 0px" }).observe(emo);
-    handlers.set(emo, (p) => { wanted = Math.round(p * (N - 1)); paint(); });
+    const pick = (name) => {
+      const m = moves.get(name); if (!m || m === cur) return;
+      cur = m; emo.dataset.move = name;
+      for (const [n, mm] of moves) mm.btn.setAttribute("aria-pressed", String(n === name));
+      for (const el of emo.querySelectorAll(".l-move")) el.hidden = el.dataset.move !== name;
+      // the still under the canvas follows the move (its alt too) — and the canvas hides until the new move has painted
+      frameBox.classList.remove("is-live"); still.src = m.still; const alt = still.dataset[`alt${name[0].toUpperCase()}${name.slice(1)}`]; if (alt) still.alt = alt;
+      arm(m); schedule(); paint();
+    };
+    for (const m of moves.values()) m.btn.addEventListener("click", () => pick(m.name));
+    new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) arm(cur); }, { rootMargin: "260% 0px" }).observe(emo);
+    handlers.set(emo, (pp) => { p = pp; paint(); });
   } else if (emo) emo.classList.add("is-static");
 
   const schedule = () => { if (!raf) raf = requestAnimationFrame(update); };

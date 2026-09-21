@@ -102,6 +102,15 @@ html[data-landing] .md-main__inner { margin-top: 0; }
 .landing .l-quote { margin: 0 0 1.5rem; padding: 0 0 0 1rem; border-left: 2px solid var(--l-accent); }
 .landing .l-quote p { margin: 0 0 .35rem; color: var(--l-ink-3); font-size: clamp(1.05rem, 1.35vw, 1.2rem) !important; }
 .landing .l-quote cite { font-style: normal; font-family: var(--l-mono); font-size: .75rem; color: var(--l-ink-2); }
+/* the emotion swatch (the ring's black/silver pattern): two real moves, aria-pressed marks the picked one */
+.l-swatch { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1.1rem; }
+.l-swatch__b { display: grid; gap: .1rem; text-align: left; padding: .5rem .8rem .55rem; border: var(--l-hair); border-radius: 10px; background: var(--l-ink-0); color: var(--l-ink-2); cursor: pointer; font: inherit; transition: border-color .15s, background .15s, color .15s; }
+.l-swatch__b code { font-family: var(--l-mono); font-size: .8rem; font-weight: 700; color: var(--l-ink-3); background: none; border: 0; padding: 0; }
+.l-swatch__b small { font-size: .72rem; line-height: 1.2; }
+.l-swatch__b:hover { border-color: var(--l-ink-2); color: var(--l-ink-3); }
+.l-swatch__b[aria-pressed="true"] { border-color: var(--l-accent); background: var(--l-accent-sub); color: var(--l-ink-3); box-shadow: inset 0 0 0 1px var(--l-accent); }
+.l-swatch__b:focus-visible { outline: 2px solid var(--l-accent); outline-offset: 2px; }
+.landing .l-move[hidden] { display: none; }
 .landing .l-notes { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; max-width: 46ch; font-size: clamp(.95rem, 1.15vw, 1.05rem); }
 .l-note { position: relative; padding-left: 1.4rem; color: var(--l-ink-2); line-height: 1.4; transition: color .3s, transform .5s var(--l-ease); transform: translateX(.4rem); }
 .l-note::before { content: ""; position: absolute; left: 0; top: .55em; width: .55rem; height: .55rem; border-radius: 50%; border: 1.5px solid var(--l-ink-1); background: var(--l-paper); transition: background .3s, border-color .3s, transform .3s; }
@@ -149,6 +158,19 @@ html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html
 /* ---- 4 · the body: four pixel-aligned layer renders; --p lifts them apart (transform only) ---- */
 .l-explode { position: relative; width: min(100%, 24rem, 66vh * 760 / 900); margin: 0 auto; }
 .l-layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; will-change: transform; --lift: 0; transform: translateY(calc(var(--p, 1) * var(--lift) * -1%)); }
+/* hotspots on the render: an overlay per layer shares the layer's --lift transform; a dot + leader + mono label, lit by the note's data-at */
+.l-hs-layer { position: absolute; inset: 0; pointer-events: none; z-index: 2; transform: translateY(calc(var(--p, 1) * var(--lift) * -1%)); will-change: transform; }
+.l-hs { position: absolute; left: var(--x); top: var(--y); display: grid; grid-template-columns: auto auto; align-items: center; column-gap: .55rem; text-align: right; font-family: var(--l-mono); font-size: .66rem; line-height: 1.25; color: var(--l-ink-2); opacity: 0; transform: translate(calc(-100% + .35rem + .35rem), -50%); transition: opacity .3s, transform .4s var(--l-ease); white-space: nowrap; }
+.l-hs i { grid-row: 1 / 3; grid-column: 2; width: .55rem; height: .55rem; border-radius: 50%; background: var(--l-paper); border: 1.5px solid var(--l-ink-2); box-shadow: 0 0 0 3px var(--l-paper); position: relative; }
+.l-hs i::after { content: ""; position: absolute; right: 100%; top: 50%; width: .55rem; border-top: 1px solid var(--l-ink-2); }
+.l-hs b, .l-hs small { grid-column: 1; }
+.l-hs b { font-weight: 600; color: var(--l-ink-3); }
+.l-hs small { font-size: .62rem; }
+.l-hs.is-on { opacity: 1; transform: translate(calc(-100% + .35rem), -50%); }
+.l-hs.is-now i { background: var(--l-accent); border-color: var(--l-accent); box-shadow: 0 0 0 3px var(--l-paper), 0 0 0 6px var(--l-accent-glow); }
+.l-hs.is-now i::after { border-color: var(--l-accent); }
+.l-hs.is-now b { color: var(--l-accent-ink); }
+html:not(.l-js) .l-hs, .l-stage.is-static .l-hs { opacity: 1; transform: translate(calc(-100% + .35rem), -50%); }
 .l-layer--base { --lift: -7; } .l-layer--stewart { --lift: -2; } .l-layer--head { --lift: 6; } .l-layer--antennas { --lift: 14; }
 .l-notes--body .l-note b { display: block; font-family: var(--l-sans); font-weight: 700; color: var(--l-ink-3); font-size: 1.05em; margin: 0 0 .1rem; }
 .l-notes--body code { font-size: .82em; }
@@ -205,10 +227,12 @@ html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html
   .l-split { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
   .l-split .l-copy h2 { font-size: clamp(1.5rem, 6.5vw, 2rem); }
   .landing .l-notes { font-size: .95rem; gap: .3rem; min-height: 3.2em; }
+  .l-swatch { margin-bottom: .7rem; } .l-swatch__b { padding: .35rem .6rem; } .l-swatch__b small { display: none; }
   /* one note at a time on a phone: the one whose timestamp the scrub has just passed (all of them without JS) */
   html.l-js .l-emotion:not(.is-static) .l-note:not(.is-now) { display: none; }
   html.l-js .l-emotion:not(.is-static) .l-notes:not(:has(.is-now)) .l-note:first-child { display: block; color: var(--l-ink-2); }
   .l-caption--seq .l-caption__k { display: none; }
+  .l-hs b, .l-hs small { display: none; } .l-hs i::after { display: none; } .l-hs, .l-hs.is-on { transform: translate(-50%, -50%); }
   .l-frame { width: min(46vw, 15rem, 34vh * 660 / 780); }
   .l-split--rev .l-copy { order: 1; } .l-split--rev .l-fig { order: 0; }
   .l-explode { width: min(50vw, 15rem, 36vh * 760 / 900); }
@@ -231,8 +255,8 @@ html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html
   .landing .l-stage { height: auto; } .l-sticky { position: static; height: auto; min-height: 100vh; }
   .l-h1 .l-w, .l-hero .l-copy > *, .l-still, .l-orbit, .l-scrollhint::after { animation: none; transform: none; }
   .l-note { transition: none; transform: none; color: var(--l-ink-3); }
-  .l-layer { transform: translateY(calc(var(--lift) * -1%)); }
+  .l-layer, .l-hs-layer { transform: translateY(calc(var(--lift) * -1%)); }
 }
 html:not(.l-js) .l-h1 .l-w, html:not(.l-js) .l-hero .l-copy > * { animation: none; transform: none; }
 html:not(.l-js) .landing .l-stage, .landing .l-stage.is-static { height: auto; } html:not(.l-js) .l-sticky, .l-stage.is-static .l-sticky { position: static; height: auto; min-height: 100vh; }
-html:not(.l-js) .l-layer { transform: translateY(calc(var(--lift) * -1%)); }
+html:not(.l-js) .l-layer, html:not(.l-js) .l-hs-layer { transform: translateY(calc(var(--lift) * -1%)); }

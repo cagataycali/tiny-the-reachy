@@ -31,7 +31,7 @@ try {
     const png = await page.screenshot({ omitBackground: true, clip: { x: 0, y: 0, width: W, height: H }, timeout: 120000 })
     mkdirSync(dirname(out), { recursive: true })
     if (out.endsWith('.png')) await sharp(png).png().toFile(out)
-    else await (process.env.NOTRIM ? sharp(png) : sharp(png).trim({ threshold: 1 })).webp({ quality: 88, alphaQuality: 90, effort: 5 }).toFile(out)
+    else await (process.env.NOTRIM ? sharp(png) : sharp(png).trim({ threshold: 1 })).webp({ quality: +(process.env.WEBP_Q || 88), alphaQuality: 90, effort: 5 }).toFile(out)
     console.log(out, `${(statSync(out).size / 1024).toFixed(0)} KB`, 'frame', frame, 'head', JSON.stringify(head))
   }
   if (mode === 'still' || mode === 'probe') await shot(+a3, a4)

@@ -70,34 +70,53 @@
   </section>
 
   {# ------------------------------------------------------------------ 2 · THE EMOTION
-     48 frames (docs/assets/landing/seq/curious1/NN.webp, 660×780) = every 3rd of the 142 poses in assets/landing/poses/curious1.json,
-     which tools/landing/emotion_poses.py produced by replaying the library's `curious1` (1173 samples @ 100 Hz, 11.79 s) through the
-     daemon's own head IK + MuJoCo. The quote is the library's description of the move. Note timestamps are read from the same json. #}
-  <section class="l-stage l-emotion" id="emotion" data-stage data-frames="48" data-seq="{{ 'assets/landing/seq/curious1/' | url }}" data-poses="{{ 'assets/landing/poses/curious1.json' | url }}" aria-labelledby="l-emotion-h">
+     Two REAL moves the reader can pick (the ring landing's swatch pattern): curious1 = 48 frames (every 3rd of the 142 poses in
+     assets/landing/poses/curious1.json, 11.79 s) and fear1 = 36 frames (of 42 poses, 3.48 s). Frames docs/assets/landing/seq/<move>/NN.webp
+     660×780 q76, lazy per move (fear1 loads only when picked). tools/landing/emotion_poses.py produced both jsons by replaying the
+     library's moves through the daemon's own head IK + MuJoCo. Quotes are the library's own descriptions. Note timestamps are read
+     from the same jsons (data-at = t / duration). Total sequence weight (both moves + the hero turn) stays < 1.2 MB. #}
+  <section class="l-stage l-emotion" id="emotion" data-stage data-move="curious1" aria-labelledby="l-emotion-h">
     <div class="l-sticky">
       <div class="l-split">
         <figure class="l-fig l-emotion__fig">
           <div class="l-frame" style="aspect-ratio: 660 / 780">
             <img class="l-frame__still" src="{{ 'assets/landing/seq/curious1/08.webp' | url }}" width="660" height="780" loading="lazy" decoding="async"
-                 alt="TINY mid-move: head turned 40° to its left, one antenna raised straight up, the other lying nearly flat">
+                 alt="TINY mid-move: head turned 40° to its left, one antenna raised straight up, the other lying nearly flat"
+                 data-alt-fear1="TINY ducking: head dropped 30 mm and rolled, both antennas flung out sideways">
             <canvas class="l-frame__canvas" width="660" height="780" aria-hidden="true"></canvas>
           </div>
           <figcaption class="l-caption l-caption--seq">
-            <span class="l-readout" aria-live="off"><code>curious1</code> · t <b data-ro="t">2.0</b> s · head yaw <b data-ro="yaw">40</b>° roll <b data-ro="roll">−6</b>° · antennas <b data-ro="ant">5 / 77</b>° · body <b data-ro="body">8</b>°</span>
+            <span class="l-readout" aria-live="off"><code data-ro="name">curious1</code> · t <b data-ro="t">2.0</b> s · head yaw <b data-ro="yaw">40</b>° roll <b data-ro="roll">−6</b>° · antennas <b data-ro="ant">5 / 77</b>° · body <b data-ro="body">8</b>°</span>
             <span class="l-caption__k">pollen-robotics/reachy-mini-emotions-library · replayed through the daemon's IK + MuJoCo</span>
           </figcaption>
         </figure>
         <div class="l-copy">
-          <p class="l-kicker">81 recorded emotions · this one is <code>curious1</code> · 11.8 s</p>
-          <h2 id="l-emotion-h">It looks around <span class="l-w--accent">like it means it.</span></h2>
-          <blockquote class="l-quote"><p>“You look around. Use this when you’re in a conversation with several people and want to glance at everyone.”</p><cite>— the move’s own description, <code>curious1</code></cite></blockquote>
-          <ol class="l-notes" aria-label="What happens during the move">
-            <li class="l-note" data-at="0.17"><b>2.0 s</b> head yaw 40°, one antenna snaps up to 77°</li>
-            <li class="l-note" data-at="0.38"><b>4.5 s</b> yaw −37°, roll 14° — the other antenna drops to −85°</li>
-            <li class="l-note" data-at="0.59"><b>7.0 s</b> the whole body turns 61°, head 45°</li>
-            <li class="l-note" data-at="0.84"><b>10.0 s</b> yaw −45°, roll 16°, then…</li>
-            <li class="l-note" data-at="0.99"><b>11.8 s</b> home. <a href="{{ 'reference/tools/reachy_expression/' | url }}">reachy_expression</a> can fire any of the 81.</li>
-          </ol>
+          <p class="l-kicker">81 recorded emotions · pick one</p>
+          <div class="l-swatch" role="group" aria-label="Which move to scrub">
+            <button type="button" class="l-swatch__b" aria-pressed="true" data-pick="curious1" data-frames="48" data-seq="{{ 'assets/landing/seq/curious1/' | url }}" data-poses="{{ 'assets/landing/poses/curious1.json' | url }}" data-still="{{ 'assets/landing/seq/curious1/08.webp' | url }}"><code>curious1</code><small>looks around · 11.8 s</small></button>
+            <button type="button" class="l-swatch__b" aria-pressed="false" data-pick="fear1" data-frames="36" data-seq="{{ 'assets/landing/seq/fear1/' | url }}" data-poses="{{ 'assets/landing/poses/fear1.json' | url }}" data-still="{{ 'assets/landing/seq/fear1/08.webp' | url }}"><code>fear1</code><small>flinches · 3.5 s</small></button>
+          </div>
+          <h2 id="l-emotion-h"><span class="l-move" data-move="curious1">It looks around</span><span class="l-move" data-move="fear1" hidden>It flinches</span> <span class="l-w--accent">like it means it.</span></h2>
+          <div class="l-move" data-move="curious1">
+            <blockquote class="l-quote"><p>“You look around. Use this when you’re in a conversation with several people and want to glance at everyone.”</p><cite>— the move’s own description, <code>curious1</code></cite></blockquote>
+            <ol class="l-notes" aria-label="What happens during curious1">
+              <li class="l-note" data-at="0.17"><b>2.0 s</b> head yaw 40°, one antenna snaps up to 77°</li>
+              <li class="l-note" data-at="0.38"><b>4.5 s</b> yaw −37°, roll 14° — the other antenna drops to −85°</li>
+              <li class="l-note" data-at="0.59"><b>7.0 s</b> the whole body turns 61°, head 45°</li>
+              <li class="l-note" data-at="0.84"><b>10.0 s</b> yaw −45°, roll 16°, then…</li>
+              <li class="l-note" data-at="0.99"><b>11.8 s</b> home. <a href="{{ 'reference/tools/reachy_expression/' | url }}">reachy_expression</a> can fire any of the 81.</li>
+            </ol>
+          </div>
+          <div class="l-move" data-move="fear1" hidden>
+            <blockquote class="l-quote"><p>“When you face a threatening or dangerous situation. Can also be used when surprised or shocked.”</p><cite>— the move’s own description, <code>fear1</code></cite></blockquote>
+            <ol class="l-notes" aria-label="What happens during fear1">
+              <li class="l-note" data-at="0.14"><b>0.5 s</b> the head snaps 17° left and rolls −24°</li>
+              <li class="l-note" data-at="0.23"><b>0.8 s</b> it ducks — 30 mm down, antennas flung to −85° / 78°</li>
+              <li class="l-note" data-at="0.43"><b>1.5 s</b> it peeks: up to 186 mm, pitch −17°, roll −26°</li>
+              <li class="l-note" data-at="0.57"><b>2.0 s</b> antennas settle half-down, −33° / 19°</li>
+              <li class="l-note" data-at="0.99"><b>3.5 s</b> not quite home — roll 5°, antennas still down. It stays on guard.</li>
+            </ol>
+          </div>
         </div>
       </div>
     </div>
@@ -150,6 +169,13 @@
             <img class="l-layer l-layer--stewart" src="{{ 'assets/landing/body/stewart.webp' | url }}" width="760" height="900" loading="lazy" decoding="async" alt="">
             <img class="l-layer l-layer--head" src="{{ 'assets/landing/body/head.webp' | url }}" width="760" height="900" loading="lazy" decoding="async" alt="">
             <img class="l-layer l-layer--antennas" src="{{ 'assets/landing/body/antennas.webp' | url }}" width="760" height="900" loading="lazy" decoding="async" alt="">
+            {# hotspots ON the render (the ring's anatomy pattern): one overlay per layer, riding the same --lift, so the label stays on its
+               part as the stack pulls apart. Dot = the part's left edge from the alpha bounding box of its layer render (sharp, % of 760×900), label runs left into the figure's margin;
+               each lights with the side note of the same data-at. Decorative for AT — the list on the right carries the words. #}
+            <div class="l-hs-layer l-layer--antennas" aria-hidden="true"><span class="l-hs" data-at="0.12" style="--x: 46%; --y: 21%"><b>right_antenna · left_antenna</b><small>2 hinges</small><i></i></span></div>
+            <div class="l-hs-layer l-layer--head" aria-hidden="true"><span class="l-hs" data-at="0.36" style="--x: 38%; --y: 46%"><b>camera_optical</b><small>site on xl_330</small><i></i></span></div>
+            <div class="l-hs-layer l-layer--stewart" aria-hidden="true"><span class="l-hs" data-at="0.6" style="--x: 42%; --y: 61%"><b>stewart_1…6</b><small>6 rods · 6 ball joints</small><i></i></span></div>
+            <div class="l-hs-layer l-layer--base" aria-hidden="true"><span class="l-hs" data-at="0.84" style="--x: 37%; --y: 70%"><b>yaw_body</b><small>±160° · CM4 inside</small><i></i></span></div>
           </div>
           <figcaption class="l-caption">the same twin, one MuJoCo body group per layer · <code>twin.xml</code> · MuJoCo 3.13.0 · 41 meshes · 161 geoms · 9 actuators</figcaption>
         </figure>
