@@ -36,7 +36,7 @@ reachy_express("curious")    # → curious1
 reachy_list_emotions()       # the real names, from RecordedMoves.list_moves()
 ```
 
-The library downloads on first use — the first call takes a moment. The whole catalogue with what each move looks like: [Expression](../showcase/expression.md).
+The library downloads on first use — the first call takes a moment. Why it reads as alive: [Expression](../showcase/expression.md).
 
 ## Eyes
 

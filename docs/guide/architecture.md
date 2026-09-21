@@ -47,6 +47,16 @@ flowchart TB
 
 A Lite is the same picture on your laptop; `REACHY_USE_SIM=1` swaps in a headless MuJoCo daemon. Every tool shares one cached `get_mini()` client that rebuilds itself when the daemon restarts.
 
+!!! danger "Never construct a second `ReachyMini()`"
+    Two clients fight the daemon — flaky motion. Always `get_mini()`.
+
+```
+# the SDK surface TINY relies on
+goto_target · set_target · wake_up · goto_sleep · get_current_head_pose · get_current_joint_positions
+enable_motors · disable_motors · enable_gravity_compensation · look_at_image · play_move · enable_wobbling
+media.get_frame · media.play_sound · imu · RecordedMoves.list_moves()
+```
+
 ## One turn
 
 ```mermaid
@@ -58,7 +68,7 @@ flowchart LR
   R --> U(["speaker · chat · log"])
 ```
 
-A persona wakes up knowing what the others did and where its head is. `prompts/base.md` wants gestures **in the same turn as speech** — [expression](../showcase/expression.md).
+A persona wakes up knowing what the others did and where its head is. Gestures go **in the same turn as speech** — [expression](../showcase/expression.md).
 
 ## The tool layers
 
@@ -71,8 +81,6 @@ A persona wakes up knowing what the others did and where its head is. `prompts/b
 | **Fleet** | `tiny_mcp` | `use_device` & co, `TINY_MCP=1` only, never on a turn from another device — [fleet](../MCP.md) |
 
 </div>
-
-Signatures, generated from the code: [tools reference](../reference/tools/index.md).
 
 ## One source of truth — `tiny.py`
 

@@ -61,7 +61,6 @@ nav:
           - Fleet (use_device): reference/tools/tiny_mcp.md
       - Dashboard API: reference/api.md
       - Env vars: reference/env.md
-      - Daemon API: reference/daemon.md
       - The family: reference/family.md
 
 theme:
@@ -148,6 +147,7 @@ plugins:
         tools/motion.md: tools/playbook.md
         tools/sensing.md: tools/playbook.md
         tools/expression.md: tools/playbook.md
+        reference/daemon.md: guide/architecture.md
 
 hooks:
   - docs/hooks/gen.py     # regenerates reference/tools/*, reference/env.md, reference/api.md from the code
