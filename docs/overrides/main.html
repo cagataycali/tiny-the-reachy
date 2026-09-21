@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% from "partials/companion.html" import companion %}
 
 {% block site_meta %}
   {{ super() }}
@@ -13,10 +12,7 @@
 {% endblock %}
 
 {% block content %}
-  {% if page and page.is_homepage %}
-    {# Static fallback is visible above the hero. JS places this inside its grid. #}
-    {{ companion() }}
-  {% else %}
+  {% if not (page and page.is_homepage) %}
     <div class="rh-manual-label" aria-hidden="true">TINY / FIELD GUIDE</div>
   {% endif %}
   {{ super() }}

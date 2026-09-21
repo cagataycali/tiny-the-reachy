@@ -36,3 +36,14 @@ def on_pre_build(config, **kwargs):
     tooldoc.write(tooldoc.build())
     _splice(ROOT / "docs" / "reference" / "env.md", "env", envdoc.markdown(envdoc.collect()))
     _splice(ROOT / "docs" / "reference" / "api.md", "api", routedoc.markdown(routedoc.routes()))
+
+
+def on_files(files, config, **kwargs):
+    """Ship the cockpit twin's model bundle (dashboard/frontend/public/model/*) at /model/ — the landing's live hero draws
+    TINY from the very same meshes.bin the dashboard renders (docs/js/landing/twin.js). No copy lives in docs/: one source."""
+    from mkdocs.structure.files import File
+    src = ROOT / "dashboard" / "frontend" / "public"
+    for name in ("geoms.json", "meshes.bin", "manifest.json", "twin.xml"):
+        if (src / "model" / name).exists():
+            files.append(File(f"model/{name}", str(src), config["site_dir"], config["use_directory_urls"]))
+    return files

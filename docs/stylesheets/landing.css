@@ -1,0 +1,76 @@
+/* landing.css — the tiny-the-reachy landing (docs/index.md → overrides/home.html). Loaded only there; tiny.css keeps the manual.
+   Palette is read off the real thing: the shell's MJCF material is rgba 1,1,1 under warm light (#f4f2ec), the printed parts are
+   0.30 grey (#4d4d4d), the camera lens caps 0.10 (#1a1a1a), and the ONE accent is the cockpit's own --acc #5eead4 (dashboard/
+   frontend/src/styles.css), darkened to AA on paper for light mode. Motion contract: JS writes --p ∈ [0,1] on [data-stage] and
+   --sy on <html>; CSS animates transform / clip-path only (opacity fades fail axe mid-fade). No JS → everything revealed. */
+html[data-landing] {
+  --l-paper: #f6f5f1; --l-ink-0: #fdfcfa; --l-ink-1: rgba(23,24,26,.14); --l-ink-2: #5a5c60; --l-ink-3: #17181a;
+  --l-shell: #f4f2ec; --l-part: #4d4d4d; --l-lens: #1a1a1a;
+  --l-accent: #0b8577; --l-accent-ink: #086b60; --l-accent-glow: rgba(94,234,212,.35);
+  --l-hair: 1px solid var(--l-ink-1); --l-ease: cubic-bezier(.2,.7,.2,1);
+  --l-mono: var(--md-code-font-family); --l-sans: var(--md-text-font-family);
+}
+html[data-landing] [data-md-color-scheme="slate"] {
+  --l-paper: #0c0d0f; --l-ink-0: #15171a; --l-ink-1: rgba(242,241,236,.14); --l-ink-2: #b1b3b8; --l-ink-3: #f2f1ec;
+  --l-accent: #5eead4; --l-accent-ink: #7ff0de; --l-accent-glow: rgba(94,234,212,.25);
+}
+/* the manual's lavender accent becomes the cockpit teal on this page only (tabs underline, focus, links) */
+html[data-landing] body[data-md-color-scheme][data-md-color-primary] { --accent: var(--l-accent); --accent-ink: var(--l-accent-ink); --bg: var(--l-paper); --focus: var(--l-accent); }
+html[data-landing] .md-main__inner { margin-top: 0; }
+
+.landing { color: var(--l-ink-3); background: var(--l-paper); overflow-x: clip; font-family: var(--l-sans); }
+.landing section { max-width: 72rem; margin: 0 auto; padding: clamp(3rem, 8vh, 6rem) 1.25rem; box-sizing: border-box; }
+.landing h1, .landing h2 { letter-spacing: -.04em; line-height: 1.02; font-weight: 700; margin: 0 0 1rem; text-wrap: balance; color: var(--l-ink-3); }
+.l-h1 { font-size: clamp(2.6rem, 7vw, 5.6rem); }
+.landing h2 { font-size: clamp(1.9rem, 4.2vw, 3.2rem); }
+.landing p { font-size: clamp(1.05rem, 1.35vw, 1.25rem); line-height: 1.45; color: var(--l-ink-2); margin: 0 0 1rem; max-width: 38ch; }
+.landing a { color: var(--l-accent-ink); }
+.landing code { font-family: var(--l-mono); font-size: .85em; background: var(--l-ink-0); border: var(--l-hair); border-radius: 6px; padding: .1em .4em; color: var(--l-ink-3); }
+.l-kicker { font-family: var(--l-mono); font-size: .78rem !important; letter-spacing: .08em; text-transform: uppercase; color: var(--l-accent-ink); margin-bottom: 1.25rem; max-width: none !important; }
+.l-thesis { font-size: clamp(1.1rem, 1.5vw, 1.3rem) !important; }
+.l-thesis em { font-style: normal; color: var(--l-ink-3); font-weight: 600; }
+.l-thesis a { color: var(--l-ink-3); text-decoration: underline; text-decoration-color: var(--l-accent); text-underline-offset: .15em; }
+.l-ctas { max-width: none !important; }
+.landing .l-btn { display: inline-block; padding: .8em 1.4em; border-radius: 999px; border: 1.5px solid var(--l-ink-3); color: var(--l-ink-3); font-weight: 600; text-decoration: none; margin: 0 .5rem .5rem 0; transition: transform .25s var(--l-ease), background .25s, border-color .25s; }
+.landing .l-btn:hover { transform: translateY(-1px); color: var(--l-ink-3); }
+.landing .l-btn--primary { background: var(--l-ink-3); color: var(--l-paper); }
+.landing .l-btn--primary:hover { background: var(--l-accent); border-color: var(--l-accent); color: #062421; }
+.landing .l-btn--ghost { border-color: transparent; background: var(--l-ink-0); }
+.landing :focus-visible { outline: 2px solid var(--l-accent); outline-offset: 3px; }
+
+/* ---- 1 · hero: copy left, the real body right; words rise; the body floats and parallaxes on --sy ---- */
+.l-hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 3rem; align-items: center; min-height: min(78vh, 46rem); }
+.l-hero > * { min-width: 0; }
+.l-h1 .l-w { display: inline-block; transform: translateY(.6em) rotate(1.2deg); animation: l-word .8s var(--l-ease) forwards; }
+.l-h1 .l-w:nth-child(2) { animation-delay: .05s; } .l-h1 .l-w:nth-child(3) { animation-delay: .10s; } .l-h1 .l-w:nth-child(4) { animation-delay: .15s; }
+.l-h1 .l-w:nth-child(5) { animation-delay: .20s; } .l-h1 .l-w:nth-child(6) { animation-delay: .25s; } .l-h1 .l-w:nth-child(7) { animation-delay: .34s; }
+.l-w--accent { color: var(--l-accent-ink); }
+@keyframes l-word { to { transform: none; } }
+.l-hero .l-copy > :not(.l-h1) { transform: translateY(.5em); animation: l-rise .6s var(--l-ease) forwards; }
+.l-hero .l-copy > :nth-child(3) { animation-delay: .25s; } .l-hero .l-copy > :nth-child(4) { animation-delay: .35s; }
+@keyframes l-rise { to { transform: none; } }
+.l-fig { margin: 0; position: relative; }
+.l-figwrap { position: relative; margin: 0 auto; width: min(100%, 27rem); aspect-ratio: 1100 / 1300; cursor: grab; -webkit-tap-highlight-color: transparent; }
+.l-figwrap.is-dragging { cursor: grabbing; }
+.l-figwrap::before { content: ""; position: absolute; inset: 60% 12% 4%; border-radius: 50%; background: radial-gradient(closest-side, var(--l-accent-glow), transparent 75%); filter: blur(34px); z-index: 0; opacity: .55; }
+.l-still, .l-orbit { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1;
+  transform: translateY(calc(var(--sy, 0) * 6vh)) scale(calc(1 - var(--sy, 0) * .05)); will-change: transform; }
+.l-still { animation: l-float 7s ease-in-out infinite alternate; }
+.l-orbit { display: none; } .l-figwrap.is-live .l-orbit { display: block; } .l-figwrap.is-live .l-still { visibility: hidden; }
+@keyframes l-float { from { margin-top: 0; } to { margin-top: -1rem; } }
+.l-caption { font-family: var(--l-mono); font-size: .78rem !important; color: var(--l-ink-2); text-align: center; margin: 1rem auto 0; max-width: 44ch !important; line-height: 1.6; }
+.l-caption--hero { display: grid; gap: .15rem; } .l-caption__k { display: block; }
+.l-caption__k { text-transform: uppercase; letter-spacing: .1em; font-size: .66rem; color: var(--l-accent-ink); }
+.l-caption__hint { color: var(--l-ink-2); }
+.l-caption code { background: transparent; border: 0; padding: 0; color: var(--l-ink-3); font-weight: 600; }
+
+/* ---- fallbacks ---- */
+@media (max-width: 60em) {
+  .l-hero { grid-template-columns: minmax(0, 1fr); min-height: 0; gap: 1rem; padding-top: 1.5rem; }
+  .l-fig { order: -1; } .l-figwrap { width: min(62vw, 18rem); }
+  .l-caption--hero { font-size: .7rem !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .l-h1 .l-w, .l-hero .l-copy > *, .l-still, .l-orbit { animation: none; transform: none; }
+}
+html:not(.l-js) .l-h1 .l-w, html:not(.l-js) .l-hero .l-copy > * { animation: none; transform: none; }

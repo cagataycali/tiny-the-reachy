@@ -12,7 +12,7 @@
   const canvas = document.getElementById('c'); canvas.width = W; canvas.height = H
   const stage = makeStage(canvas, { width: W, height: H, dpr: 1 })
   for (const k of ['yaw', 'pitch', 'dist']) if (q.get(k) != null) stage.orbit[k] = +q.get(k)
-  if (q.get('tz') != null) stage.orbit.target.z = +q.get('tz')
+  if (q.get('tz') != null) stage.orbit.target.z = +q.get('tz'); if (q.get('ty') != null) stage.orbit.target.y = +q.get('ty'); if (q.get('tx') != null) stage.orbit.target.x = +q.get('tx')
   if (q.get('fov')) { stage.cam.fov = +q.get('fov'); stage.cam.updateProjectionMatrix() }
   stage.look()
   const model = await loadModel(q.get('model') || '/dashboard/frontend/public/model/')
