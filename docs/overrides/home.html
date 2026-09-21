@@ -63,6 +63,15 @@
       <figcaption class="l-caption l-caption--hero">
         <span class="l-caption__k">rendered from the twin's own meshes · <code>curious1</code></span>
         <span class="l-strip"><span class="l-strip__c">t <b data-hro="t">0.0</b> s</span><span class="l-strip__c">head yaw <b data-hro="yaw">5</b>°</span><span class="l-strip__c">roll <b data-hro="roll">4</b>°</span><span class="l-strip__c">antennas <b data-hro="ant">5 / 13</b>°</span></span>
+        {# hover the robot (pointer devices): the frame's real motor command — the daemon's own IK output for this pose, from
+           poses/curious1.json "motors" (emotion_poses.py: yaw_body + stewart_1..6 via AnalyticalKinematics, then the antennas).
+           The row keeps its height when hidden so the hero never shifts. #}
+        <span class="l-strip l-strip--motors" data-hro-motors aria-label="Motor command at this frame">
+          <span class="l-strip__c l-strip__k">motor command</span>
+          <span class="l-strip__c">yaw_body <b data-hm="0">0</b>°</span>
+          <span class="l-strip__c">stewart <b data-hm="1">0</b> <b data-hm="2">0</b> <b data-hm="3">0</b> <b data-hm="4">0</b> <b data-hm="5">0</b> <b data-hm="6">0</b>°</span>
+          <span class="l-strip__c">antennas <b data-hm="7">0</b> / <b data-hm="8">0</b>°</span>
+        </span>
         <span class="l-caption__hint" hidden>drag it to turn it</span>
       </figcaption>
     </figure>

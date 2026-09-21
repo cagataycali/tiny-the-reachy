@@ -36,3 +36,16 @@ def test_swatch_moves_have_their_frames_poses_and_still():
 def test_sequences_stay_under_the_frame_budget():
     total = sum(f.stat().st_size for d in ("curious1", "fear1", "hero") for f in (LANDING / "seq" / d).glob("*.webp"))
     assert total < 1_200_000, total
+
+
+def test_hero_motor_vector_is_the_daemon_command_per_frame():
+    """The hero's hover readout shows poses.motors — 9 values per sampled frame (yaw_body, stewart_1..6, antennas), one per frame."""
+    import json
+    for name in ("curious1", "fear1"):
+        d = json.loads((ROOT / "docs/assets/landing/poses" / f"{name}.json").read_text())
+        assert d["motor_names"] == ["yaw_body", "stewart_1", "stewart_2", "stewart_3", "stewart_4", "stewart_5", "stewart_6", "right_antenna", "left_antenna"]
+        assert len(d["motors"]) == len(d["frames"]) and all(len(m) == 9 for m in d["motors"])
+        # antennas in the motor row are the recorded antennas (ctrl sign undone), not a second source
+        assert all(abs(m[7] - a[0]) < 0.11 and abs(m[8] - a[1]) < 0.11 for m, a in zip(d["motors"], d["antennas"]))
+    html = (ROOT / "docs/overrides/home.html").read_text()
+    assert len(re.findall(r'data-hm="\d"', html)) == 9
