@@ -1,6 +1,18 @@
+---
+title: Deploying to the robot
+description: "How the code reaches the CM4 (rsync, not git), which venv it lands in, how to restart only what you touched, and how to know it came back."
+for: whoever ships changes to the desk
+proof: robot
+verified: 2026-09-17
+---
+
 # Deploying to the robot
 
-<span class="read-badge">⏱ 5 min · the CM4 as it is</span>
+!!! abstract "In 10 seconds"
+    - `/home/pollen/tiny-the-reachy/` is an **rsync target, not a clone** — the Mac checkout is the source of truth.
+    - Python goes into Pollen's `/venvs/apps_venv`; the daemon's `/venvs/mini_daemon` is hands-off.
+    - Ship: `rsync … ./ pollen@reachy-mini.local:tiny-the-reachy/` then restart only the units you touched; dashboard via `dashboard/deploy/sync.sh`; frontend `dist/` needs no restart.
+    - Verify with `systemctl --user list-units 'tiny-*' 'reachy-*'` and `curl localhost:8097/api/health`.
 
 The Wireless Reachy Mini has a Raspberry Pi **CM4** inside (Debian 13, aarch64, 4 GB RAM, 14 GB SD).
 This is how the code gets there and comes back up. Facts checked on 2026-09-17.

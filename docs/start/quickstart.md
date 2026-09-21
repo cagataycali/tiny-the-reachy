@@ -1,8 +1,30 @@
-# quickstart
+---
+title: Quickstart
+description: "Clone, pick a model, point TINY at a daemon — real robot or MuJoCo — and get the first antenna wobble in three minutes."
+for: anyone with a terminal · robot optional
+proof: robot
+verified: 2026-09-21
+---
 
-<span class="read-badge">⏱ 3 min to first wobble · commands verified 2026-09-17</span>
+# Quickstart
 
-## 1 · clone & run
+!!! abstract "In 10 seconds"
+    - `make venv && make run` talks to a Reachy Mini daemon on `:8000`; `make sim` spawns a MuJoCo one when you have no robot.
+    - Default brain is Bedrock (`TINY_MODEL_ID=global.anthropic.claude-opus-4-8`, `tiny.py:25`); voice is OpenAI Realtime (`VOICE_PROVIDER=openai`, `voice_listener.py:19`).
+    - Every gesture is clamped before it reaches the daemon, so the first commands below cannot hurt the robot.
+    - Commands re-checked against `Makefile` and `.env.example` on 2026-09-21.
+
+<div class="cards cards--3" markdown>
+
+| mode | what runs where | when |
+|---|---|---|
+| **Lite** | daemon on your laptop over USB, TINY beside it | you own a Lite, or you develop tools → [connect](#3-connect-to-the-robot) |
+| **Wireless** | daemon + TINY on the robot's CM4, as systemd units | the robot lives on a desk and should not need your laptop → [systemd](systemd.md) |
+| **Simulation** | `REACHY_USE_SIM=1` spawns a headless MuJoCo daemon | no hardware, CI, or trying a new emotion safely → [docker](docker.md) |
+
+</div>
+
+## 1. Clone and run
 
 ```bash
 git clone https://github.com/cagataycali/tiny-the-reachy.git
@@ -18,7 +40,7 @@ No hardware handy? Run against the MuJoCo simulator instead:
 make sim        # REACHY_USE_SIM=1 — spawns a headless daemon, no robot
 ```
 
-## 2 · pick a model
+## 2. Pick a model
 
 TINY runs on a Bedrock model by default. Provide Bedrock credentials before
 `make run`:
@@ -32,7 +54,7 @@ export TINY_MODEL_ID=global.anthropic.claude-opus-4-8  # override the default
 Voice uses OpenAI Realtime by default — set `OPENAI_API_KEY` for the voice
 persona (or switch `VOICE_PROVIDER` to `nova_sonic` / `gemini`).
 
-## 3 · connect to the robot
+## 3. Connect to the robot
 
 The **Reachy Mini daemon** owns the hardware and exposes an HTTP/WS API on
 `:8000`. TINY is a pure client of it.
@@ -57,7 +79,7 @@ The **Reachy Mini daemon** owns the hardware and exposes an HTTP/WS API on
     REACHY_USE_SIM=1                # MuJoCo, spawns its own daemon
     ```
 
-## 4 · talk to it
+## 4. Talk to it
 
 <div class="terminal" markdown>
 <span class="p">&gt;</span> check state
@@ -69,10 +91,10 @@ The **Reachy Mini daemon** owns the hardware and exposes an HTTP/WS API on
 <span class="ok">reachy_express("cheerful1") · reachy_antennas(wiggle) — there is no "happy" in the library; TINY picks the closest of 81</span>
 </div>
 
-The REPL is a Strands agent with the same tools as the personas — [all 26, with signatures](../reference/tools/index.md).
+The REPL is a Strands agent with the same tools as the personas — [all 28, with signatures](../reference/tools/index.md).
 `reachy_list_emotions` prints the recorded-move names the daemon actually has.
 
-## safe first commands
+## Safe first commands
 
 !!! tip "Green zone — all self-bounded, all clamped"
     `check state` · `wake up` · `look at me` · `wiggle your antennas` ·
@@ -84,13 +106,13 @@ The REPL is a Strands agent with the same tools as the personas — [all 26, wit
     + the recorded-emotion library. Ask it to *feel* something, not just *do*
     something — `be curious`, `look excited`, `act shy`.
 
-## one-shot mode
+## One-shot mode
 
 ```bash
 make ask Q="say hi and wobble your antennas"
 ```
 
-## on the real robot
+## On the real robot
 
 The Wireless Reachy Mini runs all of this **on its own CM4** as systemd units — voice, Telegram, the
 thinker, the cockpit and the tunnel — so nothing on your laptop needs to stay up.

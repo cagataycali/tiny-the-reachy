@@ -1,6 +1,18 @@
+---
+title: Systemd — how TINY boots
+description: "One system unit, one timer and eight user units on the CM4 — the inventory as installed, and the lessons each unit encodes."
+for: whoever keeps the robot alive
+proof: robot
+verified: 2026-09-17
+---
+
 # Systemd — how TINY boots
 
-<span class="read-badge">⏱ 4 min · what actually runs on the CM4</span>
+!!! abstract "In 10 seconds"
+    - Pollen's `reachy-mini-daemon` (system unit, `:8000`) owns the hardware and boots **asleep**; `tiny-wake` energises the motors 8 s later and exits.
+    - Eight `pollen` user units survive reboots via linger: wake · tts · voice · telegram · thinker · dashboard (`:8097`) · tunnel · mhs (gated).
+    - `restart`, never `stop`, during a demo — a stopped unit does not come back; a restarted one does.
+    - Inventory read over `ssh reachy` on 2026-09-17; `make install-bare-services` installs the three-persona subset anywhere (`scripts/systemd/robot/`).
 
 TINY is not one process. On the robot it is **one system unit** (Pollen's daemon), **one system timer**
 (the daemon watchdog) and **eight user units** that survive reboots because `pollen` has linger enabled.

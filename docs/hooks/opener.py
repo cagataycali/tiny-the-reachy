@@ -4,7 +4,7 @@
     # Quickstart                                          ← the page's own H1, untouched
     <p class="dek">Clone, pick a model, first wobble …</p> ← front-matter `description:` (also the og:description)
     <ul class="page-meta"> for operators · 3 min · 540 words · proven on the robot · verified 2026-09-17 </ul>
-                                                          ← `for:` audience, reading time, `status:` robot|sim|code|stale, `verified:` date
+                                                          ← `for:` audience, reading time, `proof:` robot|sim|code|stale, `verified:` date
 
 Also publishes the build ledger the footer strip renders (config.extra.ledger: tool count from scripts/tooldoc.py, source commit,
 daemon/MuJoCo versions) so those numbers are never typed twice. Opt out per page with `hide_opener: true`;
@@ -58,7 +58,7 @@ def _hero(page, words: int) -> tuple[str, str]:
         chips.append(f'<li class="chip chip--for">{who}</li>')
     chips.append(f'<li class="chip">{reading_time(words)}</li>')
     chips.append(f'<li class="chip">{words} words</li>')
-    status = str(page.meta.get("status", "")).lower()
+    status = str(page.meta.get("proof", "")).lower()
     if status in _STATUS:
         chips.append(f'<li class="chip chip--status chip--{status}">{_STATUS[status]}</li>')
     verified = page.meta.get("verified")
