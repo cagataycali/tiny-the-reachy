@@ -10,7 +10,7 @@ verified: 2026-09-17
 
 !!! abstract "In 10 seconds"
     - Pollen's `reachy-mini-daemon` (`:8000`) owns the hardware and boots **asleep**; `tiny-wake` energises the motors 8 s later.
-    - Eight user units survive reboots via linger: wake · tts · voice · telegram · thinker · dashboard · tunnel · mhs.
+    - Eight user units survive reboots via linger: wake · tts · three personas · dashboard · tunnel · mhs.
     - `restart`, never `stop` — a stopped unit does not come back.
 
 ```mermaid
@@ -31,7 +31,7 @@ flowchart TD
 | unit | scope | why it exists |
 |---|---|---|
 | `reachy-mini-daemon` | system | Pollen's daemon — motors, camera, audio. Drop-in `LimitNOFILE=65536` (it hit 1024) |
-| `reachy-daemon-watchdog.timer` | system | every 30 s; restarts the daemon after three failed `GET /api/daemon/status` |
+| `reachy-daemon-watchdog.timer` | system | restarts the daemon after three failed `GET /api/daemon/status` |
 | `tiny-wake` | user, oneshot | energises the motors once, **hard-exits** so no SDK socket lingers. **Boot volume floor**: a robot unplugged while silent boots deaf — anything under `REACHY_BOOT_VOLUME_MIN` (60) is raised |
 | `tiny-tts` | user | offline Piper `en_US-lessac-medium` (~2.6 s/sentence) for the text personas and **Say** |
 | `tiny-voice` · `tiny-telegram` · `tiny-thinker` | user | the personas, `Restart=on-failure`; demo mode stops exactly `tiny-thinker` |
@@ -39,13 +39,13 @@ flowchart TD
 | `reachy-tunnel` | user | Cloudflare tunnel → `:8097`, everything else `404` |
 | `tiny-mhs` | user, gated | zenoh mount; `broker-gate.conf` runs `nc -z` first — *activating* off-site, by design |
 
-Voice, telegram, thinker, dashboard carry a `tiny-mcp.conf` drop-in — the [fleet token](../MCP.md).
+The personas and dashboard carry a `tiny-mcp.conf` drop-in — the [fleet token](../MCP.md).
 
 !!! warning "Lessons the units encode"
     - **`After=` is not enough.** The daemon answers HTTP seconds before the motors are ready — sleep 8 + 20 retries.
     - **Never `stop reachy-dashboard` — `restart`.** uvicorn waited ~90 s on open MJPEG clients before `timeout_graceful_shutdown=2`.
     - **Every persona restart used to kill the camera.** A `no_media` client releases the daemon's media; the dashboard re-acquires within a second.
-    - **A dead SDK client stays dead.** After a daemon restart every persona said *"Lost connection"* for 12 minutes — until `get_mini()` learned to rebuild a client whose `_is_alive` is false.
+    - **A dead SDK client stays dead.** After a daemon restart every persona said *"Lost connection"* for 12 minutes — until `get_mini()` learned to rebuild one whose `_is_alive` is false.
 
 ## Day-to-day
 

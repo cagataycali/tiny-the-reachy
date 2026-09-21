@@ -9,24 +9,24 @@ verified: 2026-09-17
 # Deploying to the robot
 
 !!! abstract "In 10 seconds"
-    - `~/tiny-the-reachy/` on the CM4 is an **rsync target, not a clone** — the Mac checkout is the truth.
+    - `~/tiny-the-reachy/` on the CM4 is an **rsync target, not a clone**.
     - Python goes into Pollen's `/venvs/apps_venv`; `/venvs/mini_daemon` is hands-off.
-    - `rsync`, then restart only what you touched; `dist/` needs no restart.
+    - `rsync`, then restart only what you touched.
 
 ## Where things live
 
-| on the CM4 (Debian 13, aarch64, 4 GB, 14 GB SD) | what |
+| on the CM4 (Debian 13, 4 GB, 14 GB SD) | what |
 |---|---|
-| `~/tiny-the-reachy/` | this repo, rsync'd — *not a git repo* there |
+| `~/tiny-the-reachy/` | this repo, rsync'd — *not a git repo* |
 | `~/tiny-the-reachy/.env` | keys — never in git |
-| `~/.reachy-dashboard.env` | `REACHY_TOKEN`, `REACHY_REG_TOKEN`, `REACHY_RP_ID`, `REACHY_ORIGIN` |
-| `~/.tiny-mcp.env` (600) | tiny.technology token for the fleet tools |
-| `/venvs/apps_venv` | Pollen's Python 3.12 — install into it, never replace it |
+| `~/.reachy-dashboard.env` | `REACHY_TOKEN`, `REACHY_REG_TOKEN`, `REACHY_RP_ID` |
+| `~/.tiny-mcp.env` (600) | the fleet token |
+| `/venvs/apps_venv` | Pollen's Python 3.12 — install into it |
 | `/venvs/mini_daemon` | the daemon's — hands off |
 | `~/tts-venv` + `~/tiny-tts/` | Piper TTS |
 | `~/.local/node` + `~/.local/lib/tiny-mcp` | node 22 + the MCP server |
 | `~/.config/systemd/user/` | [the eight units](systemd.md) |
-| `~/.cloudflared/` | tunnel credentials + `config.yml` |
+| `~/.cloudflared/` | tunnel credentials |
 
 ## Ship a change
 
@@ -55,7 +55,7 @@ verified: 2026-09-17
     rsync -az dist/ pollen@reachy-mini.local:tiny-the-reachy/dashboard/frontend/dist/
     ```
 
-    No restart: `index.html` is `no-cache`, assets are content-hashed.
+    No restart: `index.html` is `no-cache`, assets content-hashed.
 
 ## Verify it came back
 
@@ -66,11 +66,11 @@ curl -s localhost:8097/api/health | jq '{daemon: .daemon.state, camera: .camera.
 
 ## Network and constraints
 
-- Wi-Fi: home network first, hotspot **`neon_net`** as fallback; `reachy-mini.local` resolves on either.
-- `:8000` is unauthenticated — never exposed; the tunnel publishes `:8097` only.
+- Wi-Fi: home first, hotspot **`neon_net`** fallback; `reachy-mini.local` on either.
+- `:8000` is unauthenticated — never exposed; the tunnel publishes `:8097`.
 - Disk 89 % full: `df -h /` before any `pip install`.
-- Load ~3 on four cores; tracking +1.5 — `F` turns it off when the temperature pill goes amber.
-- Camera is imx708 behind libcamera: `cv2.VideoCapture` returns nothing — use the daemon's IPC socket.
+- Load ~3 of 4 cores; tracking +1.5 — `F` turns it off when the temperature pill goes amber.
+- Camera is imx708 behind libcamera: `cv2.VideoCapture` sees nothing — use the daemon's IPC socket.
 - `journalctl --user` finds nothing: `journalctl _SYSTEMD_USER_UNIT=tiny-voice.service`.
 
 ## First-time setup on a fresh CM4
@@ -83,8 +83,8 @@ curl -s localhost:8097/api/health | jq '{daemon: .daemon.state, camera: .camera.
    printf '[Service]\nLimitNOFILE=65536\n' | sudo tee /etc/systemd/system/reachy-mini-daemon.service.d/nofile.conf
    sudo systemctl daemon-reload && sudo systemctl restart reachy-mini-daemon
    ```
-4. rsync (above); `/venvs/apps_venv/bin/pip install -r requirements-robot.txt`.
-5. `cp scripts/systemd/robot/*.service ~/.config/systemd/user/`; `loginctl enable-linger pollen`; `systemctl --user enable --now` the units.
-6. Dashboard: `~/.reachy-dashboard.env`, `dashboard/deploy/sync.sh`, enrol your passkey — **the gate is open until the first credential (TOFU)**.
-7. Tunnel: `cloudflared tunnel create reachy`, `config.yml`, user unit — **after** step 6.
+4. rsync; `/venvs/apps_venv/bin/pip install -r requirements-robot.txt`.
+5. `cp scripts/systemd/robot/*.service ~/.config/systemd/user/`; `loginctl enable-linger pollen`; enable the units.
+6. Dashboard: `~/.reachy-dashboard.env`, `dashboard/deploy/sync.sh`, enrol your passkey — **the gate is open until the first one (TOFU)**.
+7. Tunnel: `cloudflared tunnel create reachy` + user unit — **after** step 6.
 8. Optional: Piper, tiny-mcp token, watchdog.
