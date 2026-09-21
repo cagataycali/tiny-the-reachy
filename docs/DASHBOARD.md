@@ -1,4 +1,4 @@
-# Dashboard — reachy.cagatay.my (v4: twin picture-in-picture)
+# Dashboard — the cockpit (v4: twin picture-in-picture)
 
 The showcase cockpit for TINY. Server: `dashboard/server.py` (FastAPI :8097 on the CM4, login-gated — see
 `dashboard/README.md`). Frontend: Vite/React SPA in `dashboard/frontend`, built on a laptop, shipped as `dist/`.
@@ -76,7 +76,7 @@ typing in a field.
 
 ```bash
 cd dashboard/frontend && npm i && npm run build           # tsc -b + vite → dist/ (no node on the CM4)
-BASE=https://reachy.cagatay.my TOKEN=$REACHY_TOKEN node dashboard/frontend/scripts/pip-proof.mjs live
+BASE=$COCKPIT TOKEN=$REACHY_TOKEN node dashboard/frontend/scripts/pip-proof.mjs live
 # ↑ Playwright (from ~/.tiny/npm): 25 checks at 390×844, 844×390, 1440×900 — geometry, snap, swap, one MJPEG stream,
 #   readout vs /api/state, persistence, 0 page errors; screenshots into $OUT (default /tmp/reachy-pip-proof)
 rsync -az --delete dashboard/frontend/dist/ pollen@192.168.1.5:tiny-the-reachy/dashboard/frontend/dist/

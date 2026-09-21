@@ -1,10 +1,20 @@
-# extending
+---
+title: Extending
+description: "Adding a robot capability is a three-step pattern — write the @tool, export it into the bundle, prove it imports without hardware — plus the SDK surface the existing tools already trust."
+for: tool authors
+proof: code
+verified: 2026-09-21
+---
 
-<span class="read-badge">⏱ 60s</span>
+# Extending
 
-Adding a new robot capability is a three-step pattern — the same one neon uses.
+!!! abstract "In 10 seconds"
+    - Write `tools/reachy_something.py` with `@tool`, `get_mini()`, `clamp()`, and return `ok()` / `err()` — never raise.
+    - Export it in `tools/__init__.py` and append it to the right `TINY_*_TOOLS` list; every persona picks it up through `build_tools()`.
+    - `make test-tools` (= `tests/test_import.py`) proves it imports and registers with no robot; the docs regenerate its page at the next build.
+    - The docstring *is* the documentation: the model reads it, and `scripts/tooldoc.py` renders it — write `Args:` / `Examples:` sections.
 
-## 1 · write the tool
+## 1. Write the tool
 
 ```python
 # tools/reachy_something.py
@@ -26,7 +36,7 @@ def reachy_something(param: float = 0.0) -> dict:
     Never construct `ReachyMini()` yourself. `get_mini()` returns a **cached
     singleton** — re-connecting fights the daemon and causes flaky control.
 
-## 2 · export & bundle it
+## 2. Export and bundle it
 
 ```python
 # tools/__init__.py
@@ -39,7 +49,7 @@ TINY_MOTION_TOOLS = [
 ]
 ```
 
-## 3 · smoke test (no robot needed)
+## 3. Smoke test (no robot needed)
 
 ```bash
 make test-tools    # imports + registers every tool + checks prompts + clamps
@@ -48,9 +58,10 @@ make test-tools    # imports + registers every tool + checks prompts + clamps
 `tests/test_import.py` proves everything imports and registers cleanly without
 any hardware. Run it first, always.
 
-## verified SDK surface (1.9)
+## Verified SDK surface
 
-The tools rely on these confirmed methods:
+The tools rely on these `reachy_mini` SDK methods (`requirements.txt`: `reachy_mini[opencv,examples]`; the robot runs daemon 1.10, the
+list was confirmed against 1.9 and nothing in it changed):
 
 ```
 goto_target · set_target · wake_up · goto_sleep
@@ -61,7 +72,7 @@ media.get_frame · media.play_sound · imu
 RecordedMoves.list_moves()   # emotion catalogue
 ```
 
-## use the helpers
+## Use the helpers
 
 `_reachy_common` gives you `ok(msg)` / `err(msg)` for consistent tool returns
 and `clamp(v, lo, hi)` for the safety envelope. Use them — every existing tool

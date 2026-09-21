@@ -164,7 +164,7 @@ Where the values live:
 | `REACHY_LOOPBACK_READS` | `1` | `dashboard/auth.py` | `0` disables the documented allowance that lets the robot's own processes read without a key. |
 | `REACHY_ORIGIN` | *(unset)* | `dashboard/auth.py` | Expected WebAuthn origin(s), comma-separated (default `https://<RP_ID>`). |
 | `REACHY_REG_TOKEN` | *(unset)* | `dashboard/auth.py` | Registration token required to enrol additional passkeys after the first (TOFU). |
-| `REACHY_RP_ID` | *(unset)* | `dashboard/auth.py`, `dashboard/tests/test_gate.py` | WebAuthn relying-party id (`reachy.cagatay.my`). |
+| `REACHY_RP_ID` | *(unset)* | `dashboard/auth.py`, `dashboard/tests/test_gate.py` | WebAuthn relying-party id — the cockpit's public hostname. |
 | `REACHY_RP_NAME` | `REACHY` | `dashboard/auth.py` | Display name shown by the passkey prompt. |
 | `REACHY_SESSION_STORE` | `str(self.store_path.with_name('sessions.json'))` | `dashboard/auth.py` | Session cookie store path (next to the credential store). |
 | `REACHY_SESSION_TTL` | `43200` | `dashboard/auth.py` | Passkey session lifetime in seconds (12 h). |

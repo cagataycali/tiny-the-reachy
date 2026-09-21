@@ -13,7 +13,7 @@ proof: code
     - Control routes need a same-origin `Origin` and are rate-limited to `REACHY_RATE_LIMIT` (5/s).
     - Filter the routes below; every row has a permalink (`#route-api-health`).
 
-The routes behind [reachy.cagatay.my](https://reachy.cagatay.my), **generated from `dashboard/server.py`**
+The routes of the cockpit (`dashboard.server`, `:8097` on the robot, behind the owner's tunnel), **generated from `dashboard/server.py`**
 (and the passkey router in `dashboard/auth.py`) by `scripts/routedoc.py` at every docs build. Body fields
 are the keys the handler actually reads; *anonymous?* is what the `_gate` middleware decides.
 
@@ -30,11 +30,12 @@ Control routes additionally require a same-origin `Origin` (403 otherwise) and a
 
 ```sh
 # health is public
-curl -s https://reachy.cagatay.my/api/health | jq .ok
+COCKPIT=http://127.0.0.1:8097          # on the robot; off it, your own tunnel or SSH forward
+curl -s $COCKPIT/api/health | jq .ok
 # everything else wants a key
-curl -s -H "Authorization: Bearer $REACHY_TOKEN" https://reachy.cagatay.my/api/state | jq .head
+curl -s -H "Authorization: Bearer $REACHY_TOKEN" $COCKPIT/api/state | jq .head
 curl -s -H "Authorization: Bearer $REACHY_TOKEN" -H 'Content-Type: application/json' \
-     -d '{"name":"cheerful1"}' https://reachy.cagatay.my/api/control/express
+     -d '{"name":"cheerful1"}' $COCKPIT/api/control/express
 ```
 
 ## Routes
