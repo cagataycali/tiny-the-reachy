@@ -162,6 +162,13 @@ html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html
   .l-start__grid { grid-template-columns: 1fr; gap: 1.5rem; }
 }
 
+/* ---- slate: the twin's antennas and ground shadow are near-black — a soft stage halo behind every figure keeps them legible ---- */
+[data-md-color-scheme="slate"] .l-figwrap::after, [data-md-color-scheme="slate"] .l-frame::after, [data-md-color-scheme="slate"] .l-explode::after {
+  content: ""; position: absolute; inset: -8% -22%; z-index: 0; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 52%, rgba(255,255,255,.14), rgba(255,255,255,.05) 48%, transparent 72%);
+}
+.l-frame__still, .l-frame__canvas, .l-layer { z-index: 1; }
+
 /* ---- fallbacks ---- */
 @media (max-width: 60em) {
   .landing .l-stage { height: 260vh; }
