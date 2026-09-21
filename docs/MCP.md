@@ -12,7 +12,6 @@ verified: 2026-09-21
     - `tools/tiny_mcp.py` spawns `tiny-tech serve` and mounts an **allow-list**: `use_device`, `tiny_recall`/`tiny_learn`, `tiny_whoami`/`tiny_events`/`tiny_send_message`; `mesh_*` only with `TINY_MCP_MESH=1`. Wallet, payments, schedules are filtered out.
     - **Off** until `TINY_MCP=1`; then **fail-open** — no node, no token, server crash → the persona starts without fleet tools, one warning.
     - **Depth cap 1**: a turn that *arrives* from the fleet (`POST /api/chat`) gets no fleet tools. Robot A → Robot B works; B cannot fan out.
-    - **Self-invoke refused** (`TINY_SELF_DEVICE_IDS`).
 
 ## Security model
 

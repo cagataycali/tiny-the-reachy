@@ -1,6 +1,6 @@
 ---
 title: Dispatch
-description: "hand a task to another persona"
+description: "hand off to another persona"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Dispatch
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/dispatch.py` — hand a task to another persona.
+    - 1 tool in `tools/dispatch.py` — hand off to another persona.
 
 ## `dispatch`
 

@@ -14,13 +14,13 @@ Budgets (hard):
   PAGE_HAND   220   any hand-written page
   PAGE_SOUL   300   personas · start/robot · start/systemd — they carry the soul
   PAGE_TOOL   120   generated tools/<module>.md pages: signature + purpose + envelope table + one example
-  PAGE_TOOLS_INDEX 200
+  PAGE_TOOLS_INDEX 160
   PAGE_TABLE  env.md · api.md — tables only: no paragraph outside the "In 10 seconds" box (checked as ≤ PAGE_TABLE_MAX words)
-  SITE_TARGET 6400  = 40 % of the 16,007 measured at 7f46bc4
+  SITE_MAX    6400  = 40 % of the 16,007 measured at 7f46bc4 — the owner's "cut 60 %", reached it12 (6,397), enforced since
 
-Ratchet: SITE_CEILING is the total the gate enforces TODAY. It is lowered in the same commit as every cut and may never be
-raised; when it reaches SITE_TARGET the ratchet is gone. GRACE lists pages not yet rewritten — they are reported, not
-failed, and the set only shrinks. Both live here so the number the CI enforces is the number in the repo.
+History: the gate started as a ratchet (SITE_CEILING lowered in the same commit as every cut, never raised: 16,044 → 12,102 it5
+→ 10,532 it6 → 9,582 it7 → 8,468 it8 → 7,529 it10 → 6,602 it11 → 6,397 it12) with a GRACE set of pages not yet rewritten.
+Both are gone: ceiling == target, grace empty. The number the CI enforces is the number in the repo — raise it only with the owner.
 """
 from __future__ import annotations
 
@@ -35,14 +35,14 @@ DOCS = ROOT / "docs"
 PAGE_HAND = 220
 PAGE_SOUL = 300
 PAGE_TOOL = 120
-PAGE_TOOLS_INDEX = 200
-PAGE_TABLE_MAX = {"reference/env.md": 1300, "reference/api.md": 650}  # tables only; 110 vars × (name+default+≤7 words+link) — see JOURNAL it5/it10
+PAGE_TOOLS_INDEX = 160
+PAGE_TABLE_MAX = {"reference/env.md": 1200, "reference/api.md": 650}  # tables only; 110 vars × (name+default+≤7 words+basename link) — see JOURNAL it5/it10/it12
 SITE_TARGET = 6400
-SITE_CEILING = 6700      # ratchet — lower with every cut, never raise (16,044 → 12,102 it5 → 10,532 it6 → 9,582 it7 → 8,468 it8 → 8,2xx it9; it9 also fixed _TAG, which had hidden "(< 1.5 s) … > 60 %" spans — earlier totals were ~1–3 % low)
+SITE_CEILING = SITE_TARGET  # the ratchet reached the target at it12 — one number, never raised without the owner
 SOUL = {"showcase/personas.md", "start/robot.md", "start/systemd.md"}
 TABLES = {"reference/env.md", "reference/api.md"}
 SKIP = {"index.md", "scripts/README.md", "design-assets/README.md", "LIVE_DEPLOY.md"}  # landing (HQ lane) + mkdocs exclude_docs (dev notes, not pages)
-GRACE: set[str] = set()  # every page has been rewritten under this budget (it9) — the set only ever shrinks, and it is now empty
+GRACE: set[str] = set()  # empty since it9 and stays empty — every page is under its budget
 
 _FENCE = re.compile(r"^(\s*)(```|~~~)")
 _FRONT = re.compile(r"\A---\n.*?\n---\n", re.S)

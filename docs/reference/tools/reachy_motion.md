@@ -1,6 +1,6 @@
 ---
 title: Motion
-description: "head, antennas, body yaw, wake/sleep — clamped"
+description: "head, antennas, body, wake — clamped"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Motion
 
 !!! abstract "In 10 seconds"
-    - 5 tools in `tools/reachy_motion.py` — head, antennas, body yaw, wake/sleep — clamped.
+    - 5 tools in `tools/reachy_motion.py` — head, antennas, body, wake — clamped.
 
 ## `reachy_look`
 

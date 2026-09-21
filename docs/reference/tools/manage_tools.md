@@ -1,6 +1,6 @@
 ---
 title: Manage tools
-description: "create and hot-load tools at runtime"
+description: "hot-load tools at runtime"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Manage tools
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/manage_tools.py` — create and hot-load tools at runtime.
+    - 1 tool in `tools/manage_tools.py` — hot-load tools at runtime.
 
 ## `manage_tools`
 

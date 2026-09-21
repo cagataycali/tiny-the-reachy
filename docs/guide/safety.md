@@ -9,8 +9,8 @@ verified: 2026-09-21
 # Safety envelope
 
 !!! abstract "In 10 seconds"
-    - Head pitch/roll ±40°, yaw ±180°, body yaw ±160° — `clamp()`ed **before** the daemon.
-    - Antennas, head translation, recorded emotions: bounded by daemon and SDK.
+    - Head pitch/roll ±40°, yaw ±180°, body yaw ±160° — clamped **before** the daemon.
+    - Antennas, translation, recorded emotions: bounded by daemon and SDK.
     - `MAX_YAW_DELTA = 65°` is declared, **not enforced**.
 
 ## The envelope
@@ -23,10 +23,10 @@ verified: 2026-09-21
 | head roll | ±40° | TINY, then SDK | `:33` · `:63` |
 | head yaw | ±180° | TINY, then SDK | `:34` · `:64` |
 | body yaw | ±160° | TINY, then SDK | `:35` · `:66,118` |
-| head − body yaw delta | 65° | daemon — declared, unused | `:36` |
+| head − body yaw delta | 65° | declared, unused | `:36` |
 | antennas | ~±90° | daemon / SDK | radians pass through |
 | head translation | ~±20 mm | daemon / SDK | `create_head_pose` |
-| move duration | ≥ 0.1 s | TINY `max(0.1, duration)` | `goto_target` |
+| move duration | ≥ 0.1 s | TINY `max(0.1, …)` | `goto_target` |
 | recorded emotions | the daemon's library | daemon | only a *name* travels |
 
 </div>
@@ -60,11 +60,11 @@ The SDK clamps again; the daemon rejects the unreachable.
 ## What a move also does
 
 - **A look wins over face tracking** — held for the move + 3 s.
-- **Emotions are names, not angles** — a bad prompt cannot produce a bad pose.
+- **Emotions are names, not angles** — no prompt can produce a bad pose.
 - **Every tool returns an error string, never raises** — the model reads it aloud.
 
 !!! tip "Beyond the hard limits"
-    Small moves look natural — big swings read as malfunction. Nothing caps the head−body delta: stay under ~45°.
+    Small moves look natural — big swings read as malfunction. Keep the head−body delta under ~45°.
 
 !!! note "No danger class"
     Unlike neon's mutex-gated arm tools, every TINY tool is self-bounded. No `unsafe=True` — nothing to escape.

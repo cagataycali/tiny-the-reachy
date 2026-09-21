@@ -1,6 +1,6 @@
 ---
 title: Telegram
-description: "text and photos to the owner's chat"
+description: "text and photos to the owner"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Telegram
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/telegram.py` — text and photos to the owner's chat.
+    - 1 tool in `tools/telegram.py` — text and photos to the owner.
 
 ## `telegram`
 

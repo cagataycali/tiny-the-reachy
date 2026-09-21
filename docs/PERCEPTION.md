@@ -9,7 +9,7 @@ verified: 2026-09-17
 # Perception
 
 !!! abstract "In 10 seconds"
-    - Three layers, one daemon WebSocket (`dashboard/daemonlink.py`).
+    - Three layers, one daemon WebSocket.
     - A look / say holds the tracker; a face lock blocks DoA — it acts only when nobody is in view.
     - New code: **read `robot.stream`, never poll the daemon.**
 
@@ -29,12 +29,12 @@ The detector runs inside the daemon — the dashboard only toggles weight: `1` f
 
 1. speech on ≥ 6 frames agreeing within ±12°;
 2. not a **rail** (within 3° of 0 or π — its own speaker);
-3. TINY **not speaking** (+ 1.5 s tail);
+3. TINY **not speaking** (+1.5 s);
 4. no face lock, hold or move in flight; ≥ 3 s since the last;
 5. |delta| ≥ 10°;
 6. **windup guard**: a same-direction turn within 10 s whose bearing did not shrink 40 % is refused — the sound moved with the head.
 
-Then one `goto`: head to ±45°, body carries the rest. `GET /api/doa` shows `why`.
+Then one `goto`: head to ±45°, body carries the rest; `GET /api/doa` shows `why`.
 
 ## Fields the cockpit consumes
 

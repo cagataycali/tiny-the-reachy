@@ -47,7 +47,7 @@ flowchart TB
 A Lite is the same picture on a laptop; `REACHY_USE_SIM=1` swaps in MuJoCo. Every tool shares one cached `get_mini()` client that rebuilds itself after a daemon restart.
 
 !!! danger "Never construct a second `ReachyMini()`"
-    Two clients fight the daemon. Always `get_mini()`.
+    Two clients fight the daemon.
 
 ```
 # the SDK surface TINY relies on

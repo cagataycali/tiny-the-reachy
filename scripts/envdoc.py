@@ -108,15 +108,17 @@ def markdown(vars_: dict[str, dict]) -> str:
         names = by_group.get(g)
         if not names:
             continue
-        lines += [f"## {g}", "", "| variable | default | purpose | read by |", "|---|---|---|---|"]
+        lines += [f"## {g}", "", "| variable | default | purpose | reader |", "|---|---|---|---|"]
         for n in names:
             r = vars_[n]
             d = r["default"] if r["default"] is not None else "*(unset)*"
             if len(d.split()) > 4:  # a prompt-sized default is not a table cell — the reading site has it
                 d = "*(long)*"
             f0 = r["files"][0]
-            more = f" +{len(r['files']) - 1}" if len(r["files"]) > 1 else ""
-            link = f'<a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/{f0}">{f0}</a>{more}'
+            # basename as link text (every basename in the repo is unique); full path in title= and href;
+            # further readers in title= — the cell stays one word
+            title = " · ".join(r["files"])
+            link = f'<a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/{f0}" title="{title}">{f0.rsplit("/", 1)[-1]}</a>'
             lines.append(f"| `{n}` | `{d}` | {r['purpose']} | {link} |".replace("`*(unset)*`", "*(unset)*"))
         lines.append("")
     lines.append(f"_{len(vars_)} variables._")

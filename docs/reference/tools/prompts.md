@@ -1,6 +1,6 @@
 ---
 title: Prompts
-description: "read and override persona prompts"
+description: "override persona prompts"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Prompts
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/prompts.py` — read and override persona prompts.
+    - 1 tool in `tools/prompts.py` — override persona prompts.
 
 ## `prompts`
 

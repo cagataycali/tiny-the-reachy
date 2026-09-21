@@ -16,9 +16,9 @@ def test_budget_passes():
     assert not problems, "\n".join(problems)
 
 
-def test_ratchet_only_tightens():
-    """The ceiling may only go down; when it reaches the target the ratchet is gone."""
-    assert b.SITE_TARGET <= b.SITE_CEILING
+def test_ratchet_is_gone():
+    """The ratchet reached the target at it12: ceiling == target == 6,400 (40 % of the 16,007 measured at 7f46bc4)."""
+    assert b.SITE_CEILING == b.SITE_TARGET == 6400
     total = sum(r["words"] for r in b.audit()[0])
     assert total <= b.SITE_CEILING
 

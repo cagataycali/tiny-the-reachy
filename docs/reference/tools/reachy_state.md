@@ -1,6 +1,6 @@
 ---
 title: State
-description: "live pose and motor modes"
+description: "pose and motor modes"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # State
 
 !!! abstract "In 10 seconds"
-    - 2 tools in `tools/reachy_state.py` — live pose and motor modes.
+    - 2 tools in `tools/reachy_state.py` — pose and motor modes.
 
 ## `reachy_get_state`
 

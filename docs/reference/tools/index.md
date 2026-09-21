@@ -10,28 +10,28 @@ proof: code
 # Tools reference
 
 !!! abstract "In 10 seconds"
-    - **28 tools in 16 modules**, generated from the `@tool` docstrings — fix the docstring, not the page.
-    - Who gets which: [Personas](../../showcase/personas.md). Fleet tools only with `TINY_MCP=1`: [Fleet](../../MCP.md).
+    - **28 tools in 16 modules**, from the `@tool` docstrings.
+    - Who gets which: [Personas](../../showcase/personas.md).
 
 <div class="cards cards--3" markdown>
 
-| module | tools | what it covers |
+| module | tools | covers |
 |---|---|---|
-| [Motion](reachy_motion.md) | `reachy_look` `reachy_antennas` `reachy_body_turn` `reachy_home` `reachy_wake` | head, antennas, body yaw, wake/sleep — clamped |
+| [Motion](reachy_motion.md) | `reachy_look` `reachy_antennas` `reachy_body_turn` `reachy_home` `reachy_wake` | head, antennas, body, wake — clamped |
 | [Expression](reachy_expression.md) | `reachy_express` `reachy_list_emotions` | recorded moves, fired while talking |
-| [State](reachy_state.md) | `reachy_get_state` `reachy_motors` | live pose and motor modes |
-| [Camera](reachy_camera.md) | `reachy_camera` `reachy_look_at` `capture_camera` | frames, look-at, ask vision |
-| [Audio](reachy_audio.md) | `reachy_play_sound` `reachy_say` `reachy_volume` | Piper speech, sounds, speaker volume |
-| [Head tracking](head_tracking.md) | `head_tracking` `head_tracking_status` | the daemon's face tracker (≥ 1.10) |
-| [Turn to sound](turn_to_sound.md) | `turn_to_sound` `turn_to_sound_status` | ReSpeaker direction of arrival, no face locked |
-| [Vision](vision.md) | `take_photo` | a frame plus a question, any persona |
-| [Voice bridge](voice_bridge.md) | `voice_say` | text personas → voice persona queue |
-| [Dispatch](dispatch.md) | `dispatch` | hand a task to another persona |
+| [State](reachy_state.md) | `reachy_get_state` `reachy_motors` | pose and motor modes |
+| [Camera](reachy_camera.md) | `reachy_camera` `reachy_look_at` `capture_camera` | frames, look-at, vision |
+| [Audio](reachy_audio.md) | `reachy_play_sound` `reachy_say` `reachy_volume` | speech, sounds, volume |
+| [Head tracking](head_tracking.md) | `head_tracking` `head_tracking_status` | the daemon's face tracker |
+| [Turn to sound](turn_to_sound.md) | `turn_to_sound` `turn_to_sound_status` | ReSpeaker direction of arrival |
+| [Vision](vision.md) | `take_photo` | a frame plus a question |
+| [Voice bridge](voice_bridge.md) | `voice_say` | text → voice persona queue |
+| [Dispatch](dispatch.md) | `dispatch` | hand off to another persona |
 | [Memory](memory.md) | `memory` | the shared SQLite brain |
-| [Telegram](telegram.md) | `telegram` | text and photos to the owner's chat |
-| [Prompts](prompts.md) | `prompts` | read and override persona prompts |
-| [Manage messages](manage_messages.md) | `manage_messages` | compact the running agent's history |
-| [Manage tools](manage_tools.md) | `manage_tools` | create and hot-load tools at runtime |
-| [Fleet (tiny.technology MCP)](tiny_mcp.md) | `use_device` | fleet tools, only with `TINY_MCP=1` |
+| [Telegram](telegram.md) | `telegram` | text and photos to the owner |
+| [Prompts](prompts.md) | `prompts` | override persona prompts |
+| [Manage messages](manage_messages.md) | `manage_messages` | compact the agent's history |
+| [Manage tools](manage_tools.md) | `manage_tools` | hot-load tools at runtime |
+| [Fleet](tiny_mcp.md) | `use_device` | `use_device` & co, `TINY_MCP=1` only |
 
 </div>

@@ -1,6 +1,6 @@
 ---
 title: Turn to sound
-description: "ReSpeaker direction of arrival, no face locked"
+description: "ReSpeaker direction of arrival"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Turn to sound
 
 !!! abstract "In 10 seconds"
-    - 2 tools in `tools/turn_to_sound.py` — ReSpeaker direction of arrival, no face locked.
+    - 2 tools in `tools/turn_to_sound.py` — ReSpeaker direction of arrival.
 
 ## `turn_to_sound`
 

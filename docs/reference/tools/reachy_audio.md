@@ -1,6 +1,6 @@
 ---
 title: Audio
-description: "Piper speech, sounds, speaker volume"
+description: "speech, sounds, volume"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Audio
 
 !!! abstract "In 10 seconds"
-    - 3 tools in `tools/reachy_audio.py` — Piper speech, sounds, speaker volume.
+    - 3 tools in `tools/reachy_audio.py` — speech, sounds, volume.
 
 ## `reachy_play_sound`
 

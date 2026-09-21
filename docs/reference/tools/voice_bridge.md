@@ -1,6 +1,6 @@
 ---
 title: Voice bridge
-description: "text personas → voice persona queue"
+description: "text → voice persona queue"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Voice bridge
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/voice_bridge.py` — text personas → voice persona queue.
+    - 1 tool in `tools/voice_bridge.py` — text → voice persona queue.
 
 ## `voice_say`
 

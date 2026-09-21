@@ -1,6 +1,6 @@
 ---
 title: Head tracking
-description: "the daemon's face tracker (≥ 1.10)"
+description: "the daemon's face tracker"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Head tracking
 
 !!! abstract "In 10 seconds"
-    - 2 tools in `tools/head_tracking.py` — the daemon's face tracker (≥ 1.10).
+    - 2 tools in `tools/head_tracking.py` — the daemon's face tracker.
 
 ## `head_tracking`
 

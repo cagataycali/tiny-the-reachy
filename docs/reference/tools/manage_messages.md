@@ -1,6 +1,6 @@
 ---
 title: Manage messages
-description: "compact the running agent's history"
+description: "compact the agent's history"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Manage messages
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/manage_messages.py` — compact the running agent's history.
+    - 1 tool in `tools/manage_messages.py` — compact the agent's history.
 
 ## `manage_messages`
 

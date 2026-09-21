@@ -1,6 +1,6 @@
 ---
 title: Camera
-description: "frames, look-at, ask vision"
+description: "frames, look-at, vision"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Camera
 
 !!! abstract "In 10 seconds"
-    - 3 tools in `tools/reachy_camera.py` — frames, look-at, ask vision.
+    - 3 tools in `tools/reachy_camera.py` — frames, look-at, vision.
 
 ## `reachy_camera`
 

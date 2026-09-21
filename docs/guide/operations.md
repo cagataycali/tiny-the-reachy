@@ -10,7 +10,7 @@ verified: 2026-09-17
 
 !!! abstract "In 10 seconds"
     - Health check first. `restart`, never `stop`.
-    - The daemon's fd limit and media release cycles caused every early outage.
+    - The daemon's fd limit and media release cycles caused every outage.
     - Before a demo: `demo on`, fds &lt; ~800.
 
 ## Health check
@@ -35,7 +35,7 @@ journalctl -u reachy-mini-daemon --since "5 min ago" -o cat | grep -oE '"(GET|PO
 |---|---|---|---|
 | 09-16 23:00 | personas *"Lost connection"* 12 min | SDK client never reconnects | `get_mini()` rebuilds it |
 | 09-17 03:05 | cockpit dark 2 min | `stop`; uvicorn waits on MJPEG clients | `timeout_graceful_shutdown=2` |
-| 09-17 05:29 | perception dead 10 min | **1024/1024 fds**, 614 CLOSE-WAIT — ~1300 req/min | one WebSocket; `LimitNOFILE=65536`; watchdog |
+| 09-17 05:29 | perception dead 10 min | **1024/1024 fds**, 614 CLOSE-WAIT | one WebSocket; `LimitNOFILE=65536`; watchdog |
 | 09-17 06:20 | fds climbing ~1/s | `tiny-voice` crash-looped, **releasing media every retry** | release once, back off |
 
 **A persona that cannot start must not touch the daemon's media.**
@@ -55,9 +55,9 @@ sudo systemctl restart reachy-mini-daemon                                       
 
 | resource | idle | face tracking | camera | note |
 |---|---|---|---|---|
-| load (4 cores) | ~2.5 | +1.0–1.5 | +0.5 | `F` when the temperature pill goes amber |
+| load (4 cores) | ~2.5 | +1.0–1.5 | +0.5 | `F` when the temperature pill is amber |
 | daemon CPU | ~60 % | ~135 % | — | YuNet |
-| daemon fds | 300–600 | — | — | +≈30 per release/acquire |
+| daemon fds | 300–600 | — | — | +≈30 per release |
 | requests to :8000 | ≈160/min | — | — | face poll leads |
 | disk | 89 % | | | 1.5 GB free |
 
@@ -71,6 +71,6 @@ sudo systemctl restart reachy-mini-daemon                                       
 ## What we never do
 
 - `git push` from the robot.
-- Expose `:8000` — no auth.
-- Poll the daemon — read `robot.stream`.
+- Expose `:8000`.
+- Poll the daemon.
 - `pip install` without `df -h`.

@@ -1,6 +1,6 @@
 ---
 title: Vision
-description: "a frame plus a question, any persona"
+description: "a frame plus a question"
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Vision
 
 !!! abstract "In 10 seconds"
-    - 1 tool in `tools/vision.py` — a frame plus a question, any persona.
+    - 1 tool in `tools/vision.py` — a frame plus a question.
 
 ## `take_photo`
 
