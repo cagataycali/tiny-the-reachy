@@ -38,6 +38,33 @@
   }
   const handlers = new Map();
 
+  // ---- 1 · the hero turns to you: paint pose round(p·24) of seq/hero, instrument strip from poses/curious1.json ---------
+  const heroStage = document.getElementById("hero");
+  let heroFrame = 0, heroPosesP = null, onHeroFrame = null;
+  if (heroStage && !reduce.matches && heroStage.dataset.seq) {
+    const N = +heroStage.dataset.frames, seq = heroStage.dataset.seq, imgs = new Array(N), wrap = heroStage.querySelector(".l-figwrap"), turn = heroStage.querySelector(".l-turn"), tctx = turn.getContext("2d");
+    const strip = Object.fromEntries(Array.from(heroStage.querySelectorAll("[data-hro]")).map((b) => [b.dataset.hro, b]));
+    heroPosesP = fetch(heroStage.dataset.poses).then((r) => r.json()).catch(() => null);
+    let poses = null; heroPosesP.then((p) => { poses = p; paintStrip(); });
+    const fmt = (v) => (v < 0 ? "−" : "") + Math.abs(Math.round(v));
+    const paintStrip = () => { if (!poses) return; const h = poses.head[heroFrame], a = poses.antennas[heroFrame]; strip.t.textContent = poses.t[heroFrame].toFixed(1); strip.yaw.textContent = fmt(h.yaw); strip.roll.textContent = fmt(h.roll); strip.ant.textContent = `${fmt(a[0])} / ${fmt(a[1])}`; };
+    let loaded = false, painted = -1;
+    const load = () => { if (loaded) return; loaded = true; for (let i = 0; i < N; i++) { const im = new Image(); im.decoding = "async"; im.src = `${seq}${String(i).padStart(2, "0")}.webp`; im.decode().then(() => createImageBitmap(im)).then((bm) => { imgs[i] = bm; if (i === heroFrame) paint(); }).catch(() => { imgs[i] = im; }); } };
+    const paint = () => { const im = imgs[heroFrame]; if (!im) return; if (painted !== heroFrame) { tctx.clearRect(0, 0, turn.width, turn.height); tctx.drawImage(im, 0, 0, turn.width, turn.height); painted = heroFrame; wrap.classList.add("is-turning"); } };
+    // phones: the hero is not pinned and the figure leaves the screen first, so the turn completes within the first 45 % of travel
+    const wide = matchMedia("(min-width: 60em)");
+    handlers.set(heroStage, (p) => {
+      const q = wide.matches ? p : Math.min(1, p / 0.45);
+      heroFrame = Math.round(q * (N - 1));
+      heroStage.classList.toggle("has-scrolled", p > 0.01);
+      if (p > 0) load();
+      paint(); paintStrip(); onHeroFrame?.(heroFrame);
+    });
+    // frames arrive after the page is idle so they never compete with the LCP still; a scroll before that loads them at once
+    const idle = () => ("requestIdleCallback" in window ? requestIdleCallback(load, { timeout: 3000 }) : setTimeout(load, 800));
+    if (document.readyState === "complete") setTimeout(idle, 600); else addEventListener("load", () => setTimeout(idle, 600), { once: true });
+  }
+
   // ---- 2 · the emotion: paint frame round(p·47) of the rendered sequence; readout from the poses json ----------------
   const emo = document.getElementById("emotion");
   if (emo && !reduce.matches) {
@@ -90,13 +117,14 @@
     if (started) return; started = true;
     try {
       const T = await import(`${base}js/landing/twin.js`);
-      const [model, poses] = await Promise.all([T.loadModel(`${base}model/`, { yieldEach: true }), fetch(`${base}assets/landing/poses/curious1.json`).then((r) => r.json())]);
+      const [model, poses] = await Promise.all([T.loadModel(`${base}model/`, { yieldEach: true }), heroPosesP || fetch(`${base}assets/landing/poses/curious1.json`).then((r) => r.json())]);
       const W = 1100, H = 1300, dpr = Math.min(devicePixelRatio || 1, 2);
       canvas.width = W * dpr / 2; canvas.height = H * dpr / 2;
       const stage = T.makeStage(canvas, { width: canvas.width, height: canvas.height, dpr: 1, shadows: true });
       const HOME = T.VIEWS.hero; Object.assign(stage.orbit, { yaw: HOME.yaw, pitch: HOME.pitch, dist: HOME.dist }); stage.orbit.target.set(...HOME.target); stage.look();
       const robot = T.buildRobot(model); stage.scene.add(robot.root);
-      T.applyFrame(robot, poses, 24); stage.render();
+      T.applyFrame(robot, poses, heroStage?.dataset.seq ? heroFrame : 24); stage.render();
+      onHeroFrame = (f) => { T.applyFrame(robot, poses, f); if (wrap.classList.contains("is-live")) { dirty = true; requestAnimationFrame(paint); } };
       const hint = document.querySelector(".l-caption__hint"); if (hint) hint.hidden = false;
       wrap.classList.add("is-ready");
       // drag to orbit (yaw/pitch), like the cockpit twin; idle: a very slow drift back toward the still's view

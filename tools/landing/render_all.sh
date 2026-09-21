@@ -8,11 +8,18 @@ HI="model=/tools/landing/model-hi/"
 R="node tools/landing/render_twin.mjs"
 what=${1:-all}
 if [ "$what" = hero ] || [ "$what" = all ]; then
+  # f00 = the LCP still (the hero scrub starts here); f24 = the reduced-motion still and the scrub's last frame
+  NOTRIM=1 $R still curious1 0 docs/assets/landing/hero-curious1-f00.webp 1100 1300 "view=hero&$HI"
+  NOTRIM=1 $R still curious1 0 docs/assets/landing/hero-curious1-f00-660.webp 660 780 "view=hero&$HI"
   NOTRIM=1 $R still curious1 24 docs/assets/landing/hero-curious1-f24.webp 1100 1300 "view=hero&$HI"
   NOTRIM=1 $R still curious1 24 docs/assets/landing/hero-curious1-f24-660.webp 660 780 "view=hero&$HI"
 fi
 if [ "$what" = seq ] || [ "$what" = all ]; then
   RESUME=1 NOTRIM=1 $R seq curious1 docs/assets/landing/seq/curious1 48 660 780 "view=emotion&$HI"
+fi
+if [ "$what" = heroseq ] || [ "$what" = all ]; then
+  # the hero's scroll-turn: poses 0..24 of curious1 (t 0 → 2.0 s) from the hero camera; frame 24 = the still
+  SEQ_FROM=0 SEQ_TO=24 RESUME=1 NOTRIM=1 $R seq curious1 docs/assets/landing/seq/hero 25 660 780 "view=hero&$HI"
 fi
 if [ "$what" = body ] || [ "$what" = all ]; then
   # one camera, NOTRIM, so the four layers stack pixel-exact; only the base keeps the ground shadow

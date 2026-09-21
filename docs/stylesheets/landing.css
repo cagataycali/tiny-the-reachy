@@ -4,19 +4,18 @@
    frontend/src/styles.css), darkened to AA on paper for light mode. Motion contract: JS writes --p ∈ [0,1] on [data-stage] and
    --sy on <html>; CSS animates transform / clip-path only (opacity fades fail axe mid-fade). No JS → everything revealed
    (tokens also match body:has(#landing) so the page keeps its palette when the inline data-landing script never runs). */
+/* Tokens: the landing ALIASES the site's design system (docs/stylesheets/reachy.css §1, published by the REACHY-INNER lane in
+   ~/.tiny/reachy-inner-20260921/TOKENS.md). The values there are this page's palette verbatim; the --l-* names stay so the rules
+   below need no rewrite, and each carries the reachy.css value as its fallback for the no-JS / no-reachy.css case. */
 html[data-landing], body:has(> #landing), body:has(#landing) {
-  --l-paper: #f6f5f1; --l-ink-0: #fdfcfa; --l-ink-1: rgba(23,24,26,.14); --l-ink-2: #5a5c60; --l-ink-3: #17181a;
-  --l-shell: #f4f2ec; --l-part: #4d4d4d; --l-lens: #1a1a1a;
-  --l-accent: #0b8577; --l-accent-ink: #086b60; --l-accent-glow: rgba(94,234,212,.35);
-  --l-hair: 1px solid var(--l-ink-1); --l-ease: cubic-bezier(.2,.7,.2,1);
-  --l-mono: var(--md-code-font-family); --l-sans: var(--md-text-font-family);
-}
-html[data-landing] [data-md-color-scheme="slate"], body[data-md-color-scheme="slate"]:has(#landing) {
-  --l-paper: #0c0d0f; --l-ink-0: #15171a; --l-ink-1: rgba(242,241,236,.14); --l-ink-2: #b1b3b8; --l-ink-3: #f2f1ec;
-  --l-accent: #5eead4; --l-accent-ink: #7ff0de; --l-accent-glow: rgba(94,234,212,.25);
+  --l-paper: var(--paper, #f6f5f1); --l-ink-0: var(--ink-0, #fdfcfa); --l-ink-1: var(--ink-1, rgba(23,24,26,.14)); --l-ink-2: var(--ink-2, #5a5c60); --l-ink-3: var(--ink-3, #17181a);
+  --l-shell: var(--shell, #f4f2ec); --l-part: var(--part, #4d4d4d); --l-lens: var(--lens, #1a1a1a);
+  --l-accent: var(--accent, #0b8577); --l-accent-ink: var(--accent-ink, #086b60); --l-accent-glow: var(--accent-glow, rgba(94,234,212,.35)); --l-accent-sub: var(--accent-sub, rgba(11,133,119,.10));
+  --l-hair: 1px solid var(--l-ink-1); --l-ease: var(--ease, cubic-bezier(.2,.7,.2,1));
+  --l-mono: var(--mono, var(--md-code-font-family)); --l-sans: var(--sans, var(--md-text-font-family));
 }
 /* the manual's lavender accent becomes the cockpit teal on this page only (tabs underline, focus, links) */
-html[data-landing] body[data-md-color-scheme][data-md-color-primary], body[data-md-color-scheme][data-md-color-primary]:has(#landing) { --accent: var(--l-accent); --accent-ink: var(--l-accent-ink); --bg: var(--l-paper); --focus: var(--l-accent); }
+/* reachy.css already maps Material's palette to --accent/--paper on every page; nothing to remap here any more. */
 html[data-landing] .md-main__inner { margin-top: 0; }
 
 .landing { color: var(--l-ink-3); background: var(--l-paper); overflow-x: clip; font-family: var(--l-sans); }
@@ -40,7 +39,9 @@ html[data-landing] .md-main__inner { margin-top: 0; }
 .landing :focus-visible { outline: 2px solid var(--l-accent); outline-offset: 3px; }
 
 /* ---- 1 · hero: copy left, the real body right; words rise; the body floats and parallaxes on --sy ---- */
-.l-hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 3rem; align-items: center; min-height: min(78vh, 46rem); }
+/* the hero is a short pinned stage: 100vh of screen + 75vh of travel during which poses 0→24 play (it turns to you) */
+.landing .l-stage--hero { height: 175vh; }
+.l-sticky.l-hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 3rem; align-items: center; max-width: 72rem; margin: 0 auto; padding: clamp(4.5rem, 10vh, 6rem) 1.25rem 1.5rem; }
 .l-hero > * { min-width: 0; }
 .l-h1 .l-w { display: inline-block; transform: translateY(.6em) rotate(1.2deg); animation: l-word .8s var(--l-ease) forwards; }
 .l-h1 .l-w:nth-child(2) { animation-delay: .05s; } .l-h1 .l-w:nth-child(3) { animation-delay: .10s; } .l-h1 .l-w:nth-child(4) { animation-delay: .15s; }
@@ -54,11 +55,19 @@ html[data-landing] .md-main__inner { margin-top: 0; }
 .l-figwrap { position: relative; margin: 0 auto; width: min(100%, 27rem); aspect-ratio: 1100 / 1300; cursor: grab; -webkit-tap-highlight-color: transparent; }
 .l-figwrap.is-dragging { cursor: grabbing; }
 .l-figwrap::before { content: ""; position: absolute; inset: 60% 12% 4%; border-radius: 50%; background: radial-gradient(closest-side, var(--l-accent-glow), transparent 75%); filter: blur(34px); z-index: 0; opacity: .55; }
-.l-still, .l-orbit { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1;
-  transform: translateY(calc(var(--sy, 0) * 6vh)) scale(calc(1 - var(--sy, 0) * .05)); will-change: transform; }
-.l-still { animation: l-float 7s ease-in-out infinite alternate; }
-.l-orbit { display: none; } .l-figwrap.is-live .l-orbit { display: block; } .l-figwrap.is-live .l-still { visibility: hidden; }
-@keyframes l-float { from { margin-top: 0; } to { margin-top: -1rem; } }
+.l-still, .l-turn, .l-orbit { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; }
+.l-figwrap picture { display: contents; }
+.l-turn, .l-orbit { display: none; }
+.l-figwrap.is-turning .l-turn { display: block; } .l-figwrap.is-turning .l-still { visibility: hidden; }
+.l-figwrap.is-live .l-orbit { display: block; } .l-figwrap.is-live .l-still, .l-figwrap.is-live .l-turn { visibility: hidden; }
+/* scroll hint: a hairline that grows under the figure until the reader has scrolled (p > 0); transform only */
+.l-scrollhint { position: absolute; left: 50%; bottom: -1.1rem; margin: 0; transform: translateX(-50%); font: 600 .62rem/1 var(--l-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--l-ink-2); display: flex; align-items: center; gap: .5rem; z-index: 2; }
+.l-scrollhint::after { content: ""; width: 2.2rem; height: 1px; background: var(--l-ink-2); transform-origin: left; animation: l-hint 1.6s var(--l-ease) infinite alternate; }
+@keyframes l-hint { from { transform: scaleX(.3); } to { transform: scaleX(1); } }
+.l-stage--hero.has-scrolled .l-scrollhint, html:not(.l-js) .l-scrollhint, .l-stage.is-static .l-scrollhint { display: none; }
+/* instrument strip: the frame's own numbers from poses/curious1.json, tabular so they don't jitter */
+.l-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: .25rem .9rem; font-variant-numeric: tabular-nums; }
+.l-strip b { color: var(--l-ink-3); font-weight: 600; display: inline-block; min-width: 2.2ch; text-align: right; }
 .l-caption { font-family: var(--l-mono); font-size: .78rem !important; color: var(--l-ink-2); text-align: center; margin: 1rem auto 0; max-width: 44ch !important; line-height: 1.6; }
 .l-caption--hero { display: grid; gap: .15rem; } .l-caption__k { display: block; }
 .l-caption__k { text-transform: uppercase; letter-spacing: .1em; font-size: .66rem; color: var(--l-accent-ink); }
@@ -192,14 +201,15 @@ html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html
   .l-score { --k: 3.4rem; font-size: .62rem; padding: .7rem; } .l-tag { font-size: .54rem; } .l-lane { height: 2rem; } .l-score__legend, .l-track > .l-tag--w1 { display: none; } .l-track > .l-tag--tail { left: auto; right: 0; top: auto; bottom: -1.1rem; } .l-speak .l-caption { font-size: .66rem !important; }
   .l-notes--code code { font-size: .74rem; }
   .landing .l-quote p { font-size: .95rem !important; }
-  .l-hero { grid-template-columns: minmax(0, 1fr); min-height: 0; gap: 1rem; padding-top: 1.5rem; }
+  /* phone: no pin — the hero is taller than the screen, so the turn plays over the first few hundred px of natural scroll */
+  .landing .l-stage--hero { height: auto; } .l-sticky.l-hero { position: static; height: auto; grid-template-columns: minmax(0, 1fr); gap: 1rem; padding-top: 3.5rem; }
   .l-fig { order: -1; } .l-figwrap { width: min(62vw, 18rem); }
   .l-caption--hero { font-size: .7rem !important; }
 }
 /* stills: reduced motion / no JS / a static stage = no pin, no travel — the stage is one tall page with every note on ---- */
 @media (prefers-reduced-motion: reduce) {
   .landing .l-stage { height: auto; } .l-sticky { position: static; height: auto; min-height: 100vh; }
-  .l-h1 .l-w, .l-hero .l-copy > *, .l-still, .l-orbit { animation: none; transform: none; }
+  .l-h1 .l-w, .l-hero .l-copy > *, .l-still, .l-orbit, .l-scrollhint::after { animation: none; transform: none; }
   .l-note { transition: none; transform: none; color: var(--l-ink-3); }
   .l-layer { transform: translateY(calc(var(--lift) * -1%)); }
 }
