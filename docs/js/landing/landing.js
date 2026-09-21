@@ -109,6 +109,21 @@
     handlers.set(emo, (pp) => { p = pp; paint(); });
   } else if (emo) emo.classList.add("is-static");
 
+  // ---- 3 · the offline voice: one Piper line behind a button — never autoplays; the meter is the real playback position ----
+  const voice = document.getElementById("l-voice");
+  if (voice) {
+    const au = voice.querySelector("[data-voice-audio]"), btn = voice.querySelector("[data-play]"), meter = voice.querySelector(".l-voice__meter i"), tt = voice.querySelector("[data-voice-t]");
+    let tick = 0;
+    const draw = () => { const d = au.duration || 1.35; meter.style.setProperty("--v", (au.currentTime / d).toFixed(3)); if (!au.paused) tick = requestAnimationFrame(draw); };
+    const stopped = () => { cancelAnimationFrame(tick); voice.classList.remove("is-playing"); btn.setAttribute("aria-label", "Play: Hi, I'm TINY — the offline Piper voice, 1.3 seconds"); meter.style.setProperty("--v", "0"); };
+    btn.addEventListener("click", () => {
+      if (!au.paused) { au.pause(); au.currentTime = 0; stopped(); return; }
+      au.play().then(() => { voice.classList.add("is-playing"); btn.setAttribute("aria-label", "Stop"); draw(); }).catch(() => voice.classList.add("is-unavailable"));
+    });
+    au.addEventListener("ended", stopped); au.addEventListener("pause", stopped);
+    au.addEventListener("loadedmetadata", () => { if (isFinite(au.duration)) tt.textContent = `${au.duration.toFixed(1)} s`; });
+  }
+
   const schedule = () => { if (!raf) raf = requestAnimationFrame(update); };
   addEventListener("scroll", schedule, { passive: true });
   addEventListener("resize", schedule);
