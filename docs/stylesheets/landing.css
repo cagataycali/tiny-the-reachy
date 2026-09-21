@@ -83,6 +83,9 @@ html[data-landing] .md-main__inner { margin-top: 0; }
 
 /* ---- pinned stages: JS writes --p (0→1) while the section scrolls; the inner block is sticky for its whole travel ---- */
 .landing .l-stage { max-width: none; padding: 0; height: 320vh; position: relative; }
+/* the header floats over the one dark stage as an 82 % paper blend → a mid grey; the repo link in --ink-2 (12 px) read 3.9:1 there
+   (axe, it7 sweep on the real build). --ink-3 on the landing only; docs pages have no dark stage. */
+body:has(.landing) .md-source { color: var(--ink-3); }
 /* rhythm (measured @1440 with measure.mjs): hero 1.75 · emotion 2.6 · speak 2.8 (the dark spine) · body 2.4 screens */
 .landing .l-stage.l-emotion { height: 260vh; } .landing .l-stage.l-speak { height: 280vh; } .landing .l-stage.l-body { height: 240vh; }
 /* the ONE dark stage: the speech score. Tokens = reachy.css slate values (TOKENS.md), fixed here so the stage is dark in both schemes;
