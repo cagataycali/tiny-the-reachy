@@ -1,0 +1,11 @@
+{% extends "main.html" %}
+{% block content %}
+<p class="eyebrow">404</p>
+<h1>That page wandered off the desk.</h1>
+<p class="dek">TINY is still here. The routes below always exist.</p>
+<p>
+  <a href="{{ '' | url }}" class="md-button md-button--primary">Home</a>
+  <a href="{{ 'start/quickstart/' | url }}" class="md-button">Quickstart</a>
+  <a href="{{ 'reference/tools/' | url }}" class="md-button">Tool reference</a>
+</p>
+{% endblock %}

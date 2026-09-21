@@ -1,0 +1,2162 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="TINY is a Reachy Mini Wireless with a Strands agent inside — four microphones, a face-finding camera, a six-axis head, two antennas, 81 recorded emotions, and a model that moves them while it speaks. This is its manual, generated from the code that runs it.">
+      
+      
+        <meta name="author" content="Cagatay Cali">
+      
+      
+        <link rel="canonical" href="https://cagataycali.github.io/tiny-the-reachy/">
+      
+      
+      
+        <link rel="next" href="start/quickstart/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Home - tiny</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+
+    
+      <link rel="stylesheet" href="stylesheets/reachy.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+  
+  
+  
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Home · tiny" />
+  <meta property="og:description" content="TINY is a Reachy Mini Wireless with a Strands agent inside — four microphones, a face-finding camera, a six-axis head, two antennas, 81 recorded emotions, and a model that moves them while it speaks. This is its manual, generated from the code that runs it." />
+  <meta property="og:url" content="https://cagataycali.github.io/tiny-the-reachy/" />
+  <meta property="og:image" content="https://cagataycali.github.io/tiny-the-reachy/assets/landing/hero-curious1-f24.webp" />
+  <meta property="og:image:alt" content="TINY — a Reachy Mini mid-curious, rendered from its own MuJoCo twin." />
+  <meta property="og:site_name" content="tiny-the-reachy" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Home · tiny" />
+  <meta name="twitter:description" content="TINY is a Reachy Mini Wireless with a Strands agent inside — four microphones, a face-finding camera, a six-axis head, two antennas, 81 recorded emotions, and a model that moves them while it speaks. This is its manual, generated from the code that runs it." />
+  <meta name="twitter:image" content="https://cagataycali.github.io/tiny-the-reachy/assets/landing/hero-curious1-f24.webp" />
+  <meta name="theme-color" content="#f6f5f1" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c0d0f" />
+  <meta name="color-scheme" content="light dark" />
+  
+  <meta name="reading-time" content="1 min" />
+  <meta name="word-count" content="28" />
+  
+  
+  <script>try{var k=new URL("./",location).pathname.replace(/\/\/$/,"/")+".__source";sessionStorage.getItem(k)||sessionStorage.setItem(k,JSON.stringify({version:"daemon 1.10"}))}catch(e){}</script>
+  
+
+  <link rel="stylesheet" href="stylesheets/landing.css">
+  <link rel="preload" as="image" media="(prefers-reduced-motion: no-preference)" href="assets/landing/hero-curious1-f00.webp" imagesrcset="assets/landing/hero-curious1-f00-660.webp 660w, assets/landing/hero-curious1-f00.webp 1100w" imagesizes="(max-width: 60em) 78vw, 27rem" fetchpriority="high">
+  <link rel="preload" as="image" media="(prefers-reduced-motion: reduce)" href="assets/landing/hero-curious1-f24.webp" imagesrcset="assets/landing/hero-curious1-f24-660.webp 660w, assets/landing/hero-curious1-f24.webp 1100w" imagesizes="(max-width: 60em) 78vw, 27rem" fetchpriority="high">
+  <script>document.documentElement.classList.add("l-js"); document.documentElement.dataset.landing = "";</script>
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tiny-a-robot-that-moves-when-it-talks" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="tiny" class="md-header__button md-logo" aria-label="tiny" data-md-component="logo">
+      
+  <img src="assets/favicon.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            tiny
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="switch to dark"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="switch to dark" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="switch to light"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="switch to light" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/cagataycali/tiny-the-reachy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    cagataycali/tiny-the-reachy
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="start/quickstart/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Get started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="showcase/expression/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Showcase
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="tools/playbook/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tools
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="guide/architecture/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="reference/tools/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+<div class="landing" id="landing">
+
+  
+  <section class="l-stage l-stage--hero" id="hero" data-stage data-frames="25" data-seq="assets/landing/seq/hero/" data-poses="assets/landing/poses/curious1.json" aria-labelledby="l-h1">
+    <div class="l-sticky l-hero">
+    <div class="l-copy">
+      <p class="l-kicker">Reachy Mini Wireless · CM4 · daemon 1.10 · Strands</p>
+      <h1 class="l-h1" id="l-h1"><span class="l-w">A</span> <span class="l-w">robot</span> <span class="l-w">that</span> <span class="l-w">moves</span> <span class="l-w">when</span> <span class="l-w">it</span> <span class="l-w l-w--accent">talks.</span></h1>
+      <p class="l-thesis">TINY is a Reachy Mini with a <a href="https://strandsagents.com">Strands</a> agent inside. Four microphones that know where you are, a camera that finds your face, a six-axis head, two antennas and 81 recorded emotions — and a model that fires them <em>while</em> it speaks, not after.</p>
+      <p class="l-ctas">
+        <a class="l-btn l-btn--primary" href="start/quickstart/">Run it yourself</a>
+        <a class="l-btn" href="reference/tools/">The 28 tools</a>
+        <a class="l-btn l-btn--ghost" href="#emotion">Watch it look around ↓</a>
+      </p>
+    </div>
+    <figure class="l-fig">
+      <div class="l-figwrap" id="l-figwrap">
+        <picture>
+          <source media="(prefers-reduced-motion: reduce)" srcset="assets/landing/hero-curious1-f24-660.webp 660w, assets/landing/hero-curious1-f24.webp 1100w" sizes="(max-width: 60em) 78vw, 27rem">
+          <img class="l-still" src="assets/landing/hero-curious1-f00.webp" srcset="assets/landing/hero-curious1-f00-660.webp 660w, assets/landing/hero-curious1-f00.webp 1100w" sizes="(max-width: 60em) 78vw, 27rem" width="1100" height="1300" fetchpriority="high" decoding="async"
+               alt="TINY, a Reachy Mini: a cream rounded body on a dark printed foot, a flat cream head with two dark camera eyes, two thin black antennas — it turns its head toward you as you scroll">
+        </picture>
+        <canvas class="l-turn" width="660" height="780" aria-hidden="true"></canvas>
+        <canvas class="l-orbit" width="1100" height="1300" aria-hidden="true"></canvas>
+        <p class="l-scrollhint" aria-hidden="true"><span>scroll</span></p>
+      </div>
+      <figcaption class="l-caption l-caption--hero">
+        <span class="l-caption__k">rendered from the twin's own meshes · <code>curious1</code></span>
+        <span class="l-strip"><span class="l-strip__c">t <b data-hro="t">0.0</b> s</span><span class="l-strip__c">head yaw <b data-hro="yaw">5</b>°</span><span class="l-strip__c">roll <b data-hro="roll">4</b>°</span><span class="l-strip__c">antennas <b data-hro="ant">5 / 13</b>°</span></span>
+        
+        <span class="l-strip l-strip--motors" data-hro-motors aria-label="Motor command at this frame">
+          <span class="l-strip__c l-strip__k">motor command</span>
+          <span class="l-strip__c">yaw_body <b data-hm="0">0</b>°</span>
+          <span class="l-strip__c">stewart <b data-hm="1">0</b> <b data-hm="2">0</b> <b data-hm="3">0</b> <b data-hm="4">0</b> <b data-hm="5">0</b> <b data-hm="6">0</b>°</span>
+          <span class="l-strip__c">antennas <b data-hm="7">0</b> / <b data-hm="8">0</b>°</span>
+        </span>
+        <span class="l-caption__hint" hidden>drag it to turn it</span>
+      </figcaption>
+    </figure>
+    </div>
+  </section>
+
+  
+  <section class="l-stage l-emotion" id="emotion" data-stage data-move="curious1" aria-labelledby="l-emotion-h">
+    <div class="l-sticky">
+      <div class="l-split">
+        <figure class="l-fig l-emotion__fig">
+          <div class="l-frame" style="aspect-ratio: 660 / 780">
+            <img class="l-frame__still" src="assets/landing/seq/curious1/08.webp" width="660" height="780" loading="lazy" decoding="async"
+                 alt="TINY mid-move: head turned 40° to its left, one antenna raised straight up, the other lying nearly flat"
+                 data-alt-fear1="TINY ducking: head dropped 30 mm and rolled, both antennas flung out sideways">
+            <canvas class="l-frame__canvas" width="660" height="780" aria-hidden="true"></canvas>
+          </div>
+          <figcaption class="l-caption l-caption--seq">
+            <span class="l-readout" aria-live="off"><code data-ro="name">curious1</code> · t <b data-ro="t">2.0</b> s · head yaw <b data-ro="yaw">40</b>° roll <b data-ro="roll">−6</b>° · antennas <b data-ro="ant">5 / 77</b>° · body <b data-ro="body">8</b>°</span>
+            <span class="l-caption__k">pollen-robotics/reachy-mini-emotions-library · replayed through the daemon's IK + MuJoCo</span>
+          </figcaption>
+        </figure>
+        <div class="l-copy">
+          <p class="l-kicker">81 recorded emotions · pick one</p>
+          <div class="l-swatch" role="group" aria-label="Which move to scrub">
+            <button type="button" class="l-swatch__b" aria-pressed="true" data-pick="curious1" data-frames="48" data-seq="assets/landing/seq/curious1/" data-poses="assets/landing/poses/curious1.json" data-still="assets/landing/seq/curious1/08.webp"><code>curious1</code><small>looks around · 11.8 s</small></button>
+            <button type="button" class="l-swatch__b" aria-pressed="false" data-pick="fear1" data-frames="36" data-seq="assets/landing/seq/fear1/" data-poses="assets/landing/poses/fear1.json" data-still="assets/landing/seq/fear1/08.webp"><code>fear1</code><small>flinches · 3.5 s</small></button>
+          </div>
+          <h2 id="l-emotion-h"><span class="l-move" data-move="curious1">It looks around</span><span class="l-move" data-move="fear1" hidden>It flinches</span> <span class="l-w--accent">like it means it.</span></h2>
+          <div class="l-move" data-move="curious1">
+            <blockquote class="l-quote"><p>“You look around. Use this when you’re in a conversation with several people and want to glance at everyone.”</p><cite>— the move’s own description, <code>curious1</code></cite></blockquote>
+            <ol class="l-notes" aria-label="What happens during curious1">
+              <li class="l-note" data-at="0.17"><b>2.0 s</b> head yaw 40°, one antenna snaps up to 77°</li>
+              <li class="l-note" data-at="0.38"><b>4.5 s</b> yaw −37°, roll 14° — the other antenna drops to −85°</li>
+              <li class="l-note" data-at="0.59"><b>7.0 s</b> the whole body turns 61°, head 45°</li>
+              <li class="l-note" data-at="0.84"><b>10.0 s</b> yaw −45°, roll 16°, then…</li>
+              <li class="l-note" data-at="0.99"><b>11.8 s</b> home. <a href="reference/tools/reachy_expression/">reachy_expression</a> can fire any of the 81.</li>
+            </ol>
+          </div>
+          <div class="l-move" data-move="fear1" hidden>
+            <blockquote class="l-quote"><p>“When you face a threatening or dangerous situation. Can also be used when surprised or shocked.”</p><cite>— the move’s own description, <code>fear1</code></cite></blockquote>
+            <ol class="l-notes" aria-label="What happens during fear1">
+              <li class="l-note" data-at="0.14"><b>0.5 s</b> the head snaps 17° left and rolls −24°</li>
+              <li class="l-note" data-at="0.23"><b>0.8 s</b> it ducks — 30 mm down, antennas flung to −85° / 78°</li>
+              <li class="l-note" data-at="0.43"><b>1.5 s</b> it peeks: up to 186 mm, pitch −17°, roll −26°</li>
+              <li class="l-note" data-at="0.57"><b>2.0 s</b> antennas settle half-down, −33° / 19°</li>
+              <li class="l-note" data-at="0.99"><b>3.5 s</b> not quite home — roll 5°, antennas still down. It stays on guard.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <section class="l-stage l-speak" id="speak" data-stage aria-labelledby="l-speak-h">
+    <div class="l-sticky">
+      <div class="l-split l-split--rev">
+        <div class="l-copy">
+          <p class="l-kicker">one realtime session · tools fire during speech</p>
+          <h2 id="l-speak-h">It moves <span class="l-w--accent">while</span> it speaks. Not after.</h2>
+          <p>The voice persona is one Strands <code>BidiAgent</code>: microphone in, speech out, tool calls inside the same response. The gesture lands on the word, face-tracking lets go of the head only while it talks, and you can interrupt it.</p>
+          <ol class="l-notes l-notes--code" aria-label="The lines that make it so">
+            <li class="l-note" data-at="0.08"><span class="l-src">tiny.py:266 · the voice rules</span><code>- Move WHILE you speak — gestures are simultaneous, never before/after.</code></li>
+            <li class="l-note" data-at="0.32"><span class="l-src">tools/reachy_expression.py:89</span><code>Call it alongside speaking, just like neon fires arm gestures.</code></li>
+            <li class="l-note" data-at="0.52"><span class="l-src">tools/head_tracking.py:114 · SpeakingHandoff</span><code>while the model streams speech audio → tracking hold "speaking" (weight 0.0 …); on response complete / interruption → release (weight 1.0) after a short playback tail.</code></li>
+            <li class="l-note" data-at="0.8"><span class="l-src">tools/xmos_audio.py:9 · XVF3800</span><code>PP_NLATTENONOFF=0  suppression 17 dB → 4 dB; barge-in confirmed by the owner.</code></li>
+          </ol>
+        </div>
+        <figure class="l-fig">
+          <div class="l-score" role="img" aria-label="A score of one voice turn: you speak; TINY answers while the reachy_express tool fires and the recorded move plays under the words; face tracking drops to weight 0 for the speech and returns 0.8 seconds after the last audio; you talk over it and it stops mid-sentence.">
+            <div class="l-score__head"><span>one turn</span><span class="l-score__legend">▮ audio · ▬ tool · ─ tracking weight</span></div>
+            <div class="l-lane"><span class="l-lane__k">you</span><span class="l-bar l-bar--voice" style="--a:.02;--b:.24"></span><span class="l-bar l-bar--voice" style="--a:.76;--b:.92"><i class="l-tag l-tag--r">barge-in</i></span></div>
+            <div class="l-lane"><span class="l-lane__k">TINY</span><span class="l-bar l-bar--speech" style="--a:.30;--b:.78"><i class="l-tag">speech · cut mid-sentence</i></span></div>
+            <div class="l-lane"><span class="l-lane__k">tool</span><span class="l-bar l-bar--tool" style="--a:.33;--b:.36"><i class="l-tag">reachy_express("curious")</i></span><span class="l-bar l-bar--move" style="--a:.36;--b:1"><i class="l-tag">curious1 plays under the words →</i></span></div>
+            <div class="l-lane l-lane--track"><span class="l-lane__k">tracking</span><span class="l-track" style="--a:.30;--b:.78;--tail:.06"><i class="l-tag l-tag--w1">weight 1</i><i class="l-tag l-tag--w0">0 while it speaks</i><i class="l-tag l-tag--tail">+0.8 s tail → 1</i><b class="l-track__low"></b></span></div>
+            <span class="l-playhead" aria-hidden="true"></span>
+          </div>
+          <figcaption class="l-caption">schematic of one turn — positions are not to scale; the tail is <code>SPEAK_TAIL_S = 0.8</code> (tools/head_tracking.py:28), mic 16 kHz resampled to the model (tiny.py:451)</figcaption>
+            
+            <div class="l-voice" id="l-voice">
+              <button type="button" class="l-voice__play" aria-label="Play: Hi, I'm TINY — the offline Piper voice, 1.3 seconds" data-play>
+                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path class="l-voice__ico-play" d="M4 2.5v11l9-5.5z" fill="currentColor"/><path class="l-voice__ico-stop" d="M3.5 3.5h9v9h-9z" fill="currentColor"/></svg>
+              </button>
+              <span class="l-voice__meter" aria-hidden="true"><i></i></span>
+              <span class="l-voice__t">
+                <code>reachy_say("Hi, I'm TINY!")</code>
+                <small class="l-voice__long">the offline voice · Piper <code>en_US-lessac-medium</code> on the CM4 (<code>tiny-tts.service</code>) · what the text personas sound like; the live call speaks with the realtime model · <b data-voice-t>1.3 s</b></small><small class="l-voice__short">offline Piper voice · <code>en_US-lessac-medium</code> · 1.3 s</small>
+              </span>
+              <audio preload="none" data-voice-audio>
+                <source src="assets/landing/voice/hi-im-tiny.opus" type="audio/ogg; codecs=opus">
+                <source src="assets/landing/voice/hi-im-tiny.m4a" type="audio/mp4">
+              </audio>
+            </div>
+          </figure>
+      </div>
+    </div>
+  </section>
+
+  
+  <section class="l-stage l-body" id="body" data-stage aria-labelledby="l-body-h">
+    <div class="l-sticky">
+      <div class="l-split">
+        <figure class="l-fig">
+          <div class="l-explode" style="aspect-ratio: 760 / 900" role="img" aria-label="Exploded view of TINY's twin: the two antennas lift off the head, the head lifts off its six-rod Stewart platform, and the platform lifts off the 3D-printed body that turns on its foot.">
+            <img class="l-layer l-layer--base" src="assets/landing/body/base.webp" width="760" height="900" loading="lazy" decoding="async" alt="">
+            <img class="l-layer l-layer--stewart" src="assets/landing/body/stewart.webp" width="760" height="900" loading="lazy" decoding="async" alt="">
+            <img class="l-layer l-layer--head" src="assets/landing/body/head.webp" width="760" height="900" loading="lazy" decoding="async" alt="">
+            <img class="l-layer l-layer--antennas" src="assets/landing/body/antennas.webp" width="760" height="900" loading="lazy" decoding="async" alt="">
+            
+            <div class="l-hs-layer l-layer--antennas" aria-hidden="true"><span class="l-hs" data-at="0.12" style="--x: 46%; --y: 21%"><b>right_antenna · left_antenna</b><small>2 hinges</small><i></i></span></div>
+            <div class="l-hs-layer l-layer--head" aria-hidden="true"><span class="l-hs" data-at="0.36" style="--x: 38%; --y: 46%"><b>camera_optical</b><small>site on xl_330</small><i></i></span></div>
+            <div class="l-hs-layer l-layer--stewart" aria-hidden="true"><span class="l-hs" data-at="0.6" style="--x: 42%; --y: 61%"><b>stewart_1…6</b><small>6 rods · 6 ball joints</small><i></i></span></div>
+            <div class="l-hs-layer l-layer--base" aria-hidden="true"><span class="l-hs" data-at="0.84" style="--x: 37%; --y: 70%"><b>yaw_body</b><small>±160° · CM4 inside</small><i></i></span></div>
+          </div>
+          <figcaption class="l-caption">the same twin, one MuJoCo body group per layer · <code>twin.xml</code> · MuJoCo 3.13.0 · 41 meshes · 161 geoms · 9 actuators</figcaption>
+        </figure>
+        <div class="l-copy">
+          <p class="l-kicker">18 bodies · 9 motors · one <code>twin.xml</code></p>
+          <h2 id="l-body-h">Nine motors. <span class="l-w--accent">One face.</span></h2>
+          <p>The dashboard's digital twin is the robot's own MuJoCo model, so this is not an illustration — it is the geometry the daemon solves against, split by body group.</p>
+          <ol class="l-notes l-notes--body" aria-label="The four layers">
+            <li class="l-note" data-at="0.12"><b>antennas</b> two hinges, <code>right_antenna</code> · <code>left_antenna</code> — the fastest tell of a mood (curious1 throws one to 77° and the other to −85°)</li>
+            <li class="l-note" data-at="0.36"><b>head</b> body <code>xl_330</code> with the <code>camera_optical</code> site — the face-finding camera; six degrees of freedom: roll, pitch, yaw and a little x y z</li>
+            <li class="l-note" data-at="0.6"><b>Stewart platform</b> six <code>stewart_1…6</code> hinges on six rods with <code>passive_1…6</code> ball joints — the head has no neck motor; six arms hold it up and tilt it together</li>
+            <li class="l-note" data-at="0.84"><b>body</b> <code>yaw_body</code> ±160° on the 3D-printed foot; inside the shell: a Raspberry Pi CM4, four microphones and the speaker</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+  <section class="l-flat l-tools" id="tools" aria-labelledby="l-tools-h">
+    <div class="l-flat__in">
+      <p class="l-kicker">28 tools · 16 modules · <code>@tool</code> functions in <code>tools/</code></p>
+      <h2 id="l-tools-h">Everything it can do is a function the model can read.</h2>
+      <p class="l-lede">Every ability is a Python <code>@tool</code> with a docstring — the same text the model sees is what the <a href="reference/tools/">reference</a> prints at build time. Angles are clamped before they reach the daemon.</p>
+      <ul class="l-toolwall" aria-label="Tool modules, grouped: Motion, Sense, Speak, Brain">
+        <li class="l-toolwall__g" aria-hidden="true"><span>Motion</span><small>9 tools · it moves</small></li>
+        <li><a href="reference/tools/reachy_motion/"><b>Motion</b><span><code>reachy_look</code> <code>reachy_antennas</code> <code>reachy_body_turn</code> <code>reachy_home</code> <code>reachy_wake</code></span><small>head pose, antennas, body yaw, home, wake/sleep</small></a></li>
+        <li><a href="reference/tools/reachy_expression/"><b>Expression</b><span><code>reachy_express</code> <code>reachy_list_emotions</code></span><small>the 81 recorded moves the personas fire while they talk</small></a></li>
+        <li><a href="reference/tools/reachy_state/"><b>State</b><span><code>reachy_get_state</code> <code>reachy_motors</code></span><small>live pose, IMU, motor modes</small></a></li>
+        <li class="l-toolwall__g" aria-hidden="true"><span>Sense</span><small>8 tools · it sees and hears</small></li>
+        <li><a href="reference/tools/reachy_camera/"><b>Camera</b><span><code>reachy_camera</code> <code>reachy_look_at</code> <code>capture_camera</code></span><small>grab a frame, look at a pixel</small></a></li>
+        <li><a href="reference/tools/vision/"><b>Vision</b><span><code>take_photo</code></span><small>a frame plus a question for the multimodal model</small></a></li>
+        <li><a href="reference/tools/head_tracking/"><b>Head tracking</b><span><code>head_tracking</code> <code>head_tracking_status</code></span><small>the daemon's face tracker (reachy-mini ≥ 1.10)</small></a></li>
+        <li><a href="reference/tools/turn_to_sound/"><b>Turn to sound</b><span><code>turn_to_sound</code> <code>turn_to_sound_status</code></span><small>toward whoever is talking — ReSpeaker direction of arrival</small></a></li>
+        <li class="l-toolwall__g" aria-hidden="true"><span>Speak</span><small>5 tools · it talks</small></li>
+        <li><a href="reference/tools/reachy_audio/"><b>Audio</b><span><code>reachy_play_sound</code> <code>reachy_say</code> <code>reachy_volume</code></span><small>Piper TTS on the CM4, sounds, volume — "silent" means 0</small></a></li>
+        <li><a href="reference/tools/voice_bridge/"><b>Voice bridge</b><span><code>voice_say</code></span><small>text → the voice persona's mouth</small></a></li>
+        <li><a href="reference/tools/telegram/"><b>Telegram</b><span><code>telegram</code></span><small>text and photos to the owner's chat</small></a></li>
+        <li class="l-toolwall__g" aria-hidden="true"><span>Brain</span><small>6 tools · it remembers and delegates</small></li>
+        <li><a href="reference/tools/dispatch/"><b>Dispatch</b><span><code>dispatch</code></span><small>hand a task to another persona through the shared brain</small></a></li>
+        <li><a href="reference/tools/memory/"><b>Memory</b><span><code>memory</code></span><small>the cross-persona SQLite brain: remember, recall, forget</small></a></li>
+        <li><a href="reference/tools/prompts/"><b>Prompts</b><span><code>prompts</code></span><small>read and override each persona's system prompt</small></a></li>
+        <li><a href="reference/tools/manage_messages/"><b>Manage messages</b><span><code>manage_messages</code></span><small>inspect and compact its own conversation</small></a></li>
+        <li><a href="reference/tools/manage_tools/"><b>Manage tools</b><span><code>manage_tools</code></span><small>list, create and hot-load new tools at runtime</small></a></li>
+        <li><a href="reference/tools/tiny_mcp/"><b>Fleet</b><span><code>use_device</code></span><small>tiny.technology MCP, mounted only with <code>TINY_MCP=1</code></small></a></li>
+      </ul>
+    </div>
+  </section>
+
+  
+  <section class="l-flat l-cockpit" id="cockpit" aria-labelledby="l-cockpit-h">
+    <div class="l-flat__in">
+      <p class="l-kicker">the owner's private cockpit · passkey gate · not linked here</p>
+      <h2 id="l-cockpit-h">The owner sees all of it.</h2>
+      <p class="l-lede">A FastAPI dashboard runs on the CM4 itself behind a Cloudflare tunnel: the live camera, the same MuJoCo twin you just scrolled, every transcript and tool call from all personas, and the tracking controls. It is passkey-gated and not part of this page.</p>
+      <div class="l-shots">
+        <figure class="l-shot l-shot--wide"><img src="assets/landing/cockpit/desktop.webp" width="1200" height="750" loading="lazy" decoding="async" alt="The cockpit on a desktop: camera view, transcript feed and controls."><figcaption>desktop · camera, feed, controls</figcaption></figure>
+        <figure class="l-shot l-shot--wide"><img src="assets/landing/cockpit/desktop-twin.webp" width="1200" height="750" loading="lazy" decoding="async" alt="The cockpit showing the MuJoCo digital twin mirroring the robot's pose."><figcaption>desktop · the twin, live</figcaption></figure>
+        <figure class="l-shot l-shot--tall"><img src="assets/landing/cockpit/phone.webp" width="390" height="844" loading="lazy" decoding="async" alt="The cockpit on a phone."><figcaption>phone</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  
+  <section class="l-flat l-start" id="start" aria-labelledby="l-start-h">
+    <div class="l-flat__in l-start__grid">
+      <div>
+        <p class="l-kicker">run it yourself · robot or MuJoCo sim</p>
+        <h2 id="l-start-h">Six lines to a robot that talks back.</h2>
+        <p class="l-lede">Bring a Reachy Mini and a Bedrock or OpenAI key — or no robot at all: <code>make sim</code> spawns a headless MuJoCo daemon.</p>
+        <p class="l-cta"><a class="l-btn l-btn--primary" href="start/quickstart/">Quickstart</a> <a class="l-btn l-btn--ghost" href="showcase/">Showcase</a> <a class="l-btn l-btn--ghost" href="https://github.com/cagataycali/tiny-the-reachy">GitHub</a></p>
+      </div>
+      <pre class="l-code" tabindex="0"><code>git clone https://github.com/cagataycali/tiny-the-reachy.git
+cd tiny-the-reachy
+cp .env.example .env &amp;&amp; $EDITOR .env   # your keys
+make venv                              # .venv + deps
+make run                               # REPL → the daemon
+make sim                               # …or no robot at all</code></pre>
+    </div>
+  </section>
+
+</div>
+<script src="js/landing/landing.js" defer></script>
+
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="tiny" class="md-nav__button md-logo" aria-label="tiny" data-md-component="logo">
+      
+  <img src="assets/favicon.svg" alt="logo">
+
+    </a>
+    tiny
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/cagataycali/tiny-the-reachy" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    cagataycali/tiny-the-reachy
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Get started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Get started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="start/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="start/systemd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Systemd (how TINY boots)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="start/robot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deploying to the robot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="start/docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker (laptop + Lite)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Showcase
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Showcase
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="showcase/expression/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Expression
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="showcase/personas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Personas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="DASHBOARD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard (twin PiP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="PERCEPTION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Perception (tracking · DoA · pressure)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="tools/playbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Playbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/safety/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Safety envelope
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/brain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-persona brain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/extending/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extending
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations (incidents · budgets · before a demo)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guide/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="reference/tools/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6_1" id="__nav_6_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/reachy_motion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Motion
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/reachy_expression/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Expression
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/reachy_state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/reachy_camera/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Camera
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/reachy_audio/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/head_tracking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Head tracking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/vision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/voice_bridge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Voice bridge
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/dispatch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dispatch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/telegram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Telegram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/prompts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prompts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/manage_messages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manage messages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/manage_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manage tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/tools/tiny_mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fleet (use_device)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dashboard API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Env vars
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/family/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The family
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.footer", "navigation.sections", "navigation.indexes", "toc.follow", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.action.edit", "search.suggest", "search.highlight", "search.share", "announce.dismiss"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+  <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+  <script src="js/docs/docs.js"></script>
+
+  </body>
+</html>

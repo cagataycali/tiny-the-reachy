@@ -1,0 +1,298 @@
+{
+ "meshes": {
+  "5w_speaker": {
+   "faces_in": 4596,
+   "faces": 1772,
+   "verts": 882,
+   "bytes": 21232,
+   "sha": "f53105fea2"
+  },
+  "antenna": {
+   "faces_in": 20970,
+   "faces": 3788,
+   "verts": 1896,
+   "bytes": 45496,
+   "sha": "e5db142997"
+  },
+  "antenna_body_3dprint": {
+   "faces_in": 4834,
+   "faces": 1818,
+   "verts": 909,
+   "bytes": 21832,
+   "sha": "293e1e4422"
+  },
+  "antenna_holder_l_3dprint": {
+   "faces_in": 8994,
+   "faces": 2480,
+   "verts": 1226,
+   "bytes": 29608,
+   "sha": "a77cb1483a"
+  },
+  "antenna_holder_r_3dprint": {
+   "faces_in": 9318,
+   "faces": 2524,
+   "verts": 1248,
+   "bytes": 30136,
+   "sha": "f04d9c2732"
+  },
+  "antenna_interface_3dprint": {
+   "faces_in": 3598,
+   "faces": 1568,
+   "verts": 780,
+   "bytes": 18784,
+   "sha": "51538e539e"
+  },
+  "arducam": {
+   "faces_in": 20970,
+   "faces": 3788,
+   "verts": 1954,
+   "bytes": 46192,
+   "sha": "711a09cff7"
+  },
+  "b3b_eh": {
+   "faces_in": 196,
+   "faces": 196,
+   "verts": 100,
+   "bytes": 2392,
+   "sha": "42558a019b"
+  },
+  "b3b_eh_1": {
+   "faces_in": 196,
+   "faces": 196,
+   "verts": 100,
+   "bytes": 2392,
+   "sha": "9464d6612f"
+  },
+  "bearing_85x110x13": {
+   "faces_in": 20970,
+   "faces": 3788,
+   "verts": 1757,
+   "bytes": 43828,
+   "sha": "37a3331426"
+  },
+  "big_lens_d40": {
+   "faces_in": 3024,
+   "faces": 1438,
+   "verts": 721,
+   "bytes": 17296,
+   "sha": "79bd3a418d"
+  },
+  "body_down_3dprint": {
+   "faces_in": 20970,
+   "faces": 3788,
+   "verts": 1882,
+   "bytes": 45328,
+   "sha": "cd14cd697b"
+  },
+  "body_foot_3dprint": {
+   "faces_in": 12790,
+   "faces": 3260,
+   "verts": 1629,
+   "bytes": 39124,
+   "sha": "1d939ef062"
+  },
+  "body_top_3dprint": {
+   "faces_in": 20970,
+   "faces": 4154,
+   "verts": 2077,
+   "bytes": 49864,
+   "sha": "055905834b"
+  },
+  "body_turning_3dprint": {
+   "faces_in": 7860,
+   "faces": 2364,
+   "verts": 1176,
+   "bytes": 28312,
+   "sha": "67f72dc3ae"
+  },
+  "bts2_m2_6x8": {
+   "faces_in": 5382,
+   "faces": 1918,
+   "verts": 961,
+   "bytes": 23056,
+   "sha": "928d63e17c"
+  },
+  "dc15_a01_case_b_dummy": {
+   "faces_in": 4976,
+   "faces": 2866,
+   "verts": 1427,
+   "bytes": 34336,
+   "sha": "1b55d9e3db"
+  },
+  "dc15_a01_case_f_dummy": {
+   "faces_in": 6538,
+   "faces": 2600,
+   "verts": 1285,
+   "bytes": 31036,
+   "sha": "d277d21155"
+  },
+  "dc15_a01_case_m_dummy": {
+   "faces_in": 3242,
+   "faces": 2554,
+   "verts": 1263,
+   "bytes": 30496,
+   "sha": "d4055433f9"
+  },
+  "dc15_a01_horn_dummy": {
+   "faces_in": 8900,
+   "faces": 2468,
+   "verts": 1226,
+   "bytes": 29536,
+   "sha": "1a2038936b"
+  },
+  "dc15_a01_led_cap2_dummy": {
+   "faces_in": 32,
+   "faces": 32,
+   "verts": 18,
+   "bytes": 424,
+   "sha": "76aab8c440"
+  },
+  "glasses_dolder_3dprint": {
+   "faces_in": 12156,
+   "faces": 2882,
+   "verts": 1428,
+   "bytes": 34444,
+   "sha": "76067200cb"
+  },
+  "head_back_3dprint": {
+   "faces_in": 20970,
+   "faces": 3788,
+   "verts": 1880,
+   "bytes": 45304,
+   "sha": "fd4621209e"
+  },
+  "head_front_3dprint": {
+   "faces_in": 20970,
+   "faces": 3788,
+   "verts": 1881,
+   "bytes": 45316,
+   "sha": "9f939aeba4"
+  },
+  "head_mic_3dprint": {
+   "faces_in": 13240,
+   "faces": 3010,
+   "verts": 1499,
+   "bytes": 36064,
+   "sha": "73630702e2"
+  },
+  "lens_cap_d30_3dprint": {
+   "faces_in": 1884,
+   "faces": 1134,
+   "verts": 567,
+   "bytes": 13624,
+   "sha": "028b1f97c2"
+  },
+  "lens_cap_d40_3dprint": {
+   "faces_in": 1872,
+   "faces": 1132,
+   "verts": 566,
+   "bytes": 13600,
+   "sha": "df2bee9532"
+  },
+  "m12_fisheye_lens_1_8mm": {
+   "faces_in": 5184,
+   "faces": 1882,
+   "verts": 985,
+   "bytes": 23128,
+   "sha": "59b3c44d62"
+  },
+  "mp01062_stewart_arm_3": {
+   "faces_in": 3110,
+   "faces": 1458,
+   "verts": 723,
+   "bytes": 17440,
+   "sha": "6d1939f061"
+  },
+  "neck_reference_3dprint": {
+   "faces_in": 12100,
+   "faces": 2878,
+   "verts": 1405,
+   "bytes": 34144,
+   "sha": "e3d6bc2670"
+  },
+  "phs_1_7x20_5_dc10": {
+   "faces_in": 5062,
+   "faces": 1860,
+   "verts": 932,
+   "bytes": 22360,
+   "sha": "d5dd567230"
+  },
+  "phs_1_7x20_5_dc10_1": {
+   "faces_in": 5062,
+   "faces": 1860,
+   "verts": 932,
+   "bytes": 22360,
+   "sha": "3234748c0a"
+  },
+  "phs_1_7x20_5_dc10_2": {
+   "faces_in": 5062,
+   "faces": 1860,
+   "verts": 932,
+   "bytes": 22360,
+   "sha": "9d02f87e35"
+  },
+  "phs_1_7x20_5_dc10_3": {
+   "faces_in": 5062,
+   "faces": 1860,
+   "verts": 932,
+   "bytes": 22360,
+   "sha": "910e2606d1"
+  },
+  "pp01102_arducam_carter": {
+   "faces_in": 2188,
+   "faces": 1222,
+   "verts": 607,
+   "bytes": 14632,
+   "sha": "ddf4b30cce"
+  },
+  "small_lens_d30": {
+   "faces_in": 3168,
+   "faces": 1472,
+   "verts": 738,
+   "bytes": 17704,
+   "sha": "865aa1395a"
+  },
+  "stewart_link_ball": {
+   "faces_in": 3888,
+   "faces": 1630,
+   "verts": 815,
+   "bytes": 19576,
+   "sha": "a5609e913f"
+  },
+  "stewart_link_ball__2": {
+   "faces_in": 3888,
+   "faces": 1630,
+   "verts": 815,
+   "bytes": 19576,
+   "sha": "672f6a3b90"
+  },
+  "stewart_link_rod": {
+   "faces_in": 20970,
+   "faces": 3788,
+   "verts": 1892,
+   "bytes": 45448,
+   "sha": "5fabb614c6"
+  },
+  "stewart_main_plate_3dprint": {
+   "faces_in": 6810,
+   "faces": 2158,
+   "verts": 1047,
+   "bytes": 25528,
+   "sha": "04e592472e"
+  },
+  "stewart_tricap_3dprint": {
+   "faces_in": 6662,
+   "faces": 2134,
+   "verts": 1038,
+   "bytes": 25276,
+   "sha": "f834741a9b"
+  }
+ },
+ "total_faces_in": 348634,
+ "total_faces_out": 92786,
+ "total_bytes": 1110944,
+ "geoms": 161,
+ "twin_xml_bytes": 12412,
+ "pack_bytes": 1110944,
+ "pack_sha": "b2c4d91fb2"
+}
