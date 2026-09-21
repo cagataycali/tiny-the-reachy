@@ -38,3 +38,9 @@ def test_landing_scripts_block_pins_materials_bundle():
     want = re.search(r"assets/javascripts/(bundle\.[0-9a-f]+\.min\.js)", base.read_text()).group(1)
     have = re.search(r"assets/javascripts/(bundle\.[0-9a-f]+\.min\.js)", (ROOT / "docs/overrides/home.html").read_text()).group(1)
     assert have == want
+
+
+def test_every_tool_count_on_the_landing_is_the_reference_count():
+    html = (ROOT / "docs/overrides/home.html").read_text()
+    counts = {int(n) for n in re.findall(r"(\d+) tools", html)}
+    assert counts == {len(_reference_tools())}, counts
