@@ -92,6 +92,39 @@ html[data-landing] .md-main__inner { margin-top: 0; }
 .l-note.is-now::before { box-shadow: 0 0 0 4px var(--l-accent-glow); }
 html:not(.l-js) .l-note, .l-stage.is-static .l-note { color: var(--l-ink-3); transform: none; }
 
+/* ---- 3 · fire while it speaks: a score of one turn; the playhead is --p, bars reveal as it passes them (clip-path) ---- */
+.l-split--rev .l-copy { order: 0; } .l-split--rev .l-fig { order: 1; }
+.l-notes--code .l-note { padding-left: 1.4rem; }
+.l-notes--code code { display: block; white-space: pre-wrap; font-size: .76rem; line-height: 1.4; background: var(--l-ink-0); border: var(--l-hair); border-radius: 8px; padding: .4rem .6rem; color: var(--l-ink-3); margin-top: .2rem; }
+.l-src { display: block; font-family: var(--l-mono); font-size: .68rem; letter-spacing: .04em; color: var(--l-accent-ink); text-transform: none; }
+.l-note:not(.is-on) .l-src { color: var(--l-ink-2); }
+.l-score { position: relative; background: var(--l-ink-0); border: var(--l-hair); border-radius: 16px; padding: 1rem 1rem 1.1rem 1rem; font-family: var(--l-mono); font-size: .72rem; color: var(--l-ink-2); overflow: hidden; --k: 5.2rem; }
+.l-score__head { display: flex; justify-content: space-between; gap: 1rem; margin: 0 0 .9rem var(--k); letter-spacing: .08em; text-transform: uppercase; font-size: .64rem; }
+.l-lane { position: relative; height: 2.4rem; margin: .35rem 0; display: grid; grid-template-columns: var(--k) 1fr; align-items: center; }
+.l-lane::after { content: ""; position: absolute; left: var(--k); right: 0; top: 50%; border-top: 1px dashed var(--l-ink-1); z-index: 0; }
+.l-lane__k { color: var(--l-ink-3); font-weight: 600; z-index: 1; }
+.l-bar { position: absolute; z-index: 1; left: calc(var(--k) + (100% - var(--k)) * var(--a)); width: calc((100% - var(--k)) * (var(--b) - var(--a))); top: 50%; transform: translateY(-50%); height: 1.1rem; }
+.l-bar::before { content: ""; position: absolute; inset: 0; border-radius: 4px; clip-path: inset(0 calc(100% - clamp(0%, (var(--p, 1) - var(--a)) / (var(--b) - var(--a)) * 100%, 100%)) 0 0); }
+.l-bar--voice { height: .9rem; } .l-bar--voice::before { background: repeating-linear-gradient(90deg, var(--l-ink-2) 0 3px, transparent 3px 6px); opacity: .75; }
+.l-bar--speech::before { background: repeating-linear-gradient(90deg, var(--l-ink-3) 0 3px, transparent 3px 6px); }
+.l-bar--tool::before { background: var(--l-accent); }
+.l-bar--move::before { background: var(--l-accent-glow); border-left: 2px solid var(--l-accent); border-radius: 0 4px 4px 0; }
+.l-tag { position: absolute; left: 0; top: calc(100% + .15rem); white-space: nowrap; font-style: normal; font-size: .64rem; color: var(--l-ink-2); clip-path: inset(0 calc(100% - clamp(0%, (var(--p, 1) - var(--a)) * 1200%, 100%)) 0 0); }
+.l-tag--r { left: auto; right: 0; }
+.l-bar--move .l-tag, .l-bar--tool .l-tag { color: var(--l-accent-ink); } .l-bar--tool .l-tag, .l-bar--speech .l-tag { top: auto; bottom: calc(100% + .1rem); }
+.l-lane--track { height: 3.2rem; }
+.l-track { position: absolute; z-index: 1; left: var(--k); right: 0; top: 25%; bottom: 25%; }
+.l-track::before, .l-track::after, .l-track__low { content: ""; position: absolute; height: 2px; background: var(--l-ink-3); }
+.l-track::before { top: 0; left: 0; width: calc(100% * var(--a)); }
+.l-track__low { bottom: 0; left: calc(100% * var(--a)); width: calc(100% * (var(--b) + var(--tail) - var(--a))); }
+.l-track::after { top: 0; left: calc(100% * (var(--b) + var(--tail))); right: 0; background: var(--l-accent); }
+.l-track > .l-tag--w1 { top: -1.1rem; left: 0; }
+.l-track > .l-tag--w0 { top: auto; bottom: -1.1rem; left: calc(100% * var(--a)); }
+.l-track > .l-tag--tail { top: -1.1rem; left: calc(100% * (var(--b) + var(--tail))); color: var(--l-accent-ink); }
+.l-playhead { position: absolute; top: 2.6rem; bottom: .8rem; left: calc(1rem + var(--k)); right: 1rem; pointer-events: none; z-index: 2; }
+.l-playhead::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 100%; border-left: 2px solid var(--l-accent); transform: translateX(calc(var(--p, 1) * 100%)); will-change: transform; }
+html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html:not(.l-js) .l-playhead { display: none; }
+
 /* ---- fallbacks ---- */
 @media (max-width: 60em) {
   .landing .l-stage { height: 260vh; }
@@ -104,6 +137,12 @@ html:not(.l-js) .l-note, .l-stage.is-static .l-note { color: var(--l-ink-3); tra
   html.l-js .l-emotion:not(.is-static) .l-notes:not(:has(.is-now)) .l-note:first-child { display: block; color: var(--l-ink-2); }
   .l-caption--seq .l-caption__k { display: none; }
   .l-frame { width: min(46vw, 15rem, 34vh * 660 / 780); }
+  .l-split--rev .l-copy { order: 1; } .l-split--rev .l-fig { order: 0; }
+  .l-speak .l-copy > p:not(.l-kicker) { display: none; }
+  html.l-js .l-speak:not(.is-static) .l-note:not(.is-now) { display: none; }
+  html.l-js .l-speak:not(.is-static) .l-notes:not(:has(.is-now)) .l-note:first-child { display: block; }
+  .l-score { --k: 3.4rem; font-size: .62rem; padding: .7rem; } .l-tag { font-size: .54rem; } .l-lane { height: 2rem; } .l-score__legend, .l-track > .l-tag--w1 { display: none; } .l-track > .l-tag--tail { left: auto; right: 0; top: auto; bottom: -1.1rem; } .l-speak .l-caption { font-size: .66rem !important; }
+  .l-notes--code code { font-size: .74rem; }
   .landing .l-quote p { font-size: .95rem !important; }
   .l-hero { grid-template-columns: minmax(0, 1fr); min-height: 0; gap: 1rem; padding-top: 1.5rem; }
   .l-fig { order: -1; } .l-figwrap { width: min(62vw, 18rem); }

@@ -79,6 +79,39 @@
     </div>
   </section>
 
+  {# ------------------------------------------------------------------ 3 · FIRE WHILE IT SPEAKS
+     The score is a schematic of ONE voice turn (no seconds on the axis — the only timed number is the real 0.8 s tail). Every
+     quoted line is verbatim from the repo at the path:line shown: tiny.py:266 (voice rules), tools/reachy_expression.py:89-90,
+     tools/head_tracking.py:114-115 + :28 (SPEAK_TAIL_S), tools/xmos_audio.py:9, tiny.py:446 (BidiAgent). #}
+  <section class="l-stage l-speak" id="speak" data-stage aria-labelledby="l-speak-h">
+    <div class="l-sticky">
+      <div class="l-split l-split--rev">
+        <div class="l-copy">
+          <p class="l-kicker">one realtime session · tools fire during speech</p>
+          <h2 id="l-speak-h">It moves <span class="l-w--accent">while</span> it speaks. Not after.</h2>
+          <p>The voice persona is one Strands <code>BidiAgent</code>: microphone in, speech out, tool calls inside the same response. The gesture lands on the word, face-tracking lets go of the head only while it talks, and you can interrupt it.</p>
+          <ol class="l-notes l-notes--code" aria-label="The lines that make it so">
+            <li class="l-note" data-at="0.08"><span class="l-src">tiny.py:266 · the voice rules</span><code>- Move WHILE you speak — gestures are simultaneous, never before/after.</code></li>
+            <li class="l-note" data-at="0.32"><span class="l-src">tools/reachy_expression.py:89</span><code>Call it alongside speaking, just like neon fires arm gestures.</code></li>
+            <li class="l-note" data-at="0.52"><span class="l-src">tools/head_tracking.py:114 · SpeakingHandoff</span><code>while the model streams speech audio → tracking hold "speaking" (weight 0.0 …); on response complete / interruption → release (weight 1.0) after a short playback tail.</code></li>
+            <li class="l-note" data-at="0.8"><span class="l-src">tools/xmos_audio.py:9 · XVF3800</span><code>PP_NLATTENONOFF=0  suppression 17 dB → 4 dB; barge-in confirmed by the owner.</code></li>
+          </ol>
+        </div>
+        <figure class="l-fig">
+          <div class="l-score" role="img" aria-label="A score of one voice turn: you speak; TINY answers while the reachy_express tool fires and the recorded move plays under the words; face tracking drops to weight 0 for the speech and returns 0.8 seconds after the last audio; you talk over it and it stops mid-sentence.">
+            <div class="l-score__head"><span>one turn</span><span class="l-score__legend">▮ audio · ▬ tool · ─ tracking weight</span></div>
+            <div class="l-lane"><span class="l-lane__k">you</span><span class="l-bar l-bar--voice" style="--a:.02;--b:.24"></span><span class="l-bar l-bar--voice" style="--a:.76;--b:.92"><i class="l-tag l-tag--r">barge-in</i></span></div>
+            <div class="l-lane"><span class="l-lane__k">TINY</span><span class="l-bar l-bar--speech" style="--a:.30;--b:.78"><i class="l-tag">speech · cut mid-sentence</i></span></div>
+            <div class="l-lane"><span class="l-lane__k">tool</span><span class="l-bar l-bar--tool" style="--a:.33;--b:.36"><i class="l-tag">reachy_express("curious")</i></span><span class="l-bar l-bar--move" style="--a:.36;--b:1"><i class="l-tag">curious1 plays under the words →</i></span></div>
+            <div class="l-lane l-lane--track"><span class="l-lane__k">tracking</span><span class="l-track" style="--a:.30;--b:.78;--tail:.06"><i class="l-tag l-tag--w1">weight 1</i><i class="l-tag l-tag--w0">0 while it speaks</i><i class="l-tag l-tag--tail">+0.8 s tail → 1</i><b class="l-track__low"></b></span></div>
+            <span class="l-playhead" aria-hidden="true"></span>
+          </div>
+          <figcaption class="l-caption">schematic of one turn — positions are not to scale; the tail is <code>SPEAK_TAIL_S = 0.8</code> (tools/head_tracking.py:28), mic 16 kHz resampled to the model (tiny.py:451)</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
 </div>
 <script src="{{ 'js/landing/landing.js' | url }}" defer></script>
 {% endblock %}
