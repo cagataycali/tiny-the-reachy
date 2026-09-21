@@ -125,6 +125,14 @@ html:not(.l-js) .l-note, .l-stage.is-static .l-note { color: var(--l-ink-3); tra
 .l-playhead::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 100%; border-left: 2px solid var(--l-accent); transform: translateX(calc(var(--p, 1) * 100%)); will-change: transform; }
 html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html:not(.l-js) .l-playhead { display: none; }
 
+/* ---- 4 · the body: four pixel-aligned layer renders; --p lifts them apart (transform only) ---- */
+.l-explode { position: relative; width: min(100%, 24rem, 66vh * 760 / 900); margin: 0 auto; }
+.l-layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; will-change: transform; --lift: 0; transform: translateY(calc(var(--p, 1) * var(--lift) * -1%)); }
+.l-layer--base { --lift: -7; } .l-layer--stewart { --lift: -2; } .l-layer--head { --lift: 6; } .l-layer--antennas { --lift: 14; }
+.l-notes--body .l-note b { display: block; font-family: var(--l-sans); font-weight: 700; color: var(--l-ink-3); font-size: 1.05em; margin: 0 0 .1rem; }
+.l-notes--body code { font-size: .82em; }
+.l-notes--body { gap: .7rem; }
+
 /* ---- fallbacks ---- */
 @media (max-width: 60em) {
   .landing .l-stage { height: 260vh; }
@@ -138,6 +146,10 @@ html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html
   .l-caption--seq .l-caption__k { display: none; }
   .l-frame { width: min(46vw, 15rem, 34vh * 660 / 780); }
   .l-split--rev .l-copy { order: 1; } .l-split--rev .l-fig { order: 0; }
+  .l-explode { width: min(50vw, 15rem, 36vh * 760 / 900); }
+  .l-body .l-copy > p:not(.l-kicker) { display: none; }
+  html.l-js .l-body:not(.is-static) .l-note:not(.is-now) { display: none; }
+  html.l-js .l-body:not(.is-static) .l-notes:not(:has(.is-now)) .l-note:first-child { display: block; }
   .l-speak .l-copy > p:not(.l-kicker) { display: none; }
   html.l-js .l-speak:not(.is-static) .l-note:not(.is-now) { display: none; }
   html.l-js .l-speak:not(.is-static) .l-notes:not(:has(.is-now)) .l-note:first-child { display: block; }
@@ -151,5 +163,6 @@ html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html
 @media (prefers-reduced-motion: reduce) {
   .l-h1 .l-w, .l-hero .l-copy > *, .l-still, .l-orbit { animation: none; transform: none; }
   .l-note { transition: none; transform: none; color: var(--l-ink-3); }
+  .l-layer { transform: translateY(calc(var(--lift) * -1%)); }
 }
 html:not(.l-js) .l-h1 .l-w, html:not(.l-js) .l-hero .l-copy > * { animation: none; transform: none; }

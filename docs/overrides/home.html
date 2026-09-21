@@ -112,6 +112,38 @@
     </div>
   </section>
 
+  {# ------------------------------------------------------------------ 4 · THE BODY
+     Four layers = the 18 MuJoCo bodies of twin.xml (dashboard/frontend/public/model/, MuJoCo 3.13.0, 41 meshes, 161 geoms),
+     each rendered alone from the hi pack with the same camera (tools/landing/render_twin.mjs … only=<bodies>[&noshadow=1]) so they
+     stack pixel-exact; scroll pulls them apart (transform only). Every name/number below is from twin.xml: 9 <position> actuators
+     (yaw_body ±2.79 rad, stewart_1..6 hinges + passive_1..6 ball joints, right/left_antenna), sites camera_optical + head. #}
+  <section class="l-stage l-body" id="body" data-stage aria-labelledby="l-body-h">
+    <div class="l-sticky">
+      <div class="l-split">
+        <figure class="l-fig">
+          <div class="l-explode" style="aspect-ratio: 760 / 900" role="img" aria-label="Exploded view of TINY's twin: the two antennas lift off the head, the head lifts off its six-rod Stewart platform, and the platform lifts off the 3D-printed body that turns on its foot.">
+            <img class="l-layer l-layer--base" src="{{ 'assets/landing/body/base.webp' | url }}" width="760" height="900" loading="lazy" decoding="async" alt="">
+            <img class="l-layer l-layer--stewart" src="{{ 'assets/landing/body/stewart.webp' | url }}" width="760" height="900" loading="lazy" decoding="async" alt="">
+            <img class="l-layer l-layer--head" src="{{ 'assets/landing/body/head.webp' | url }}" width="760" height="900" loading="lazy" decoding="async" alt="">
+            <img class="l-layer l-layer--antennas" src="{{ 'assets/landing/body/antennas.webp' | url }}" width="760" height="900" loading="lazy" decoding="async" alt="">
+          </div>
+          <figcaption class="l-caption">the same twin, one MuJoCo body group per layer · <code>twin.xml</code> · MuJoCo 3.13.0 · 41 meshes · 161 geoms · 9 actuators</figcaption>
+        </figure>
+        <div class="l-copy">
+          <p class="l-kicker">18 bodies · 9 motors · one <code>twin.xml</code></p>
+          <h2 id="l-body-h">Nine motors. <span class="l-w--accent">One face.</span></h2>
+          <p>The dashboard's digital twin is the robot's own MuJoCo model, so this is not an illustration — it is the geometry the daemon solves against, split by body group.</p>
+          <ol class="l-notes l-notes--body" aria-label="The four layers">
+            <li class="l-note" data-at="0.12"><b>antennas</b> two hinges, <code>right_antenna</code> · <code>left_antenna</code> — the fastest tell of a mood (curious1 throws one to 77° and the other to −85°)</li>
+            <li class="l-note" data-at="0.36"><b>head</b> body <code>xl_330</code> with the <code>camera_optical</code> site — the face-finding camera; six degrees of freedom: roll, pitch, yaw and a little x y z</li>
+            <li class="l-note" data-at="0.6"><b>Stewart platform</b> six <code>stewart_1…6</code> hinges on six rods with <code>passive_1…6</code> ball joints — the head has no neck motor; six arms hold it up and tilt it together</li>
+            <li class="l-note" data-at="0.84"><b>body</b> <code>yaw_body</code> ±160° on the 3D-printed foot; inside the shell: a Raspberry Pi CM4, four microphones and the speaker</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </div>
 <script src="{{ 'js/landing/landing.js' | url }}" defer></script>
 {% endblock %}
