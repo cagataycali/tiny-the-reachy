@@ -9,12 +9,9 @@ verified: 2026-09-17
 # Operations — keeping TINY alive
 
 !!! abstract "In 10 seconds"
-    - One `ssh reachy` line + one `curl $COCKPIT/api/health` tell you unit states, load, disk and the daemon's fd pressure — run it first.
-    - The daemon's fd limit (1024 → 65536) and media release/acquire cycles caused every early outage; `restart`, never `stop`, the dashboard.
-    - Budgets on the CM4: load ~2.5 idle, +1.0–1.5 with face tracking; daemon ~60 % CPU idle, ~135 % tracking; disk 89 % — no new venvs.
-    - Before a demo: thinker off (`demo on`), fds < ~800, tracking + turn-to-sound on, volume 60. After: `demo off`.
-
-Four cores, 4 GB, a 14 GB card 89 % full, and one process — Pollen's daemon — that owns every sensor and motor. Everything we run competes with it.
+    - Run the health check first.
+    - The daemon's fd limit and media release/acquire cycles caused every early outage; `restart`, never `stop`.
+    - Before a demo: `demo on`, fds &lt; ~800. After: `demo off`.
 
 ## The 60-second health check
 
@@ -25,7 +22,7 @@ ssh reachy 'systemctl --user is-active tiny-wake tiny-tts tiny-voice tiny-telegr
 curl -s $COCKPIT/api/health | jq '{daemon: .daemon, camera: .camera.fps, pressure: .pressure, stream: .stream}'
 ```
 
-Healthy (2026-09-17): seven `active`, load 3–4, daemon 300–600 fds of 65536, camera 10 fps, `close_wait` 0, `stream.connected` at 10 Hz.
+Healthy: seven `active`, load 3–4, 300–600 fds, `close_wait` 0.
 
 ```bash
 journalctl _SYSTEMD_USER_UNIT=tiny-voice.service --since "10 min ago" -o cat        # journalctl --user finds nothing on the CM4
@@ -36,12 +33,12 @@ journalctl -u reachy-mini-daemon --since "5 min ago" -o cat | grep -oE '"(GET|PO
 
 | when (BST) | what you saw | root cause | fix |
 |---|---|---|---|
-| 09-16 ~23:00 | every persona *"Lost connection with the server"* for 12 min after a daemon restart | SDK client never reconnects; `_is_alive` stays False | `get_mini()` rebuilds a dead client |
-| 09-17 03:05 | cockpit dark 2 min | `systemctl stop` + SIGKILL at 8 s; uvicorn waits on MJPEG clients, a *stop* job never auto-restarts | `timeout_graceful_shutdown=2`; only ever `restart` |
-| 09-17 05:29 | camera, tracking, DoA dead 10 min; daemon 109 % CPU | **1024/1024 fds**: 614 CLOSE-WAIT sockets — dashboard ~1300 req/min on fresh TCP, `tiny-mhs` crash-looping every 40 s releasing media | one keep-alive session + one state WebSocket (≈160 req/min); `LimitNOFILE=65536`; watchdog; mhs gated |
-| 09-17 06:20 | fds climbing ~1/s, load 6, voice "up" every 5–80 s | `tiny-voice` crash-looped on `invalid_api_key`, **every attempt POSTed `/api/media/release`** — each one rebuilt the daemon's pipeline and leaked ~30 unix sockets | `prlimit` live; key replaced; `voice_listener` no longer releases media on retry, backs off (`3fc0e23`) |
+| 09-16 23:00 | every persona *"Lost connection"* 12 min after a daemon restart | SDK client never reconnects | `get_mini()` rebuilds it |
+| 09-17 03:05 | cockpit dark 2 min | `stop` + SIGKILL; uvicorn waits on MJPEG clients | `timeout_graceful_shutdown=2` |
+| 09-17 05:29 | perception dead 10 min | **1024/1024 fds**, 614 CLOSE-WAIT — ~1300 req/min on fresh TCP; `tiny-mhs` crash-looping | one session + one WebSocket; `LimitNOFILE=65536`; watchdog; mhs gated |
+| 09-17 06:20 | fds climbing ~1/s, 0 CLOSE-WAIT | `tiny-voice` crash-looped on a bad key, **releasing media every retry** — ~30 leaked unix sockets each | `prlimit` live; release once, back off (`3fc0e23`) |
 
-The lesson of the fourth row: **a persona that cannot start must not touch the daemon's media.** The ⚠ pill (fds > 60 % or ≥ 50 CLOSE-WAIT) is the early warning; the access log says who.
+**A persona that cannot start must not touch the daemon's media** — and watch fds, not CLOSE-WAIT.
 
 ## Live mitigations (no reboot)
 
@@ -56,26 +53,24 @@ sudo systemctl restart reachy-mini-daemon                                       
 
 ## Budgets
 
-| resource | idle | face tracking | dashboard camera | note |
+| resource | idle | face tracking | camera | note |
 |---|---|---|---|---|
-| load (4 cores) | ~2.5 | +1.0–1.5 | +0.5 | tracking ON by default; `F` when the temperature pill goes amber |
-| daemon CPU | ~60 % | ~135 % | — | YuNet runs inside the daemon |
-| daemon fds | 300–600 | — | — | +≈30 leaked per release/acquire cycle |
-| requests to :8000 | ≈160/min | — | — | the 2 Hz face poll is the largest caller |
+| load (4 cores) | ~2.5 | +1.0–1.5 | +0.5 | `F` when the temperature pill is amber |
+| daemon CPU | ~60 % | ~135 % | — | YuNet |
+| daemon fds | 300–600 | — | — | +≈30 per release/acquire |
+| requests to :8000 | ≈160/min | — | — | face poll is the largest |
 | disk | 89 % | | | 1.5 GB free |
 
 ## Before a demo
 
-1. `POST /api/control/demo {"on":true}` (`D`) — thinker off; that also stops the Telegram photo banners.
-2. Health check; `pressure.fds` under ~800 or raise the limit live.
-3. Tracking and turn-to-sound on — both default on.
-4. Volume: *"TINY, normal volume"* or `POST /api/volume {"level":60}`.
-5. After: `demo off` — the heartbeat keeps the Telegram photo stream alive.
+1. `POST /api/control/demo {"on":true}` (`D`) — thinker off.
+2. Health check; fds under ~800.
+3. `POST /api/volume {"level":60}`.
+4. After: `demo off` — the heartbeat feeds the Telegram photos.
 
 ## What we never do
 
-- `git push` from the robot or copy `.env` anywhere — the repo is public.
+- `git push` from the robot — the repo is public.
 - Expose `:8000` — no auth.
-- `stop` the dashboard during a demo — `restart`.
-- Poll the daemon from new code — read `robot.stream`, or `/api/state` from outside.
-- `pip install` on the CM4 without `df -h` first.
+- Poll the daemon from new code — read `robot.stream`.
+- `pip install` on the CM4 without `df -h`.

@@ -1,11 +1,16 @@
-# the family
+---
+title: The family — one brain, three bodies
+description: "NEON walks, SCOUT rolls, TINY emotes. The cross-persona nervous system is copied verbatim between them; only the layer that touches hardware changes."
+for: anyone who knows one of the three robots
+proof: code
+verified: 2026-09-21
+---
 
-<span class="read-badge">⏱ 45s</span>
+# The family — one brain, three bodies
 
-TINY is one of three robots built on the **same shared brain, different body**.
-If you know one, you know all three — the cross-persona nervous system (memory
-+ agent_log + voice_bridge) is copied verbatim between them. Only the robot
-tool layer changes.
+!!! abstract "In 10 seconds"
+    - Same four personas, same SQLite brain, same deploy shape, same agent factory — `memory · agent_log · voice_bridge · telegram · dispatch` are byte-identical across repos.
+    - Only the hardware layer differs: NEON gates arms and legs behind an FSM and a mutex; SCOUT sends ROS velocities; TINY talks plain HTTP/WS to a daemon and has no danger class.
 
 | robot | body | control layer | mirrors |
 |---|---|---|---|
@@ -25,24 +30,9 @@ flowchart TB
   class NEON,SCOUT,TINY r
 ```
 
-## what's identical
+A fix to the brain in one repo is a fix everywhere ([the brain](../guide/brain.md)). TINY's personality lives in head + antennas + the emotion library; NEON's in a heavy image with DDS and librealsense.
 
-- **4 personas** — shell · voice · telegram · thinker
-- **shared SQLite brain** — `.memory/mem.db`, unified reasoning log, voice bridge
-- **deploy shape** — docker-compose stack + systemd units, boots on power-on
-- **single source of truth** — one agent factory, one tool list
-
-## what's different
-
-Only the hardware layer:
-
-- **NEON** gates walking/arms behind an FSM + a single-writer arm mutex; has DDS,
-  CycloneDDS, librealsense in a heavy image.
-- **SCOUT** issues ROS velocity commands to a mobile base.
-- **TINY** talks plain HTTP/WS to the Reachy daemon; no FSM, no danger class,
-  a light image. Personality lives in head + antennas + emotion library.
-
-## links
+## Repos
 
 - [neon-the-g1](https://github.com/cagataycali/neon-the-g1)
 - [scout-the-rover](https://github.com/cagataycali/scout-the-rover)

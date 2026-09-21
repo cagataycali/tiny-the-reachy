@@ -9,10 +9,9 @@ verified: 2026-09-17
 # Systemd — how TINY boots
 
 !!! abstract "In 10 seconds"
-    - Pollen's `reachy-mini-daemon` (system unit, `:8000`) owns the hardware and boots **asleep**; `tiny-wake` energises the motors 8 s later and exits.
-    - Eight `pollen` user units survive reboots via linger: wake · tts · voice · telegram · thinker · dashboard (`:8097`) · tunnel · mhs (gated).
-    - `restart`, never `stop`, during a demo — a stopped unit does not come back.
-    - `make install-bare-services` installs the three-persona subset anywhere (`scripts/systemd/robot/` = the CM4 variants).
+    - Pollen's `reachy-mini-daemon` (`:8000`) owns the hardware and boots **asleep**; `tiny-wake` energises the motors 8 s later.
+    - Eight user units survive reboots via linger: wake · tts · voice · telegram · thinker · dashboard · tunnel · mhs.
+    - `restart`, never `stop` — a stopped unit does not come back.
 
 ```mermaid
 flowchart TD
@@ -31,22 +30,22 @@ flowchart TD
 
 | unit | scope | why it exists |
 |---|---|---|
-| `reachy-mini-daemon` | system | Pollen's daemon — motors, camera, audio, `:8000`. Drop-in `LimitNOFILE=65536` (it hit 1024 — [Perception](../PERCEPTION.md)) |
-| `reachy-daemon-watchdog.timer` | system | every 30 s from 180 s after boot; restarts the daemon after three failed `GET /api/daemon/status` |
-| `tiny-wake` | user, oneshot | energises the motors once, **hard-exits** so no SDK socket lingers. **Boot volume floor**: `alsa-state` persists the mixer, so a robot unplugged while silent boots deaf — volume < `REACHY_BOOT_VOLUME_MIN` (60) is raised |
-| `tiny-tts` | user | offline Piper `en_US-lessac-medium` (~2.6 s/sentence) for the text personas and **Say**; own venv |
-| `tiny-voice` · `tiny-telegram` · `tiny-thinker` | user | the personas, `Restart=on-failure`. Demo mode stops/starts exactly `tiny-thinker` |
-| `reachy-dashboard` | user | the cockpit: `Restart=always`, `Nice=5`, `TimeoutStopSec=8`, `KillMode=mixed`; env = repo `.env` + `~/.reachy-dashboard.env` |
-| `reachy-tunnel` | user | named Cloudflare tunnel → `http://127.0.0.1:8097`, everything else `404` |
-| `tiny-mhs` | user, gated | zenoh mount; drop-in `broker-gate.conf` runs `nc -z` first — sits in *activating (auto-restart)* off-site, by design |
+| `reachy-mini-daemon` | system | Pollen's daemon — motors, camera, audio. Drop-in `LimitNOFILE=65536` (it hit 1024) |
+| `reachy-daemon-watchdog.timer` | system | every 30 s; restarts the daemon after three failed `GET /api/daemon/status` |
+| `tiny-wake` | user, oneshot | energises the motors once, **hard-exits** so no SDK socket lingers. **Boot volume floor**: a robot unplugged while silent boots deaf — anything under `REACHY_BOOT_VOLUME_MIN` (60) is raised |
+| `tiny-tts` | user | offline Piper `en_US-lessac-medium` (~2.6 s/sentence) for the text personas and **Say** |
+| `tiny-voice` · `tiny-telegram` · `tiny-thinker` | user | the personas, `Restart=on-failure`; demo mode stops exactly `tiny-thinker` |
+| `reachy-dashboard` | user | the cockpit: `Restart=always`, `TimeoutStopSec=8`; env = `.env` + `~/.reachy-dashboard.env` |
+| `reachy-tunnel` | user | Cloudflare tunnel → `:8097`, everything else `404` |
+| `tiny-mhs` | user, gated | zenoh mount; `broker-gate.conf` runs `nc -z` first — *activating* off-site, by design |
 
-Voice, telegram, thinker, dashboard carry a `tiny-mcp.conf` drop-in — the [fleet token](../MCP.md). Remove it; nothing else changes.
+Voice, telegram, thinker, dashboard carry a `tiny-mcp.conf` drop-in — the [fleet token](../MCP.md).
 
 !!! warning "Lessons the units encode"
-    - **`After=` is not enough.** The daemon answers HTTP seconds before the motors are ready; hence sleep 8 + 20 retries.
-    - **Never `stop reachy-dashboard` in a demo — `restart`.** uvicorn waited on open MJPEG clients: ~90 s before `timeout_graceful_shutdown=2`.
-    - **Every persona restart used to kill the camera.** A `no_media` SDK client releases the daemon's media; the dashboard re-acquires within a second.
-    - **A dead SDK client stays dead.** After a daemon restart every persona said *"Lost connection with the server"* for 12 minutes — until `get_mini()` learned to rebuild a client whose `_is_alive` is false.
+    - **`After=` is not enough.** The daemon answers HTTP seconds before the motors are ready — sleep 8 + 20 retries.
+    - **Never `stop reachy-dashboard` — `restart`.** uvicorn waited ~90 s on open MJPEG clients before `timeout_graceful_shutdown=2`.
+    - **Every persona restart used to kill the camera.** A `no_media` client releases the daemon's media; the dashboard re-acquires within a second.
+    - **A dead SDK client stays dead.** After a daemon restart every persona said *"Lost connection"* for 12 minutes — until `get_mini()` learned to rebuild a client whose `_is_alive` is false.
 
 ## Day-to-day
 
@@ -60,8 +59,6 @@ curl -s localhost:8097/api/health | jq .pressure
 sudo systemctl restart reachy-mini-daemon       # last resort; personas reconnect
 ```
 
-No Docker on the CM4 — `docker-compose.yml` is for a laptop next to a Lite ([Docker](docker.md)).
-
 ## The repo way
 
 ```bash
@@ -71,4 +68,4 @@ make service-status
 ```
 
 !!! tip "Linger"
-    `loginctl show-user $USER -p Linger` must say `yes`, or the units stop with the last SSH session — which looks exactly like "the robot forgot everything overnight".
+    `loginctl show-user $USER -p Linger` must say `yes`, or the units stop with the last SSH session — "the robot forgot everything overnight".

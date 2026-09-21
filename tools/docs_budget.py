@@ -36,22 +36,17 @@ PAGE_HAND = 300
 PAGE_SOUL = 400
 PAGE_TOOL = 120
 PAGE_TOOLS_INDEX = 200
-PAGE_TABLE_MAX = {"reference/env.md": 1600, "reference/api.md": 900}  # tables only; 110 vars × (name+default+≤12 words+link) cannot fit 900 — see JOURNAL it5
+PAGE_TABLE_MAX = {"reference/env.md": 1300, "reference/api.md": 650}  # tables only; 110 vars × (name+default+≤7 words+link) — see JOURNAL it5/it10
 SITE_TARGET = 6400
-SITE_CEILING = 8600      # ratchet — lower with every cut, never raise (16,044 → 12,102 it5 → 10,532 it6 → 9,582 it7 → 8,468 it8)
+SITE_CEILING = 7600      # ratchet — lower with every cut, never raise (16,044 → 12,102 it5 → 10,532 it6 → 9,582 it7 → 8,468 it8 → 8,2xx it9; it9 also fixed _TAG, which had hidden "(< 1.5 s) … > 60 %" spans — earlier totals were ~1–3 % low)
 SOUL = {"showcase/personas.md", "start/robot.md", "start/systemd.md"}
 TABLES = {"reference/env.md", "reference/api.md"}
 SKIP = {"index.md", "scripts/README.md", "design-assets/README.md", "LIVE_DEPLOY.md"}  # landing (HQ lane) + mkdocs exclude_docs (dev notes, not pages)
-GRACE: set[str] = {      # pages not yet rewritten under this budget: reported, not failed. Only ever shrinks.
-    "PERCEPTION.md",
-    
-    "reference/daemon.md", "reference/family.md",
-    "showcase/expression.md",
-}
+GRACE: set[str] = set()  # every page has been rewritten under this budget (it9) — the set only ever shrinks, and it is now empty
 
 _FENCE = re.compile(r"^(\s*)(```|~~~)")
 _FRONT = re.compile(r"\A---\n.*?\n---\n", re.S)
-_TAG = re.compile(r"<[^>]+>")
+_TAG = re.compile(r"</?[A-Za-z!][^<>]*>")   # a real tag, not "(< 1.5 s) … > 60 %" prose
 _SNIPPET = re.compile(r'^\s*-{2}8<-{2}\s*"([^"]+)"\s*$')
 _WORD = re.compile(r"[A-Za-z0-9\u00C0-\u024F][\w'’\-.]*", re.U)
 

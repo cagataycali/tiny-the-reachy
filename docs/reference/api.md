@@ -9,16 +9,15 @@ verified: 2026-09-21
 # Dashboard API
 
 !!! abstract "In 10 seconds"
-    - Generated from `dashboard/server.py` (+ the passkey router in `dashboard/auth.py`) by `scripts/routedoc.py` at every build; *params* are the keys the handler reads, *anonymous?* is what `_gate` decides.
-    - `/api/health` is the only public `/api/*` route. Everything else: owner bearer, passkey session, or loopback.
-    - Control routes need a same-origin `Origin` (403) and are rate-limited to `REACHY_RATE_LIMIT` (5/s → 429).
-    - `/ws` carries three frame kinds: `state` (= `GET /api/state`), `agent_log` (brain rows by persona), `event` (receipts like `look ok yaw=9`).
+    - Generated from `dashboard/server.py` + `dashboard/auth.py` at every build; *anonymous?* is what `_gate` decides.
+    - `/api/health` is the only public route. Control routes need a same-origin `Origin` (403) and `REACHY_RATE_LIMIT` (5/s → 429).
+    - `/ws` carries `state`, `agent_log` (brain rows by persona) and `event` receipts.
 
 | key | how | who |
 |---|---|---|
-| owner bearer | `Authorization: Bearer $REACHY_TOKEN`, or `?token=` for `<img>`/WebSocket URLs | iOS app, curl, personas off-robot |
-| passkey | WebAuthn cookie (`REACHY_SESSION_TTL` 12 h) after `/api/auth/login/*`; first enrolment TOFU, later ones need `REACHY_REG_TOKEN` | the owner's browser |
-| loopback | `127.0.0.1` + loopback `Host`, no `cf-connecting-ip` — reads everywhere (`REACHY_LOOPBACK_READS=1`), writes on `/api/tracking*` | `tools/reachy_camera.py`, `tools/head_tracking.py` |
+| owner bearer | `Authorization: Bearer $REACHY_TOKEN`, or `?token=` for `<img>`/WebSocket | iOS app, curl, personas off-robot |
+| passkey | WebAuthn cookie, 12 h; first enrolment TOFU, later ones need `REACHY_REG_TOKEN` | the owner's browser |
+| loopback | `127.0.0.1`, no `cf-connecting-ip` — reads everywhere, writes on `/api/tracking*` | `reachy_camera.py`, `head_tracking.py` |
 
 ```sh
 COCKPIT=http://127.0.0.1:8097          # on the robot; off it, your own tunnel or SSH forward
@@ -39,85 +38,85 @@ curl -s -H "Authorization: Bearer $REACHY_TOKEN" -H 'Content-Type: application/j
 
 | method | path | params | anonymous? | what |
 |---|---|---|---|---|
-| `GET` | `/api/ask/last` | — | 🔒 key | Whether an Ask turn is running and the last answer. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L413">src</a> |
-| `GET` | `/api/emotions` | — | 🔒 key | The recorded-move library the daemon exposes (81 moves on 1.10). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L280">src</a> |
-| `GET` | `/api/health` | — | ✅ public | Liveness, daemon reachability, camera, fd pressure, stream status. Public. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L267">src</a> |
-| `GET` | `/api/log` | `n`: int, `after`: int | 🔒 key | Tail of the cross-persona agent log (`n` ≤ 300, `after` = row id) + events. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L284">src</a> |
-| `GET` | `/api/state` | — | 🔒 key | Full robot state: pose, motors, daemon Hz, CM4 stats, services, tracking. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L276">src</a> |
-| `GET` | `/api/telemetry` | — | 🔒 key | State + camera status — the tiny.technology endpoint-device `telemetry` action. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L323">src</a> |
+| `GET` | `/api/ask/last` | — | 🔒 key | Is an Ask running; the last answer. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L413">src</a> |
+| `GET` | `/api/emotions` | — | 🔒 key | The daemon's recorded-move library (81 on 1.10). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L280">src</a> |
+| `GET` | `/api/health` | — | ✅ public | Liveness, daemon, camera, fd pressure. Public. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L267">src</a> |
+| `GET` | `/api/log` | `n`: int, `after`: int | 🔒 key | Agent-log tail (`n` ≤ 300, `after` = row id). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L284">src</a> |
+| `GET` | `/api/state` | — | 🔒 key | Full robot state: pose, motors, services, tracking. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L276">src</a> |
+| `GET` | `/api/telemetry` | — | 🔒 key | State + camera — the endpoint-device `telemetry` action. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L323">src</a> |
 
 ### Camera
 
 | method | path | params | anonymous? | what |
 |---|---|---|---|---|
-| `GET` | `/api/camera/snapshot` | — | 🔒 key | Alias of `/api/snapshot.jpg` — the endpoint-device `snapshot` action. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L331">src</a> |
-| `GET` | `/api/snapshot.jpg` | — | 🔒 key | Latest JPEG frame (503 while the camera has none). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L289">src</a> |
-| `GET` | `/api/stream` | — | 🔒 key | MJPEG from the dashboard camera — one daemon client shared by every viewer. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L296">src</a> |
+| `GET` | `/api/camera/snapshot` | — | 🔒 key | Alias — the endpoint-device `snapshot` action. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L331">src</a> |
+| `GET` | `/api/snapshot.jpg` | — | 🔒 key | Latest JPEG (503 while none). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L289">src</a> |
+| `GET` | `/api/stream` | — | 🔒 key | MJPEG — one daemon client for every viewer. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L296">src</a> |
 
 ### Control
 
 | method | path | params | anonymous? | what |
 |---|---|---|---|---|
-| `POST` | `/api/control/antennas` | JSON {right, left, duration} | 🔒 key | Antenna angles in degrees. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L355">src</a> |
-| `POST` | `/api/control/ask` | JSON {text} | 🔒 key | Dashboard Ask turn (persona `dashboard`, full tools) → `/ws` `agent_log` rows. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L405">src</a> |
-| `POST` | `/api/control/demo` | JSON {on} | 🔒 key | Demo mode: `on: true` pauses tiny-thinker so manual moves are not overlapped. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L479">src</a> |
+| `POST` | `/api/control/antennas` | JSON {right, left, duration} | 🔒 key | Antenna angles, degrees. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L355">src</a> |
+| `POST` | `/api/control/ask` | JSON {text} | 🔒 key | Dashboard Ask turn → `/ws` `agent_log` rows. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L405">src</a> |
+| `POST` | `/api/control/demo` | JSON {on} | 🔒 key | `on: true` pauses tiny-thinker. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L479">src</a> |
 | `POST` | `/api/control/express` | JSON {name} | 🔒 key | Play a recorded move by `name`. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L361">src</a> |
 | `POST` | `/api/control/home` | — | 🔒 key | Neutral pose. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L372">src</a> |
-| `POST` | `/api/control/look` | JSON {antennas, roll, pitch, yaw, x, y, z, body_yaw, duration} | 🔒 key | Head pose in degrees/mm (clamped), optional `antennas`, `body_yaw`, `duration`. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L345">src</a> |
+| `POST` | `/api/control/look` | JSON {antennas, roll, pitch, yaw, x, y, z, body_yaw, duration} | 🔒 key | Head pose (clamped), optional `antennas`, `body_yaw`, `duration`. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L345">src</a> |
 | `POST` | `/api/control/motors` | JSON {mode} | 🔒 key | `mode`: enabled · disabled · gravity_compensation. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L387">src</a> |
-| `POST` | `/api/control/reel` | JSON {action} | 🔒 key | Start the showcase reel (`action: start`) or `abort` it. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L417">src</a> |
-| `POST` | `/api/control/say` | JSON {text} | 🔒 key | Piper TTS → daemon `play_sound` with head wobble; returns `{engine, seconds}`. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L400">src</a> |
+| `POST` | `/api/control/reel` | JSON {action} | 🔒 key | Showcase reel: `start` or `abort`. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L417">src</a> |
+| `POST` | `/api/control/say` | JSON {text} | 🔒 key | Piper TTS with head wobble → `{engine, seconds}`. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L400">src</a> |
 | `POST` | `/api/control/sleep` | — | 🔒 key | Sleep pose, motors relaxed. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L382">src</a> |
 | `POST` | `/api/control/stop` | — | 🔒 key | E-stop: cancel the running move. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L367">src</a> |
-| `POST` | `/api/control/volume` | JSON {level} | 🔒 key | Speaker volume `level` 0–100 (→ daemon `/api/volume/set`). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L392">src</a> |
-| `POST` | `/api/control/wake` | — | 🔒 key | Wake the daemon (motors on, wake emote). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L377">src</a> |
+| `POST` | `/api/control/volume` | JSON {level} | 🔒 key | Speaker `level` 0–100. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L392">src</a> |
+| `POST` | `/api/control/wake` | — | 🔒 key | Motors on, wake emote. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L377">src</a> |
 
 ### Ask / chat
 
 | method | path | params | anonymous? | what |
 |---|---|---|---|---|
-| `POST` | `/api/chat` | JSON {prompt, text} | 🔒 key | One fleet agent turn (depth-capped, no use_device); waits ≤ 75 s. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L335">src</a> |
+| `POST` | `/api/chat` | JSON {prompt, text} | 🔒 key | One fleet agent turn; waits ≤ 75 s. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L335">src</a> |
 
 ### Perception
 
 | method | path | params | anonymous? | what |
 |---|---|---|---|---|
-| `GET` | `/api/tracking` | — | 🔒 key | Face-tracking controller status: enabled, detected, x/y, holds, paused, engine `daemon-yunet`. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L438">src</a> |
-| `POST` | `/api/tracking` | JSON {enabled} | 🔒 key | Daemon face tracker on/off (`enabled`); loopback ok — the `head_tracking` tool. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L442">src</a> |
-| `POST` | `/api/tracking/hold` | JSON {on, ttl, name} | 🔒 key | Named hold (`name`, `on`, `ttl`) pausing tracking while TINY speaks or emotes. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L462">src</a> |
+| `GET` | `/api/tracking` | — | 🔒 key | Face-tracking status: detected, x/y, holds, paused. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L438">src</a> |
+| `POST` | `/api/tracking` | JSON {enabled} | 🔒 key | Tracker on/off (`enabled`); loopback ok. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L442">src</a> |
+| `POST` | `/api/tracking/hold` | JSON {on, ttl, name} | 🔒 key | Named hold (`name`, `on`, `ttl`) while TINY speaks. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L462">src</a> |
 
 ### Auth
 
 | method | path | params | anonymous? | what |
 |---|---|---|---|---|
-| `GET` | `/api/auth/credentials` | — | ✅ public | List enrolled passkeys (owner only). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L499">src</a> |
-| `DELETE` | `/api/auth/credentials/{cid}` | — | ✅ public | Remove a passkey (owner only). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L510">src</a> |
+| `GET` | `/api/auth/credentials` | — | ✅ public | List passkeys (owner). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L499">src</a> |
+| `DELETE` | `/api/auth/credentials/{cid}` | — | ✅ public | Remove a passkey (owner). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L510">src</a> |
 | `POST` | `/api/auth/login/begin` | — | ✅ public | WebAuthn assertion options. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L454">src</a> |
-| `POST` | `/api/auth/login/complete` | — | ✅ public | Verify the assertion, set the session cookie (12 h). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L467">src</a> |
-| `POST` | `/api/auth/logout` | — | ✅ public | Drop the passkey session cookie. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L369">src</a> |
-| `POST` | `/api/auth/register/begin` | — | ✅ public | WebAuthn registration options (first passkey = TOFU; afterwards needs `REACHY_REG_TOKEN`). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L389">src</a> |
+| `POST` | `/api/auth/login/complete` | — | ✅ public | Verify, set the session cookie. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L467">src</a> |
+| `POST` | `/api/auth/logout` | — | ✅ public | Drop the session cookie. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L369">src</a> |
+| `POST` | `/api/auth/register/begin` | — | ✅ public | WebAuthn registration options (TOFU, then `REACHY_REG_TOKEN`). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L389">src</a> |
 | `POST` | `/api/auth/register/complete` | — | ✅ public | Store the new passkey. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L422">src</a> |
-| `GET` | `/api/auth/status` | — | ✅ public | Who am I: passkey session, bearer or anonymous; is TOFU enrolment open. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L355">src</a> |
+| `GET` | `/api/auth/status` | — | ✅ public | Who am I; is TOFU enrolment open. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/auth.py#L355">src</a> |
 
 ### Realtime
 
 | method | path | params | anonymous? | what |
 |---|---|---|---|---|
-| `WS` | `/ws` | `sock`: WebSocket | 🔒 key | State at `REACHY_WS_HZ` (15/s) + `agent_log` rows + events; anonymous → 4401. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L487">src</a> |
+| `WS` | `/ws` | `sock`: WebSocket | 🔒 key | State at `REACHY_WS_HZ` + `agent_log` + events; anonymous → 4401. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L487">src</a> |
 
 ### Shell
 
 | method | path | params | anonymous? | what |
 |---|---|---|---|---|
-| `GET` | `/` | — | ✅ public | The SPA shell (Cache-Control no-cache — Cloudflare edge-caches hashed assets, not index.html). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L607">src</a> |
+| `GET` | `/` | — | ✅ public | The SPA shell (no-cache). · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L607">src</a> |
 | `GET` | `/{path:path}` | `path`: str | ✅ public | Static assets / SPA fallback. · <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L598">src</a> |
 
 ### Other
 
 | method | path | params | anonymous? | what |
 |---|---|---|---|---|
-| `GET` | `/api/doa` | — | 🔒 key | Turn-toward-speaker status: enabled, last bearing, why not turning, counters. |
-| `POST` | `/api/doa` | JSON {enabled} | 🔒 key | `{enabled}` — turn toward speech without a face lock (`K`); loopback ok. |
+| `GET` | `/api/doa` | — | 🔒 key | Turn-toward-speaker status and why not. |
+| `POST` | `/api/doa` | JSON {enabled} | 🔒 key | `{enabled}` — turn toward speech (`K`); loopback ok. |
 
 _39 routes · 11 public._
 <!-- /gen:api -->
