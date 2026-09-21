@@ -1,8 +1,20 @@
-# troubleshooting
+---
+title: Troubleshooting
+description: "Symptom → cause → command, for the eight things that actually go wrong: daemon unreachable, motors off, first-call hangs, no camera, silent voice, import-ok-but-nothing-runs, odd poses."
+for: anyone staring at an error string
+proof: robot
+verified: 2026-09-21
+---
 
-<span class="read-badge">⏱ 60s</span>
+# Troubleshooting
 
-## can't connect to the daemon
+!!! abstract "In 10 seconds"
+    - Every tool returns an error *string*, never a traceback — the first line of it names the layer: `connection refused on :8000` (daemon), `motors` (asleep), `media` (camera), `voice` (key or audio device).
+    - Check in this order: daemon (`curl -s localhost:8000/api/daemon/status`) → motors (`reachy_wake`) → media → keys.
+    - On the robot the units restart themselves (`Restart=on-failure`); read *why* with `journalctl _SYSTEMD_USER_UNIT=tiny-voice.service -n 50` before touching anything.
+    - Voice back-off: after a *fatal* provider error the retry delay doubles 5 → 300 s (`VOICE_RESTART_DELAY*`); transient errors (DNS after reboot, a busy audio device) retry in 5 s.
+
+## Cannot connect to the daemon
 
 ```
 reachy_* failed: connection refused on :8000
@@ -20,7 +32,7 @@ Verify the daemon directly:
 curl http://$REACHY_HOST:8000/            # should return the daemon API
 ```
 
-## motors won't move
+## Motors will not move
 
 Check torque mode — motors may be disabled or in gravity-comp:
 
@@ -36,7 +48,7 @@ The emotion library
 first time. Give it a moment; subsequent calls are cached. `reachy_list_emotions`
 warms it too.
 
-## camera returns nothing
+## Camera returns nothing
 
 The daemon owns the camera. If frame grabs conflict:
 
@@ -45,7 +57,7 @@ REACHY_MEDIA_BACKEND=no_media    # let reachy_camera grab transiently
 REACHY_CAMERA_BACKEND=local      # backend used for transient grabs
 ```
 
-## voice persona is silent
+## Voice persona is silent
 
 ```bash
 make voice-status    # is it muted?
@@ -54,7 +66,22 @@ make unmute
 
 Also confirm `OPENAI_API_KEY` (or your chosen `VOICE_PROVIDER`) is set in `.env`.
 
-## everything imports but nothing runs
+On the robot, read the unit before guessing:
+
+```bash
+journalctl _SYSTEMD_USER_UNIT=tiny-voice.service -n 50 --no-pager
+```
+
+| you see | it means | do |
+|---|---|---|
+| `Temporary failure in name resolution` | booted before DNS was up | nothing — transient, retries in 5 s (`voice_listener._is_fatal`) |
+| `[Errno -9985] Device unavailable` | the daemon was still bringing its dmix pipeline up | nothing — transient, retries in 5 s |
+| `invalid_api_key` / `401` | the key in `.env` | fix the key, `systemctl --user restart tiny-voice`; until then the retry delay doubles up to `VOICE_RESTART_DELAY_MAX` (300 s) |
+| up, but you cannot interrupt it | XMOS `PP_NLATTENONOFF=1` (factory) mutes you while it speaks | `VOICE_XMOS_PARAMS` is re-applied at every start (`tools/xmos_audio.py`); check the board answered |
+
+A mid-conversation restart takes ~90 s to hand the session over — the old one drains first.
+
+## Everything imports but nothing runs
 
 Run the smoke test — it isolates import/registration problems from hardware:
 
@@ -64,7 +91,7 @@ make test-tools
 
 If that passes, the issue is connectivity or credentials, not code.
 
-## it fell over / weird pose
+## It fell over / weird pose
 
 ```
 > go home        # reachy_home — back to neutral

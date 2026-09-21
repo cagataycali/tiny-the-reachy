@@ -32,7 +32,7 @@ flowchart TD
   L --> T["tiny-telegram · telegram_listener.py"]
   L --> K["tiny-thinker · thinker_loop.py"]
   L --> DASH["reachy-dashboard · dashboard.server :8097"]
-  L --> TUN["reachy-tunnel · cloudflared → reachy.cagatay.my"]
+  L --> TUN["reachy-tunnel · cloudflared → the owner's hostname"]
   L --> MHS["tiny-mhs · zenoh mount (gated on broker reachability)"]
   DAE -. After= .-> WAKE & V & T & K & DASH
   TTS -.-> V & DASH
@@ -51,7 +51,7 @@ flowchart TD
 | `tiny-telegram` | user | active | `… telegram_listener.py` | Telegram persona. |
 | `tiny-thinker` | user | active | `… thinker_loop.py` | 30 s heartbeat persona. The dashboard's **demo mode** stops/starts exactly this unit. |
 | `reachy-dashboard` | user | active | `/venvs/apps_venv/bin/python -m dashboard.server` | The cockpit on `:8097`. `Restart=always`, `Nice=5`, `TimeoutStopSec=8`, `KillMode=mixed`. Env: repo `.env` **plus** `~/.reachy-dashboard.env` (token, passkey RP id, origin). |
-| `reachy-tunnel` | user | active | `cloudflared tunnel --config ~/.cloudflared/config.yml run reachy` | Named Cloudflare tunnel; ingress `reachy.cagatay.my → http://127.0.0.1:8097`, everything else `404`. `Restart=always`. |
+| `reachy-tunnel` | user | active | `cloudflared tunnel --config ~/.cloudflared/config.yml run reachy` | Named Cloudflare tunnel; ingress `<the owner's hostname> → http://127.0.0.1:8097`, everything else `404`. `Restart=always`. |
 | `tiny-mhs` | user | gated | `python -m demo.mounts.tiny_mount --broker zenoh://…:7447` | Zenoh mount for the MHS demo. Drop-in `broker-gate.conf` runs `nc -z` first and refuses to start when the broker is unreachable — expected to sit in *activating (auto-restart)* off-site. |
 
 Four of them (`tiny-voice`, `tiny-telegram`, `tiny-thinker`, `reachy-dashboard`) carry a `tiny-mcp.conf`

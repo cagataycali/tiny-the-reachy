@@ -71,7 +71,7 @@ This is how the code gets there and comes back up. Facts checked on 2026-09-17.
 
 ```bash
 ssh reachy 'systemctl --user is-active tiny-voice tiny-telegram tiny-thinker reachy-dashboard reachy-tunnel'
-curl -s https://reachy.cagatay.my/api/health | jq '{daemon: .daemon.state, camera: .camera.fps, fds: .pressure.fds}'
+curl -s localhost:8097/api/health | jq '{daemon: .daemon.state, camera: .camera.fps, fds: .pressure.fds}'
 ```
 
 `/api/health` is the one public route — everything else answers `401` without a passkey or bearer.

@@ -66,3 +66,14 @@ def test_no_secrets_in_docs():
     text = _all_docs_text()
     for pat in (r"sk-[A-Za-z0-9]{20,}", r"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}", r"cagatay4321", r"AKIA[0-9A-Z]{16}"):
         assert not re.search(pat, text), f"secret-looking string in docs: {pat}"
+
+
+def test_no_cockpit_hostname_in_docs():
+    """Owner directive (2026-09-21): the cockpit host is his alone — the docs never name it or link to it."""
+    hits = []
+    for p in list(DOCS.rglob("*.md")) + list(DOCS.rglob("*.html")) + list(DOCS.rglob("*.js")):
+        if "assets" in p.parts:
+            continue
+        if "cagatay.my" in p.read_text(encoding="utf-8", errors="ignore"):
+            hits.append(str(p.relative_to(DOCS)))
+    assert not hits, hits

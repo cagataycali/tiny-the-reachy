@@ -108,7 +108,7 @@ def markdown(vars_: dict[str, dict]) -> str:
         names = by_group.get(g)
         if not names:
             continue
-        lines += [f"### {g}", "", "| variable | default | read by | purpose |", "|---|---|---|---|"]
+        lines += [f"## {g}", "", "| variable | default | read by | purpose |", "|---|---|---|---|"]
         for n in names:
             r = vars_[n]
             d = r["default"] if r["default"] is not None else "*(unset)*"

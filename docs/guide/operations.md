@@ -1,6 +1,18 @@
+---
+title: Operations — keeping TINY alive
+description: "The operational memory of the first days on the CM4: the 60-second health check, the incident log with root causes, live mitigations that need no reboot, measured budgets, and the demo checklist."
+for: whoever is on call for the desk
+proof: robot
+verified: 2026-09-17
+---
+
 # Operations — keeping TINY alive
 
-<span class="read-badge">⏱ 6 min · every number below was measured on the CM4</span>
+!!! abstract "In 10 seconds"
+    - One `ssh reachy` line + one `curl $COCKPIT/api/health` tell you unit states, load, disk, and the daemon's fd pressure — run it before anything else.
+    - The daemon's fd limit (1024 default, raised to 65536) and media release/acquire cycles caused every early outage; `restart`, never `stop`, the dashboard.
+    - Budgets measured on the CM4: load ~2.5 idle, +1.0–1.5 with face tracking; daemon ~60 % CPU idle, ~135 % tracking; disk 89 % — no new venvs.
+    - Before a demo: thinker off (`demo on`), fds < ~800, tracking + turn-to-sound on, volume 60. After: `demo off`.
 
 The robot is a 4-core CM4 with 4 GB of RAM, a 14 GB SD card that is 89 % full and one process —
 Pollen's daemon — that owns every sensor and motor. Everything we run competes with it. This page is the
@@ -12,7 +24,7 @@ operational memory of the first two days: what broke, why, how we saw it, and wh
 ssh reachy 'systemctl --user is-active tiny-wake tiny-tts tiny-voice tiny-telegram tiny-thinker reachy-dashboard reachy-tunnel; \
   cut -d" " -f1-3 /proc/loadavg; df -h / | tail -1; \
   P=$(pgrep -f "reachy_mini.daemon.app.main"); echo "daemon pid $P fds $(sudo ls /proc/$P/fd | wc -l) limit $(grep "Max open files" /proc/$P/limits | awk "{print \$4}")"'
-curl -s https://reachy.cagatay.my/api/health | jq '{daemon: .daemon, camera: .camera.fps, pressure: .pressure, stream: .stream}'
+curl -s $COCKPIT/api/health | jq '{daemon: .daemon, camera: .camera.fps, pressure: .pressure, stream: .stream}'
 ```
 
 Healthy on 2026-09-17: seven `active`, load 3–4, daemon ≈ 300–600 fds with limit 65536, camera 10 fps,
@@ -59,7 +71,7 @@ curl -s -X POST localhost:8000/api/media/acquire      # the dashboard does this 
 
 # thinker gestures on top of a live demo
 curl -s -X POST -H "Authorization: Bearer $REACHY_TOKEN" -H 'content-type: application/json' \
-     https://reachy.cagatay.my/api/control/demo -d '{"on":true}'    # = systemctl --user stop tiny-thinker
+     $COCKPIT/api/control/demo -d '{"on":true}'    # = systemctl --user stop tiny-thinker
 
 # daemon truly wedged
 sudo systemctl restart reachy-mini-daemon                   # personas reconnect on their own now

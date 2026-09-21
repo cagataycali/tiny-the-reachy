@@ -104,7 +104,7 @@ NOTES = {
     # auth
     "REACHY_TOKEN": "Owner bearer token — full access to `/api/*` and `/ws` (`Authorization: Bearer` or `?token=`).",
     "REACHY_REG_TOKEN": "Registration token required to enrol additional passkeys after the first (TOFU).",
-    "REACHY_RP_ID": "WebAuthn relying-party id (`reachy.cagatay.my`).",
+    "REACHY_RP_ID": "WebAuthn relying-party id — the cockpit's public hostname.",
     "REACHY_RP_NAME": "Display name shown by the passkey prompt.",
     "REACHY_ORIGIN": "Expected WebAuthn origin(s), comma-separated (default `https://<RP_ID>`).",
     "REACHY_AUTH_STORE": "Passkey credential store path.",
