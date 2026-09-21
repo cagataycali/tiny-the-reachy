@@ -2,20 +2,21 @@
    Palette is read off the real thing: the shell's MJCF material is rgba 1,1,1 under warm light (#f4f2ec), the printed parts are
    0.30 grey (#4d4d4d), the camera lens caps 0.10 (#1a1a1a), and the ONE accent is the cockpit's own --acc #5eead4 (dashboard/
    frontend/src/styles.css), darkened to AA on paper for light mode. Motion contract: JS writes --p ∈ [0,1] on [data-stage] and
-   --sy on <html>; CSS animates transform / clip-path only (opacity fades fail axe mid-fade). No JS → everything revealed. */
-html[data-landing] {
+   --sy on <html>; CSS animates transform / clip-path only (opacity fades fail axe mid-fade). No JS → everything revealed
+   (tokens also match body:has(#landing) so the page keeps its palette when the inline data-landing script never runs). */
+html[data-landing], body:has(> #landing), body:has(#landing) {
   --l-paper: #f6f5f1; --l-ink-0: #fdfcfa; --l-ink-1: rgba(23,24,26,.14); --l-ink-2: #5a5c60; --l-ink-3: #17181a;
   --l-shell: #f4f2ec; --l-part: #4d4d4d; --l-lens: #1a1a1a;
   --l-accent: #0b8577; --l-accent-ink: #086b60; --l-accent-glow: rgba(94,234,212,.35);
   --l-hair: 1px solid var(--l-ink-1); --l-ease: cubic-bezier(.2,.7,.2,1);
   --l-mono: var(--md-code-font-family); --l-sans: var(--md-text-font-family);
 }
-html[data-landing] [data-md-color-scheme="slate"] {
+html[data-landing] [data-md-color-scheme="slate"], body[data-md-color-scheme="slate"]:has(#landing) {
   --l-paper: #0c0d0f; --l-ink-0: #15171a; --l-ink-1: rgba(242,241,236,.14); --l-ink-2: #b1b3b8; --l-ink-3: #f2f1ec;
   --l-accent: #5eead4; --l-accent-ink: #7ff0de; --l-accent-glow: rgba(94,234,212,.25);
 }
 /* the manual's lavender accent becomes the cockpit teal on this page only (tabs underline, focus, links) */
-html[data-landing] body[data-md-color-scheme][data-md-color-primary] { --accent: var(--l-accent); --accent-ink: var(--l-accent-ink); --bg: var(--l-paper); --focus: var(--l-accent); }
+html[data-landing] body[data-md-color-scheme][data-md-color-primary], body[data-md-color-scheme][data-md-color-primary]:has(#landing) { --accent: var(--l-accent); --accent-ink: var(--l-accent-ink); --bg: var(--l-paper); --focus: var(--l-accent); }
 html[data-landing] .md-main__inner { margin-top: 0; }
 
 .landing { color: var(--l-ink-3); background: var(--l-paper); overflow-x: clip; font-family: var(--l-sans); }
@@ -188,9 +189,13 @@ html:not(.l-js) .l-bar::before, html:not(.l-js) .l-tag { clip-path: none; } html
   .l-fig { order: -1; } .l-figwrap { width: min(62vw, 18rem); }
   .l-caption--hero { font-size: .7rem !important; }
 }
+/* stills: reduced motion / no JS / a static stage = no pin, no travel — the stage is one tall page with every note on ---- */
 @media (prefers-reduced-motion: reduce) {
+  .landing .l-stage { height: auto; } .l-sticky { position: static; height: auto; min-height: 100vh; }
   .l-h1 .l-w, .l-hero .l-copy > *, .l-still, .l-orbit { animation: none; transform: none; }
   .l-note { transition: none; transform: none; color: var(--l-ink-3); }
   .l-layer { transform: translateY(calc(var(--lift) * -1%)); }
 }
 html:not(.l-js) .l-h1 .l-w, html:not(.l-js) .l-hero .l-copy > * { animation: none; transform: none; }
+html:not(.l-js) .landing .l-stage, .landing .l-stage.is-static { height: auto; } html:not(.l-js) .l-sticky, .l-stage.is-static .l-sticky { position: static; height: auto; min-height: 100vh; }
+html:not(.l-js) .l-layer { transform: translateY(calc(var(--lift) * -1%)); }

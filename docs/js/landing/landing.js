@@ -16,7 +16,8 @@
     raf = 0;
     const vh = innerHeight || 1;
     for (const s of stages) {
-      if (reduce.matches) { s.style.setProperty("--p", "1"); continue; }
+      if (reduce.matches) { s.style.setProperty("--p", "1"); s.classList.add("is-static"); notes(s, 1); continue; }
+      s.classList.remove("is-static");
       const r = s.getBoundingClientRect();
       if (r.bottom < -vh || r.top > vh * 2) continue;
       const travel = r.height - vh;
@@ -46,7 +47,7 @@
     let poses = null, loaded = 0, painted = -1, wanted = 0, armed = false;
     const fmt = (v) => (v < 0 ? "−" : "") + Math.abs(Math.round(v));
     const paint = () => {
-      const im = imgs[wanted]; if (!im || !im.complete || !im.naturalWidth) return;
+      const im = imgs[wanted]; if (!im || (im instanceof HTMLImageElement && (!im.complete || !im.naturalWidth))) return;
       if (painted !== wanted) { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(im, 0, 0, canvas.width, canvas.height); painted = wanted; frameBox.classList.add("is-live"); }
       if (poses) {
         const i = Math.min(poses.frames.length - 1, Math.round(wanted / (N - 1) * (poses.frames.length - 1)));
@@ -58,9 +59,11 @@
     const arm = () => {
       if (armed) return; armed = true;
       fetch(emo.dataset.poses).then((r) => r.json()).then((j) => { poses = j; paint(); }).catch(() => {});
-      for (let k = 0; k < N; k++) { const im = new Image(); im.decoding = "async"; im.src = `${seq}${String(k).padStart(2, "0")}.webp`; im.onload = () => { loaded++; if (k === wanted || loaded === N) paint(); }; imgs[k] = im; }
+      // decode off the scroll path: each frame becomes an ImageBitmap once (else the first drawImage of a frame costs ~100 ms mid-scrub)
+      for (let k = 0; k < N; k++) { const im = new Image(); im.decoding = "async"; im.src = `${seq}${String(k).padStart(2, "0")}.webp`; imgs[k] = im;
+        im.onload = () => { const ready = () => { loaded++; if (k === wanted || loaded === N) paint(); }; if ("createImageBitmap" in window) createImageBitmap(im).then((bm) => { imgs[k] = bm; ready(); }, ready); else ready(); }; }
     };
-    new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) arm(); }, { rootMargin: "120% 0px" }).observe(emo);
+    new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) arm(); }, { rootMargin: "260% 0px" }).observe(emo);
     handlers.set(emo, (p) => { wanted = Math.round(p * (N - 1)); paint(); });
   } else if (emo) emo.classList.add("is-static");
 
@@ -87,7 +90,7 @@
     if (started) return; started = true;
     try {
       const T = await import(`${base}js/landing/twin.js`);
-      const [model, poses] = await Promise.all([T.loadModel(`${base}model/`), fetch(`${base}assets/landing/poses/curious1.json`).then((r) => r.json())]);
+      const [model, poses] = await Promise.all([T.loadModel(`${base}model/`, { yieldEach: true }), fetch(`${base}assets/landing/poses/curious1.json`).then((r) => r.json())]);
       const W = 1100, H = 1300, dpr = Math.min(devicePixelRatio || 1, 2);
       canvas.width = W * dpr / 2; canvas.height = H * dpr / 2;
       const stage = T.makeStage(canvas, { width: canvas.width, height: canvas.height, dpr: 1, shadows: true });
@@ -108,8 +111,8 @@
       addEventListener("resize", () => { dirty = true; requestAnimationFrame(paint); });
     } catch (e) { console.warn("landing: live hero unavailable —", e); }
   };
-  // after load + idle, or on first intent
-  const arm = () => ("requestIdleCallback" in window ? requestIdleCallback(start, { timeout: 4000 }) : setTimeout(start, 2500));
+  // after load + 2.5 s + idle (keeps the mesh unpack out of the LCP/TTI window), or on first intent
+  const arm = () => setTimeout(() => ("requestIdleCallback" in window ? requestIdleCallback(start, { timeout: 4000 }) : start()), 2500);
   if (document.readyState === "complete") arm(); else addEventListener("load", arm, { once: true });
   wrap.addEventListener("pointerenter", start, { once: true });
 })();

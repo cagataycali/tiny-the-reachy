@@ -20,7 +20,7 @@ export function unpackMesh(buf, offset, length) {
 }
 
 /** Load geoms.json + meshes.bin from `base` (…/model/). Returns { geoms, geometries: Map(name → BufferGeometry) }. */
-export async function loadModel(base) {
+export async function loadModel(base, { yieldEach = false } = {}) {
   const geomsJ = await fetch(`${base}geoms.json`).then((r) => { if (!r.ok) throw new Error(`geoms.json ${r.status}`); return r.json() })
   const pack = await fetch(`${base}${geomsJ.pack}?v=${geomsJ.sha}`).then((r) => { if (!r.ok) throw new Error(`${geomsJ.pack} ${r.status}`); return r.arrayBuffer() })
   const geometries = new Map()
@@ -32,6 +32,7 @@ export async function loadModel(base) {
     g.setIndex(new THREE.BufferAttribute(m.indices, 1))
     g.computeVertexNormals()
     geometries.set(name, g)
+    if (yieldEach) await new Promise((r) => setTimeout(r, 0)) // one mesh per task: the 1.1 MB unpack never becomes a >50 ms long task on the page
   }
   return { geoms: geomsJ, geometries, bytes: pack.byteLength }
 }

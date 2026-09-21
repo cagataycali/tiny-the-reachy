@@ -5,10 +5,23 @@
     except the fonts Material already loads and (lazily, desktop only) three.js for the orbitable hero. -#}
 {% extends "main.html" %}
 
+{# fonts block runs before extrahead in Material's base.html — the preconnects must precede the Google Fonts stylesheet to help LCP #}
+{% block fonts %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  {{ super() }}
+{% endblock %}
+
+{# the landing has no mermaid diagram — skip mermaid.min.js + its init (the only extra_javascript); Material's bundle stays #}
+{% block scripts %}
+  <script src="{{ 'assets/javascripts/bundle.d7400e89.min.js' | url }}"></script>
+  {% for script in config.extra_javascript %}{% if 'mermaid' not in (script.path if script.path is defined else script) %}{{ script | script_tag }}{% endif %}{% endfor %}
+{% endblock %}
+
 {% block extrahead %}
   {{ super() }}
   <link rel="stylesheet" href="{{ 'stylesheets/landing.css' | url }}">
-  <link rel="preload" as="image" href="{{ 'assets/landing/hero-curious1-f24.webp' | url }}" fetchpriority="high">
+  <link rel="preload" as="image" href="{{ 'assets/landing/hero-curious1-f24.webp' | url }}" imagesrcset="{{ 'assets/landing/hero-curious1-f24-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f24.webp' | url }} 1100w" imagesizes="(max-width: 60em) 78vw, 27rem" fetchpriority="high">
   <script>document.documentElement.classList.add("l-js"); document.documentElement.dataset.landing = "";</script>
 {% endblock %}
 
@@ -33,7 +46,7 @@
     </div>
     <figure class="l-fig">
       <div class="l-figwrap" id="l-figwrap">
-        <img class="l-still" src="{{ 'assets/landing/hero-curious1-f24.webp' | url }}" width="1100" height="1300" fetchpriority="high" decoding="async"
+        <img class="l-still" src="{{ 'assets/landing/hero-curious1-f24.webp' | url }}" srcset="{{ 'assets/landing/hero-curious1-f24-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f24.webp' | url }} 1100w" sizes="(max-width: 60em) 78vw, 27rem" width="1100" height="1300" fetchpriority="high" decoding="async"
              alt="TINY, a Reachy Mini: a cream rounded body, a flat cream head with two dark camera eyes turned toward you, one antenna standing straight up and the other lying flat to the side">
         <canvas class="l-orbit" width="1100" height="1300" aria-hidden="true"></canvas>
       </div>
@@ -173,17 +186,17 @@
     </div>
   </section>
 
-  {# ------------------------------------------------------------------ 6 · THE COCKPIT (static; the three real screenshots in
-     docs/assets, captioned as the owner's private cockpit — deliberately NO link to reachy.cagatay.my, see INBOX) #}
+  {# ------------------------------------------------------------------ 6 · THE COCKPIT (static; the three real screenshots docs/assets/cockpit-*.jpg,
+     re-encoded small as assets/landing/cockpit/*.webp (sharp, 1200 px / q74), captioned as the owner's private cockpit — deliberately NO link to reachy.cagatay.my, see INBOX) #}
   <section class="l-flat l-cockpit" id="cockpit" aria-labelledby="l-cockpit-h">
     <div class="l-flat__in">
       <p class="l-kicker">the owner's private cockpit · passkey gate · not linked here</p>
       <h2 id="l-cockpit-h">The owner sees all of it.</h2>
       <p class="l-lede">A FastAPI dashboard runs on the CM4 itself behind a Cloudflare tunnel: the live camera, the same MuJoCo twin you just scrolled, every transcript and tool call from all personas, and the tracking controls. Only <code>/api/health</code> is public; everything else wants a passkey.</p>
       <div class="l-shots">
-        <figure class="l-shot l-shot--wide"><img src="{{ 'assets/cockpit-desktop.jpg' | url }}" width="1440" height="900" loading="lazy" decoding="async" alt="The cockpit on a desktop: camera view, transcript feed and controls."><figcaption>desktop · camera, feed, controls</figcaption></figure>
-        <figure class="l-shot l-shot--wide"><img src="{{ 'assets/cockpit-desktop-twin.jpg' | url }}" width="1440" height="900" loading="lazy" decoding="async" alt="The cockpit showing the MuJoCo digital twin mirroring the robot's pose."><figcaption>desktop · the twin, live</figcaption></figure>
-        <figure class="l-shot l-shot--tall"><img src="{{ 'assets/cockpit-phone.jpg' | url }}" width="390" height="844" loading="lazy" decoding="async" alt="The cockpit on a phone."><figcaption>phone</figcaption></figure>
+        <figure class="l-shot l-shot--wide"><img src="{{ 'assets/landing/cockpit/desktop.webp' | url }}" width="1200" height="750" loading="lazy" decoding="async" alt="The cockpit on a desktop: camera view, transcript feed and controls."><figcaption>desktop · camera, feed, controls</figcaption></figure>
+        <figure class="l-shot l-shot--wide"><img src="{{ 'assets/landing/cockpit/desktop-twin.webp' | url }}" width="1200" height="750" loading="lazy" decoding="async" alt="The cockpit showing the MuJoCo digital twin mirroring the robot's pose."><figcaption>desktop · the twin, live</figcaption></figure>
+        <figure class="l-shot l-shot--tall"><img src="{{ 'assets/landing/cockpit/phone.webp' | url }}" width="390" height="844" loading="lazy" decoding="async" alt="The cockpit on a phone."><figcaption>phone</figcaption></figure>
       </div>
     </div>
   </section>

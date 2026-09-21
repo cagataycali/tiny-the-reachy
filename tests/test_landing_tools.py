@@ -28,3 +28,13 @@ def test_wall_count_matches_kicker():
     html = (ROOT / "docs/overrides/home.html").read_text()
     n = int(re.search(r'<p class="l-kicker">(\d+) tools · (\d+) modules', html).group(1))
     assert n == len(_reference_tools()) == 28
+
+
+def test_landing_scripts_block_pins_materials_bundle():
+    """home.html overrides `block scripts` (to skip mermaid) and therefore names Material's hashed bundle itself —
+    it must be the same file base.html ships, or the header/search JS silently 404s after a Material upgrade."""
+    import importlib.util
+    base = Path(importlib.util.find_spec("material").origin).parent / "templates/base.html"
+    want = re.search(r"assets/javascripts/(bundle\.[0-9a-f]+\.min\.js)", base.read_text()).group(1)
+    have = re.search(r"assets/javascripts/(bundle\.[0-9a-f]+\.min\.js)", (ROOT / "docs/overrides/home.html").read_text()).group(1)
+    assert have == want
