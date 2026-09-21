@@ -11,7 +11,7 @@ IN FULL here (deliberate deviation from the ring): the owner wants less, not hid
 Scope: every docs/**/*.md except the landing (docs/index.md, owned by the HQ lane) and docs/overrides/.
 
 Budgets (hard):
-  PAGE_HAND   300   any hand-written page
+  PAGE_HAND   220   any hand-written page
   PAGE_SOUL   300   personas · start/robot · start/systemd — they carry the soul
   PAGE_TOOL   120   generated tools/<module>.md pages: signature + purpose + envelope table + one example
   PAGE_TOOLS_INDEX 200
@@ -32,13 +32,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 
-PAGE_HAND = 300
+PAGE_HAND = 220
 PAGE_SOUL = 300
 PAGE_TOOL = 120
 PAGE_TOOLS_INDEX = 200
 PAGE_TABLE_MAX = {"reference/env.md": 1300, "reference/api.md": 650}  # tables only; 110 vars × (name+default+≤7 words+link) — see JOURNAL it5/it10
 SITE_TARGET = 6400
-SITE_CEILING = 7100      # ratchet — lower with every cut, never raise (16,044 → 12,102 it5 → 10,532 it6 → 9,582 it7 → 8,468 it8 → 8,2xx it9; it9 also fixed _TAG, which had hidden "(< 1.5 s) … > 60 %" spans — earlier totals were ~1–3 % low)
+SITE_CEILING = 6700      # ratchet — lower with every cut, never raise (16,044 → 12,102 it5 → 10,532 it6 → 9,582 it7 → 8,468 it8 → 8,2xx it9; it9 also fixed _TAG, which had hidden "(< 1.5 s) … > 60 %" spans — earlier totals were ~1–3 % low)
 SOUL = {"showcase/personas.md", "start/robot.md", "start/systemd.md"}
 TABLES = {"reference/env.md", "reference/api.md"}
 SKIP = {"index.md", "scripts/README.md", "design-assets/README.md", "LIVE_DEPLOY.md"}  # landing (HQ lane) + mkdocs exclude_docs (dev notes, not pages)

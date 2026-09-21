@@ -9,20 +9,12 @@ verified: 2026-09-21
 # Docker — laptop and Lite
 
 !!! abstract "In 10 seconds"
-    - `make build && make up` → three containers (`tiny-voice`, `tiny-telegram`, `tiny-thinker`, `docker-compose.yml`) sharing one SQLite brain, host networking to the daemon.
+    - `make build && make up` → three containers (`tiny-voice`, `tiny-telegram`, `tiny-thinker`) sharing one SQLite brain, host networking to the daemon.
     - The image is light: no DDS, no realsense — Reachy control is plain HTTP/WS to `:8000`.
-    - The Wireless CM4 has **no Docker** (disk 89 %); it runs the same personas bare-metal under [systemd](systemd.md).
-    - `make install-compose-service` makes the stack come up at boot on the laptop.
+    - `make install-compose-service` brings the stack up at boot.
 
 !!! note "Not what the robot runs"
-    The Wireless CM4 has **no Docker** and no room for it (disk 89 %). Compose is for a laptop next to a
-    Reachy Mini **Lite**, or a dev box pointed at the robot over the network. The robot itself runs the
-    personas bare-metal — see [Systemd](systemd.md).
-
-The recommended deploy: three always-on personas as containers, sharing one
-SQLite brain, all connecting to the Reachy daemon over host networking. The
-image is **light** — no DDS, no CycloneDDS, no librealsense build (unlike
-neon), because Reachy control is pure HTTP/WS to the daemon.
+    The Wireless CM4 has **no Docker** and no room for it (disk 89 %). Compose is for a laptop next to a **Lite**, or a dev box pointed at the robot. The robot runs the personas bare-metal — [Systemd](systemd.md).
 
 ## Build and up
 
@@ -36,12 +28,11 @@ make up         # docker compose up -d  → voice + telegram + thinker
 
 | container | role |
 |---|---|
-| `tiny-voice` | always-on bidirectional voice (local mic → speaker, head-wobble on speech) |
-| `tiny-telegram` | Telegram DM listener → spawns a telegram-persona agent per message |
-| `tiny-thinker` | 30s heartbeat → photo + one expression + telegram status + journal |
+| `tiny-voice` | always-on voice: local mic → speaker, head-wobble on speech |
+| `tiny-telegram` | Telegram DM listener → one agent per message |
+| `tiny-thinker` | 30 s heartbeat → photo + one expression + journal |
 
-All three mount `.memory/mem.db` — the shared cross-persona brain — and reach
-the daemon over host networking (`REACHY_HOST` from `.env`).
+All three mount `.memory/mem.db` and reach the daemon at `REACHY_HOST`.
 
 ## Operate
 
@@ -67,4 +58,3 @@ make voice-status
 make install-compose-service   # user systemd unit → docker compose up -d at boot
 ```
 
-See [systemd](systemd.md) for the bare-metal alternative.

@@ -11,7 +11,7 @@ verified: 2026-09-21
 !!! abstract "In 10 seconds"
     - Head pitch/roll ±40°, yaw ±180°, body yaw ±160° — `clamp()`ed **before** the daemon.
     - Antennas, head translation, recorded emotions: bounded by daemon and SDK.
-    - `MAX_YAW_DELTA = 65°` is declared but **no tool enforces it**.
+    - `MAX_YAW_DELTA = 65°` is declared, **not enforced**.
 
 ## The envelope
 
@@ -55,16 +55,16 @@ if body_yaw is not None:
     body_yaw = clamp(body_yaw, *LIM_BODY_YAW)
 ```
 
-The SDK clamps again; the daemon rejects the unreachable. Belt, suspenders.
+The SDK clamps again; the daemon rejects the unreachable.
 
 ## What a move also does
 
-- **A look wins over face tracking** — `reachy_look` holds it for the move + 3 s.
+- **A look wins over face tracking** — held for the move + 3 s.
 - **Emotions are names, not angles** — a bad prompt cannot produce a bad pose.
-- **Every tool returns an error string, never raises** — the model reads *"Cannot reach the Reachy Mini daemon…"*.
+- **Every tool returns an error string, never raises** — the model reads it aloud.
 
 !!! tip "Beyond the hard limits"
     Small moves look natural — big swings read as malfunction. Nothing caps the head−body delta: stay under ~45°.
 
 !!! note "No danger class"
-    Unlike neon's mutex-gated walking and arm tools, every TINY tool is self-bounded. No `unsafe=True` — nothing to escape.
+    Unlike neon's mutex-gated arm tools, every TINY tool is self-bounded. No `unsafe=True` — nothing to escape.

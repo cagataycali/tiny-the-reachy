@@ -9,17 +9,17 @@ verified: 2026-09-21
 # Quickstart
 
 !!! abstract "In 10 seconds"
-    - `make venv && make run` talks to a daemon on `:8000`; `make sim` spawns a MuJoCo one instead.
-    - Default brain: Bedrock (`TINY_MODEL_ID`, `tiny.py:25`); voice: OpenAI Realtime (`voice_listener.py:19`).
-    - Every gesture is clamped — the first commands cannot hurt the robot.
+    - `make venv && make run` talks to a daemon on `:8000`; `make sim` spawns MuJoCo instead.
+    - Default brain: Bedrock (`TINY_MODEL_ID`); voice: OpenAI Realtime.
+    - Every gesture is clamped — nothing here can hurt the robot.
 
 <div class="cards cards--3" markdown>
 
 | mode | what runs where | when |
 |---|---|---|
-| **Lite** | daemon on your laptop over USB, TINY beside it | developing tools → [connect](#3-connect-to-the-robot) |
-| **Wireless** | daemon + TINY on the CM4 | a robot on a desk, no laptop → [systemd](systemd.md) |
-| **Simulation** | `REACHY_USE_SIM=1`, headless MuJoCo | no hardware, CI, a new emotion tried safely → [docker](docker.md) |
+| **Lite** | daemon on your laptop over USB, TINY beside it | developing tools |
+| **Wireless** | daemon + TINY on the CM4 | a robot on a desk → [systemd](systemd.md) |
+| **Simulation** | `REACHY_USE_SIM=1`, headless MuJoCo | no hardware, CI → [docker](docker.md) |
 
 </div>
 
@@ -39,17 +39,15 @@ make sim        # no robot: REACHY_USE_SIM=1 spawns a headless MuJoCo daemon
 
 ## 2. Pick a model
 
-Bedrock by default:
-
 ```bash
 export AWS_BEARER_TOKEN_BEDROCK=...                    # Bedrock bearer token (preferred)
 export AWS_DEFAULT_REGION=us-west-2
 export TINY_MODEL_ID=global.anthropic.claude-opus-4-8  # override the default
 ```
 
-Voice: `OPENAI_API_KEY`, or `VOICE_PROVIDER=nova_sonic|gemini`.
+Voice: `OPENAI_API_KEY`.
 
-## 3. Connect to the robot
+## 3. Connect
 
 === "Lite (USB → laptop)"
 
@@ -80,20 +78,16 @@ Voice: `OPENAI_API_KEY`, or `VOICE_PROVIDER=nova_sonic|gemini`.
 
 <span class="p">&gt;</span> show me you're happy to meet me
 
-<span class="ok">reachy_express("cheerful1") · reachy_antennas(wiggle) — there is no "happy" in the library; TINY picks the closest of 81</span>
+<span class="ok">reachy_express("cheerful1") · reachy_antennas(wiggle) — the closest of 81 moves to "happy"</span>
 </div>
 
 Same tools as the personas — [all 28](../reference/tools/index.md).
 
-## Safe first commands
-
-!!! tip "Green zone — all self-bounded, all clamped"
-    `check state` · `wake up` · `look at me` · `wiggle your antennas` ·
-    `nod` · `shake your head` · `spin around` · `show me happy` ·
-    `what emotions do you know?` · `go home`
+!!! tip "Safe first commands"
+    `check state` · `wake up` · `look at me` · `wiggle your antennas` · `nod` · `spin around` · `go home`
 
 !!! note "Expression is the whole point"
-    No arms, no legs — head, body, antennas and 81 recorded moves. Ask it to *feel* something, not *do* something: `be curious`, `look excited`, `act shy`.
+    Ask it to *feel* something, not *do* something: `be curious`, `act shy`.
 
 ## One-shot mode
 
@@ -102,8 +96,6 @@ make ask Q="say hi and wobble your antennas"
 ```
 
 ## On the real robot
-
-The Wireless runs all of this **on its own CM4** as systemd units — nothing on your laptop stays up.
 
 [How TINY boots (systemd) →](systemd.md){ .md-button .md-button--primary }
 [Deploying to the robot →](robot.md){ .md-button }

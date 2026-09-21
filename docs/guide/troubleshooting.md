@@ -9,10 +9,10 @@ verified: 2026-09-21
 # Troubleshooting
 
 !!! abstract "In 10 seconds"
-    - Every tool returns an error *string*, never a traceback — its first line names the layer: `connection refused on :8000` (daemon), `motors`, `media`, `voice`.
-    - Check in order: daemon (`curl -s localhost:8000/api/daemon/status`) → motors → media → keys.
-    - On the robot the units restart themselves; read *why* with `journalctl _SYSTEMD_USER_UNIT=tiny-voice.service -n 50` before touching anything.
-    - Voice back-off: a *fatal* provider error doubles the delay 5 → 300 s; transient ones (DNS after reboot, busy audio device) retry in 5 s.
+    - Every tool returns an error *string*, never a traceback — its first line names the layer.
+    - Check in order: daemon → motors → media → keys.
+    - On the robot the units restart themselves; read *why* in `journalctl` before touching anything.
+    - Voice back-off: a *fatal* provider error doubles the delay 5 → 300 s; transient ones retry in 5 s.
 
 ## Cannot connect to the daemon
 
@@ -41,7 +41,7 @@ Disabled or in gravity-comp:
 
 ## `reachy_express` hangs on first call
 
-The emotion library is **downloaded live** the first time; later calls are cached. `reachy_list_emotions` warms it too.
+The emotion library is **downloaded live** the first time, then cached.
 
 ## Camera returns nothing
 
@@ -59,7 +59,7 @@ make voice-status    # is it muted?
 make unmute
 ```
 
-Then `OPENAI_API_KEY` in `.env`. On the robot, read the unit before guessing:
+Then `OPENAI_API_KEY` in `.env`. On the robot, read the unit:
 
 ```bash
 journalctl _SYSTEMD_USER_UNIT=tiny-voice.service -n 50 --no-pager
@@ -68,11 +68,11 @@ journalctl _SYSTEMD_USER_UNIT=tiny-voice.service -n 50 --no-pager
 | you see | it means | do |
 |---|---|---|
 | `Temporary failure in name resolution` | booted before DNS | nothing — retries in 5 s |
-| `[Errno -9985] Device unavailable` | daemon still bringing its dmix pipeline up | nothing — retries in 5 s |
+| `[Errno -9985] Device unavailable` | daemon still bringing audio up | nothing — retries in 5 s |
 | `invalid_api_key` / `401` | the key in `.env` | fix it, `systemctl --user restart tiny-voice` |
-| up, but you cannot interrupt it | XMOS `PP_NLATTENONOFF=1` (factory) mutes you while it speaks | `VOICE_XMOS_PARAMS` is re-applied at every start — check the board answered |
+| you cannot interrupt it | XMOS `PP_NLATTENONOFF=1` (factory) mutes you while it speaks | `VOICE_XMOS_PARAMS` is re-applied at every start |
 
-A mid-conversation restart takes ~90 s — the old session drains first.
+A mid-conversation restart takes ~90 s.
 
 ## Everything imports but nothing runs
 

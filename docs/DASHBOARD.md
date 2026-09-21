@@ -6,13 +6,12 @@ proof: robot
 verified: 2026-09-21
 ---
 
-# Dashboard — the cockpit (v4: twin picture-in-picture)
+# Dashboard — the cockpit
 
 !!! abstract "In 10 seconds"
-    - `dashboard/server.py` (FastAPI `:8097`, passkey-gated) + a Vite/React SPA built on a laptop, shipped as `dist/`.
-    - The camera fills the viewport; the **digital twin** (MuJoCo-WASM + three.js, mirroring the 10 Hz WS state) floats over it. A swap re-assigns boxes only — stream and sim never restart, the robot sees one camera client.
-    - Every number on screen comes from `/api/state`; overlays render only when the field is present — no placeholders.
-    - `space` = STOP, `D` = demo mode, `F` = face tracking, `T` = twin, `X` = swap.
+    - `dashboard/server.py` (FastAPI `:8097`, passkey-gated) + a Vite/React SPA shipped as `dist/`.
+    - The camera fills the viewport; the **digital twin** (MuJoCo-WASM + three.js) floats over it, mirroring the WS state.
+    - Every number on screen comes from `/api/state`; overlays render only when the field is present.
 
 ```
 ┌ topbar ───────────────────────────────────────────────┐  ⚙ motors · 📶 dBm · 🌡 °C · 🧠/🎬 · 👁 track · 🔒
@@ -30,13 +29,13 @@ verified: 2026-09-21
 
 | gesture / key | effect |
 |---|---|
-| drag the top strip | move; **snaps to the nearest corner** |
-| double-tap, `X`, `⇄` chip | **swap** — twin full-bleed, camera in the card |
-| `S` / `M` / `L` | 160×120 (phone default) · 320×240 (desktop default) · 480×360 (≥ 960 px) |
-| `✕`, `T` | close — twin pauses; a `🧊 twin` chip brings it back |
+| drag the top strip | move; **snaps to a corner** |
+| double-tap, `X` | **swap** — twin full-bleed, camera in the card |
+| `S` / `M` / `L` | 160×120 (phone) · 320×240 (desktop) · 480×360 |
+| `✕`, `T` | close; the `🧊 twin` chip brings it back |
 | wheel / pinch · drag | zoom · orbit |
 
-The card never covers STOP or the cmdbar; a bottom corner lifts the mind bubbles; landscape phones get a side-by-side split; ≤ 30 fps in the card; `prefers-reduced-motion` kills the idle spin. Prefs: `localStorage["reachy.pip.v1"]` `{corner, size, swapped, open, hinted}`.
+The card never covers STOP; a swap re-assigns boxes only — the robot sees one camera client. ≤ 30 fps; `prefers-reduced-motion` kills the idle spin.
 
 ## The readout
 
@@ -48,17 +47,17 @@ The card never covers STOP or the cmdbar; a bottom corner lifts the mind bubbles
 | `Hz` | `daemon.loop_hz` |
 | `⚙` | `control_mode` → on / off / g-comp |
 
-## Perception overlays on the twin
+## Overlays on the twin
 
 | overlay | fields | meaning |
 |---|---|---|
-| gaze ring + face dot | `tracking.{enabled,detected,x,y,paused}` | daemon face tracker, `x,y ∈ [-1,1]`; amber = paused |
-| DoA compass | `doa.angle` (rad), `doa.speech_detected` | ReSpeaker direction of arrival; 0 = front, counter-clockwise positive — flip the sign in `DoaArc` if it proves clockwise |
-| `🫳 lifted` / `↗ tilted` | `imu.lifted`, `imu.tilted` | reserved — not published yet |
+| gaze ring + face dot | `tracking.{enabled,detected,x,y,paused}` | daemon face tracker; amber = paused |
+| DoA compass | `doa.angle` (rad), `doa.speech_detected` | ReSpeaker direction of arrival |
+| `🫳 lifted` / `↗ tilted` | `imu.lifted`, `imu.tilted` | not published yet |
 
 ## Keyboard
 
-`←→↑↓` look (`⇧` bigger) · `space` STOP · `H` home · `D` demo · `F` tracking · `T` twin · `X` swap · `L` look · `E` emotions · `/` ask · `esc`.
+`←→↑↓` look · `space` STOP · `H` home · `D` demo · `F` tracking · `T` twin · `X` swap · `E` emotions · `/` ask.
 
 ## Build · prove · deploy
 
