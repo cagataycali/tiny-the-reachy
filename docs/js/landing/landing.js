@@ -23,9 +23,47 @@
       const p = travel > 0 ? clamp01(-r.top / travel) : 1;
       s.style.setProperty("--p", p.toFixed(4));
       s.classList.toggle("is-live", p > 0 && p < 1);
+      notes(s, p);
+      handlers.get(s)?.(p);
     }
     if (hero) doc.style.setProperty("--sy", reduce.matches ? "0" : clamp01(scrollY / vh).toFixed(4));
   }
+  // notes: [data-at] children light up once p passes their timestamp; the latest passed one is "now"
+  function notes(stage, p) {
+    let now = null;
+    for (const n of stage.querySelectorAll("[data-at]")) { const on = p >= +n.dataset.at; n.classList.toggle("is-on", on); if (on) now = n; }
+    for (const n of stage.querySelectorAll("[data-at].is-now")) if (n !== now) n.classList.remove("is-now");
+    now?.classList.add("is-now");
+  }
+  const handlers = new Map();
+
+  // ---- 2 · the emotion: paint frame round(p·47) of the rendered sequence; readout from the poses json ----------------
+  const emo = document.getElementById("emotion");
+  if (emo && !reduce.matches) {
+    const frameBox = emo.querySelector(".l-frame"), canvas = emo.querySelector(".l-frame__canvas"), ctx = canvas.getContext("2d");
+    const N = +emo.dataset.frames, seq = emo.dataset.seq, imgs = new Array(N);
+    const ro = Object.fromEntries(Array.from(emo.querySelectorAll("[data-ro]")).map((b) => [b.dataset.ro, b]));
+    let poses = null, loaded = 0, painted = -1, wanted = 0, armed = false;
+    const fmt = (v) => (v < 0 ? "−" : "") + Math.abs(Math.round(v));
+    const paint = () => {
+      const im = imgs[wanted]; if (!im || !im.complete || !im.naturalWidth) return;
+      if (painted !== wanted) { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(im, 0, 0, canvas.width, canvas.height); painted = wanted; frameBox.classList.add("is-live"); }
+      if (poses) {
+        const i = Math.min(poses.frames.length - 1, Math.round(wanted / (N - 1) * (poses.frames.length - 1)));
+        const h = poses.head[i], a = poses.antennas[i];
+        ro.t.textContent = poses.t[i].toFixed(1); ro.yaw.textContent = fmt(h.yaw); ro.roll.textContent = fmt(h.roll);
+        ro.ant.textContent = `${fmt(a[0])} / ${fmt(a[1])}`; ro.body.textContent = fmt(poses.body_yaw[i]);
+      }
+    };
+    const arm = () => {
+      if (armed) return; armed = true;
+      fetch(emo.dataset.poses).then((r) => r.json()).then((j) => { poses = j; paint(); }).catch(() => {});
+      for (let k = 0; k < N; k++) { const im = new Image(); im.decoding = "async"; im.src = `${seq}${String(k).padStart(2, "0")}.webp`; im.onload = () => { loaded++; if (k === wanted || loaded === N) paint(); }; imgs[k] = im; }
+    };
+    new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) arm(); }, { rootMargin: "120% 0px" }).observe(emo);
+    handlers.set(emo, (p) => { wanted = Math.round(p * (N - 1)); paint(); });
+  } else if (emo) emo.classList.add("is-static");
+
   const schedule = () => { if (!raf) raf = requestAnimationFrame(update); };
   addEventListener("scroll", schedule, { passive: true });
   addEventListener("resize", schedule);

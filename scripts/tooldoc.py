@@ -237,7 +237,9 @@ def build() -> dict[str, str]:
 def write(pages: dict[str, str]) -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     for name, text in pages.items():
-        (OUT_DIR / name).write_text(text, encoding="utf-8")
+        path = OUT_DIR / name
+        if not path.exists() or path.read_text(encoding="utf-8") != text:  # unchanged files keep their mtime: mkdocs serve
+            path.write_text(text, encoding="utf-8")  # otherwise sees its own output as a change and rebuilds forever
     for stale in OUT_DIR.glob("*.md"):
         if stale.name not in pages:
             stale.unlink()

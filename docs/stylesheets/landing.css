@@ -64,13 +64,53 @@ html[data-landing] .md-main__inner { margin-top: 0; }
 .l-caption__hint { color: var(--l-ink-2); }
 .l-caption code { background: transparent; border: 0; padding: 0; color: var(--l-ink-3); font-weight: 600; }
 
+/* ---- pinned stages: JS writes --p (0→1) while the section scrolls; the inner block is sticky for its whole travel ---- */
+.landing .l-stage { max-width: none; padding: 0; height: 320vh; position: relative; }
+.l-sticky { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; box-sizing: border-box; padding: clamp(3.5rem, 8vh, 5rem) 1.25rem 1.5rem; }
+.l-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 3rem; align-items: center; width: 100%; max-width: 72rem; margin: 0 auto; }
+.l-split > * { min-width: 0; }
+
+/* ---- 2 · the emotion: a frame sequence painted to a canvas by scroll; notes light up at their real timestamps ---- */
+.l-frame { position: relative; width: min(100%, 24rem, 68vh * 660 / 780); margin: 0 auto; }
+.l-frame__still, .l-frame__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.l-frame__canvas { display: none; } .l-frame.is-live .l-frame__canvas { display: block; } .l-frame.is-live .l-frame__still { visibility: hidden; }
+.l-readout { display: block; font-variant-numeric: tabular-nums; }
+@media (min-width: 60em) { .l-readout { white-space: nowrap; } .l-caption--seq { max-width: none !important; } }
+.l-readout b { color: var(--l-ink-3); font-weight: 600; min-width: 2ch; display: inline-block; text-align: right; }
+.l-readout b[data-ro="ant"] { min-width: 8ch; }
+.landing .l-quote { margin: 0 0 1.5rem; padding: 0 0 0 1rem; border-left: 2px solid var(--l-accent); }
+.landing .l-quote p { margin: 0 0 .35rem; color: var(--l-ink-3); font-size: clamp(1.05rem, 1.35vw, 1.2rem) !important; }
+.landing .l-quote cite { font-style: normal; font-family: var(--l-mono); font-size: .75rem; color: var(--l-ink-2); }
+.landing .l-notes { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; max-width: 46ch; font-size: clamp(.95rem, 1.15vw, 1.05rem); }
+.l-note { position: relative; padding-left: 1.4rem; color: var(--l-ink-2); line-height: 1.4; transition: color .3s, transform .5s var(--l-ease); transform: translateX(.4rem); }
+.l-note::before { content: ""; position: absolute; left: 0; top: .55em; width: .55rem; height: .55rem; border-radius: 50%; border: 1.5px solid var(--l-ink-1); background: var(--l-paper); transition: background .3s, border-color .3s, transform .3s; }
+.l-note a { color: var(--l-ink-3); text-decoration: underline; text-decoration-color: var(--l-accent); text-underline-offset: .15em; }
+.l-note b { font-family: var(--l-mono); font-weight: 600; color: var(--l-ink-3); margin-right: .35rem; font-variant-numeric: tabular-nums; }
+.l-note.is-on { color: var(--l-ink-3); transform: none; }
+.l-note.is-on::before { background: var(--l-accent); border-color: var(--l-accent); transform: scale(1.15); }
+.l-note.is-now { color: var(--l-ink-3); }
+.l-note.is-now::before { box-shadow: 0 0 0 4px var(--l-accent-glow); }
+html:not(.l-js) .l-note, .l-stage.is-static .l-note { color: var(--l-ink-3); transform: none; }
+
 /* ---- fallbacks ---- */
 @media (max-width: 60em) {
+  .landing .l-stage { height: 260vh; }
+  .l-sticky { align-items: flex-start; padding-top: 4rem; }
+  .l-split { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .l-split .l-copy h2 { font-size: clamp(1.5rem, 6.5vw, 2rem); }
+  .landing .l-notes { font-size: .95rem; gap: .3rem; min-height: 3.2em; }
+  /* one note at a time on a phone: the one whose timestamp the scrub has just passed (all of them without JS) */
+  html.l-js .l-emotion:not(.is-static) .l-note:not(.is-now) { display: none; }
+  html.l-js .l-emotion:not(.is-static) .l-notes:not(:has(.is-now)) .l-note:first-child { display: block; color: var(--l-ink-2); }
+  .l-caption--seq .l-caption__k { display: none; }
+  .l-frame { width: min(46vw, 15rem, 34vh * 660 / 780); }
+  .landing .l-quote p { font-size: .95rem !important; }
   .l-hero { grid-template-columns: minmax(0, 1fr); min-height: 0; gap: 1rem; padding-top: 1.5rem; }
   .l-fig { order: -1; } .l-figwrap { width: min(62vw, 18rem); }
   .l-caption--hero { font-size: .7rem !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .l-h1 .l-w, .l-hero .l-copy > *, .l-still, .l-orbit { animation: none; transform: none; }
+  .l-note { transition: none; transform: none; color: var(--l-ink-3); }
 }
 html:not(.l-js) .l-h1 .l-w, html:not(.l-js) .l-hero .l-copy > * { animation: none; transform: none; }
