@@ -26,4 +26,4 @@ use_device(
 
 Reach the owner's OTHER devices on tiny.technology (fomo the arm, q-the-brain, the Mac, the other robot, the Sticky e-ink via the Mac, the iPhone).
 
-<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py#L339" title="tools/tiny_mcp.py:339">source ↗</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/tiny_mcp.py#L347" title="tools/tiny_mcp.py:347">source ↗</a></small>

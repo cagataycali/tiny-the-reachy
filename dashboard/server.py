@@ -32,6 +32,13 @@ Gated WRITE (dashboard/auth.py — bearer REACHY_TOKEN or a passkey session; 5 P
                              dashboard/tracking.py only toggles/pauses it. ALSO allowed from 127.0.0.1 without a key
                              (auth.loopback_write) so the personas' tools/head_tracking.py works.
   POST /api/tracking/hold     {name, on: bool, ttl?}  pause (weight 0) / resume (weight 1) while a persona speaks or moves
+Settings (dashboard/config_api.py; the store is tools/config.py in .memory/mem.db: DB -> env -> default)
+  GET  /api/config            {schema, values, overrides, env, generations, catalog, defaults, effective_tools, secrets(bool)}
+  PUT  /api/config            {key: value, ...} validated against the schema; every change → agent_log persona "dashboard"
+  DELETE /api/config/{key}    reset one key to its env/default
+  GET  /api/config/preview/{persona}  the composed system prompt + tool list the next Agent gets
+  GET  /api/personas          tiny-voice / tiny-telegram / tiny-thinker: active, pid, since, last 3 journal lines
+  POST /api/personas/{unit}/restart   systemctl --user restart (allow-listed units, 30 s cooldown, logged)
 """
 from __future__ import annotations
 
@@ -51,6 +58,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
 from . import __version__, auth
+from . import config_api
 from .robot import Robot, agent_log_record, agent_log_tail
 from .robot import daemon as daemon_call
 from .daemonlink import pressure as daemon_pressure
@@ -482,6 +490,60 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
         who = _control(req)
         on = bool(body.get("on", True))
         return await asyncio.to_thread(_do, robot.demo_mode, on, who)
+
+    # ── runtime settings (tools/config.py store; reads gated by _gate, writes by _control like every POST) ──
+    def _cfg_log(kind: str, text: str, who: str, **meta: Any) -> None:
+        robot.log(kind, text[:300], who, **meta)                 # dashboard event → WS
+        agent_log_record("dashboard", "system", text[:1000], {"kind": kind, "who": who, **meta})
+
+    @app.get("/api/config")
+    async def config_get():
+        """Schema + effective values + overrides + env defaults + tool catalog (secrets as set/unset booleans only)."""
+        return await asyncio.to_thread(config_api.snapshot)
+
+    @app.put("/api/config")
+    async def config_put(req: Request, body: Dict[str, Any] = Body(default={})):
+        """Write validated keys; 422 names every bad key. Voice-scoped keys restart the live voice session by themselves."""
+        who = _control(req)
+        try:
+            return await asyncio.to_thread(config_api.apply, body, who, _cfg_log)
+        except ValueError as e:
+            raise HTTPException(422, {"error": str(e)})
+
+    @app.delete("/api/config/{key}")
+    async def config_reset(req: Request, key: str):
+        """Reset one key to its env/default value."""
+        who = _control(req)
+        try:
+            return await asyncio.to_thread(config_api.reset, key[:80], who, _cfg_log)
+        except ValueError as e:
+            raise HTTPException(422, {"error": str(e)})
+
+    @app.get("/api/config/preview/{persona}")
+    async def config_preview(persona: str):
+        """The composed system prompt + tool names the next Agent of this persona would get (read-only)."""
+        try:
+            return await asyncio.to_thread(config_api.preview, persona[:20])
+        except ValueError as e:
+            raise HTTPException(422, {"error": str(e)})
+
+    @app.get("/api/personas")
+    async def personas_get():
+        """tiny-voice / tiny-telegram / tiny-thinker: active state, pid, since, last 3 journal lines."""
+        return await asyncio.to_thread(config_api.personas)
+
+    @app.post("/api/personas/{unit}/restart")
+    async def personas_restart(req: Request, unit: str):
+        """systemctl --user restart of an allow-listed persona unit (30 s cooldown per unit, logged)."""
+        who = _control(req)
+        try:
+            return await asyncio.to_thread(config_api.restart, unit[:40], who, _cfg_log)
+        except ValueError as e:
+            raise HTTPException(422, {"error": str(e)})
+        except PermissionError as e:
+            raise HTTPException(429, {"error": str(e)})
+        except RuntimeError as e:
+            raise HTTPException(502, {"error": str(e)[:400]})
 
     # ── websocket ──
     @app.websocket("/ws")

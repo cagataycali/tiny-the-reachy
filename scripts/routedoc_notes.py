@@ -2,6 +2,12 @@
 
 NOTES = {
     "GET /api/health": "Liveness, daemon, camera, fd pressure. Public.",
+    "GET /api/config": "Settings schema, values, catalog.",
+    "PUT /api/config": "Write settings (voice keys restart the session).",
+    "DELETE /api/config/{key}": "Reset `key` to env.",
+    "GET /api/config/preview/{persona}": "Composed prompt and tools.",
+    "GET /api/personas": "Units: state, pid, journal tail.",
+    "POST /api/personas/{unit}/restart": "Restart `unit`; 30 s cooldown.",
     "GET /api/doa": "Turn-toward-speaker status and why not.",
     "POST /api/doa": "`{enabled}` — turn toward speech (`K`); loopback ok.",
     "GET /api/state": "Full robot state: pose, motors, services, tracking.",
