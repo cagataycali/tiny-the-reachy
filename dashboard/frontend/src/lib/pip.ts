@@ -73,5 +73,5 @@ export function splitBoxes(hostW: number, hostH: number): { main: Box; pip: Box 
   return { main: { x: 0, y: 0, w: half, h: hostH }, pip: { x: half, y: 0, w: hostW - half, h: hostH } }
 }
 
-export const deg = (v: number | null | undefined, d = 0) => (v == null || Number.isNaN(v) ? '—' : `${v.toFixed(d)}°`)
+export const deg = (v: number | null | undefined, d = 0) => (v == null || Number.isNaN(v) ? '--' : `${v.toFixed(d)}°`)
 export const rad2deg = (r: number) => (r * 180) / Math.PI
