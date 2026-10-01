@@ -146,6 +146,13 @@ async def run_once():
     await run_task                                              # re-raise whatever ended the session
 
 
+def _sleep(seconds: float, stop: dict) -> None:
+    """Interruptible sleep: SIGTERM from systemctl must not wait out a 300 s nap."""
+    end = time.monotonic() + seconds
+    while not stop["flag"] and time.monotonic() < end:
+        time.sleep(min(1.0, end - time.monotonic()))
+
+
 def main():
     stop = {"flag": False}
     def _sig(*_):
@@ -171,14 +178,18 @@ def main():
             if time.monotonic() - started > 60:
                 delay = RESTART_DELAY                      # a real session ran — the failure was transient
             if _is_fatal(e):
+                # Bad/revoked key, quota, model - no retry fixes it; back off hard (5 -> 10 -> ... -> 300 s).
                 provider = voice_settings()["provider"]
-                print(f"[voice] fatal provider error (bad/revoked {provider.upper()} key, quota or model) — "
-                      f"fix the key in .env (or the model/provider in the cockpit) and `systemctl --user restart tiny-voice`; "
-                      f"retrying in {delay}s", file=sys.stderr)
+                print(f"[voice] fatal provider error (bad/revoked {provider.upper()} key, quota or model) - "
+                      f"fix the key in .env (or the model/provider in the cockpit: a voice change restarts this "
+                      f"session by itself); retrying in {delay}s", file=sys.stderr)
+                _sleep(delay, stop)
+                delay = min(delay * 2, RESTART_DELAY_MAX)
             else:
-                print(f"[voice] restarting in {delay}s", file=sys.stderr)
-            time.sleep(delay)
-            delay = min(delay * 2, RESTART_DELAY_MAX)      # 5 → 10 → 20 … → 300 s
+                # Transient (DNS not up yet after boot, ALSA busy while the daemon brings its pipeline up, ws drop):
+                # retry fast. 2026-09-20: the doubling backoff here left the robot mute for 10 min after a reboot.
+                print(f"[voice] transient error - restarting in {RESTART_DELAY}s", file=sys.stderr)
+                _sleep(RESTART_DELAY, stop)
         else:
             delay = RESTART_DELAY
     try:                                   # Pollen moves.py ~661: never leave the daemon tracking headless
