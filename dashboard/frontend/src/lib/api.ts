@@ -36,6 +36,19 @@ export type Emotions = { names: string[]; groups: { family: string; moves: strin
 export type AuthStatus = { who: string | null; authenticated: boolean; open: boolean; token_configured: boolean
   passkeys: boolean; rp_id: string | null; has_credentials: boolean; registration_open: boolean }
 
+/** runtime settings (tools/config.py SCHEMA, served by GET /api/config) */
+export type ConfigKey = { key: string; group: 'voice' | 'agent' | 'telegram'; type: 'str' | 'text' | 'int' | 'float' | 'bool' | 'choice' | 'list'
+  label: string; help: string; default: unknown; choices: string[]; min: number | null; max: number | null; restart: 'voice' | 'agent' | 'none'; dangerous: boolean; virtual: boolean }
+export type ConfigSnapshot = { schema: ConfigKey[]; values: Record<string, unknown>; overrides: Record<string, unknown>; env: Record<string, unknown>
+  generations: { voice: number; agent: number }; catalog: { name: string; group: string; dangerous: boolean }[]
+  defaults: Record<string, string[]>; effective_tools: Record<string, string[]>; secrets: Record<string, boolean>
+  personas: string[]; prompt_personas: string[]; history: { id: number; key: string; old: unknown; new: unknown; ts: string; source: string }[] }
+export type ConfigWrite = { changed: Record<string, { old: string; new: string }>; generations: { voice: number; agent: number }; restart: string[]
+  values: Record<string, unknown>; overrides: Record<string, unknown> }
+export type Preview = { persona: string; prompt: string; chars: number; tools: string[]; model_id: string; note: string }
+export type PersonaUnit = { unit: string; active: string; sub: string; pid: number | null; since: string | null; restarts: string | null; journal: string[]; cooldown_s: number }
+export type Personas = { units: PersonaUnit[]; t: number }
+
 const TOKEN_KEY = 'reachy_token'
 export const getToken = () => sessionStorage.getItem(TOKEN_KEY) || ''
 export const setToken = (t: string) => t ? sessionStorage.setItem(TOKEN_KEY, t) : sessionStorage.removeItem(TOKEN_KEY)
@@ -68,6 +81,12 @@ export const api = {
   doaTurn: (enabled: boolean) => req<{ ok: boolean; result: DoaTurn }>('POST', '/api/doa', { enabled }),
   credentials: () => req<{ credentials: { id: string; label: string; created: string; sign_count: number }[] }>('GET', '/api/auth/credentials'),
   deleteCredential: (id: string) => req('DELETE', `/api/auth/credentials/${id}`),
+  config: () => req<ConfigSnapshot>('GET', '/api/config'),
+  putConfig: (values: Record<string, unknown>) => req<ConfigWrite>('PUT', '/api/config', values),
+  resetConfig: (key: string) => req<ConfigWrite & { removed: boolean }>('DELETE', `/api/config/${encodeURIComponent(key)}`),
+  preview: (persona: string) => req<Preview>('GET', `/api/config/preview/${encodeURIComponent(persona)}`),
+  personas: () => req<Personas>('GET', '/api/personas'),
+  restartPersona: (unit: string) => req<PersonaUnit & { ok: boolean }>('POST', `/api/personas/${encodeURIComponent(unit)}/restart`, {}),
 }
 
 /** URL for <img>/<video>-style loads that cannot set headers: the passkey cookie rides along by itself, a bearer goes as ?token=. */

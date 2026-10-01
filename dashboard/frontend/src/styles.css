@@ -158,6 +158,22 @@ kbd { font: 11px var(--sr-mono); padding: 1px 5px; border: 1px solid var(--sr-pi
 .keys { line-height: 1.9 }
 .switch { display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 6px 0 } .switch input { position: absolute; opacity: 0; width: 1px; height: 1px } .switch .track { width: 36px; height: 20px; border-radius: 999px; background: var(--sr-pill-border); position: relative; transition: background 200ms; flex: none } .switch .track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--sr-bg); transition: left 200ms } .switch input:checked + .track { background: var(--sr-accent) } .switch input:checked + .track::after { left: 18px } .switch input:disabled + .track { opacity: 0.4 } .switch input:focus-visible + .track { outline: 2px solid var(--sr-accent); outline-offset: 2px }
 .dock-settings > * + * { margin-top: 8px }
+/* runtime settings (components/Settings.tsx) — schema-generated fields */
+select, textarea { font: inherit; color: var(--sr-fg); background: var(--sr-bg); border: 1px solid var(--sr-pill-border); border-radius: var(--sr-radius); padding: 10px 12px; width: 100%; min-height: 44px; outline: none } select:focus, textarea:focus { border-color: var(--sr-accent) } textarea { resize: vertical; line-height: 1.4 } select:disabled, textarea:disabled, input:disabled { opacity: 0.6 }
+.cfg { display: flex; flex-direction: column; gap: 4px } .cfg-section { border-top: 1px solid var(--sr-rule); padding-top: 4px } .cfg-section h3.dock-sub { margin-top: 12px }
+.cfg-blurb { margin: 0 0 8px } .cfg-grid { display: grid; grid-template-columns: 1fr; gap: 10px } @media (min-width: 560px) { .cfg-grid { grid-template-columns: 1fr 1fr } .cfg-field.wide, .cfg-field:has(textarea) { grid-column: 1 / -1 } }
+.cfg-field { display: flex; flex-direction: column; gap: 4px; min-width: 0 } .cfg-field.overridden > .cfg-label label::after { content: ' · set here'; color: var(--sr-accent); font-weight: 400 }
+.cfg-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 24px } .cfg-label label { font: 600 12px var(--sr-mono); letter-spacing: 0.02em }
+.cfg-help { line-height: 1.35 } .cfg-count { align-self: flex-end } .cfg-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0 4px }
+.cfg-status { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border: 1px solid var(--sr-rule); border-radius: var(--sr-radius); margin-bottom: 10px } .cfg-status .dot { margin-right: 4px } .cfg-journal { white-space: pre-wrap; word-break: break-word }
+.cfg-persona { display: flex; flex-direction: column; gap: 10px; margin-top: 10px }
+.cfg-tools { border: 1px solid var(--sr-rule); border-radius: var(--sr-radius); padding: 8px 10px 10px; margin: 0; min-width: 0 } .cfg-tools legend { display: flex; align-items: center; gap: 8px; padding: 0 4px }
+.cfg-toolgroup { margin-top: 6px } .cfg-toolgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 10px; margin-top: 2px }
+.cfg-tool { display: flex; align-items: center; gap: 6px; min-height: 28px; cursor: pointer } .cfg-tool input { accent-color: var(--sr-accent); width: 16px; height: 16px; margin: 0 } .cfg-tool.danger .mono { color: var(--sr-warn) }
+.cfg-warn { color: var(--sr-warn); border: 1px solid var(--sr-warn); border-radius: var(--sr-radius); padding: 6px 8px; margin-top: 8px }
+.cfg-preview { border: 1px solid var(--sr-rule); border-radius: var(--sr-radius); padding: 8px 10px; max-height: 40vh; overflow: auto } .cfg-preview pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; font-size: 11.5px; line-height: 1.4 }
+.cfg-secrets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px } .cfg-secrets .chip { cursor: default }
+.cfg-units { width: 100%; border-collapse: collapse } .cfg-units th { text-align: left; font-weight: 600; color: var(--sr-muted); padding: 4px 6px 4px 0 } .cfg-units td { padding: 6px 6px 6px 0; border-top: 1px solid var(--sr-rule); vertical-align: middle } .cfg-units td:last-child { text-align: right }
 .scheme-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap } .scheme-row .btn.small[aria-pressed="true"] { background: var(--sr-accent); border-color: var(--sr-accent); color: var(--sr-on-accent) }
 
 /* unified timeline */

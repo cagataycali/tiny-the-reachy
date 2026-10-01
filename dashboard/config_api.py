@@ -113,6 +113,8 @@ def _run(cmd: List[str], timeout: float = 5.0) -> str:
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
         return (r.stdout or "") + (r.stderr or "")
+    except FileNotFoundError:
+        return ""                                   # no systemd here (a laptop): the UI shows "unknown"
     except Exception as e:  # noqa: BLE001
         return f"error: {e.__class__.__name__}"
 

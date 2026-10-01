@@ -9,6 +9,7 @@ import { EmotionGrid } from './components/Emotions'
 import { HeadPad } from './components/Joystick'
 import { Live, PERSONA, Timeline } from './components/Timeline'
 import { LockCard, Telemetry } from './components/System'
+import { ConfigPanel } from './components/Settings'
 import { Gate } from './components/Gate'
 import { Brand } from './components/Brand'
 import { Ico } from './components/Icons'
@@ -220,6 +221,7 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
           <Telemetry s={s} />
           <div className="dock-sub">lock and demo</div>
           <LockCard auth={auth} can={can} demo={!!s?.demo} onDemo={(on) => ctl('demo', { on }).then((r) => { if (r) setToast(on ? 'demo mode ON: thinker paused' : 'thinker resumed') })} onToast={setToast} />
+          {can && <ConfigPanel can={can} onToast={setToast} />}
           <div className="dock-sub">display</div>
           <div className="scheme-row" data-testid="scheme-row"><span className="muted small">scheme</span>
             {(['auto', 'paper', 'dark'] as const).map((z) => <button key={z} className="btn small" aria-pressed={scheme === z} onClick={() => setScheme(z)}>{z}</button>)}

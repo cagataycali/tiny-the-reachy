@@ -23,6 +23,28 @@ Camera: the Wireless camera is a CSI sensor behind libcamera; `cv2.VideoCapture(
 Routes: see the docstring at the top of `server.py`. Every control write is logged to the personas' shared `agent_log`
 as persona `dashboard`.
 
+## Settings (2026-10-01): runtime config from the cockpit
+
+The Settings sheet (`frontend/src/components/Settings.tsx`) is generated from `tools/config.py` SCHEMA — one store in
+`.memory/mem.db` (`config`, `config_history`, `config_meta`) resolved as **DB → env → code default** by every persona at
+build time. Routes (`dashboard/config_api.py`, same gate as everything else; writes need the owner key + same origin):
+
+| route | what |
+|---|---|
+| `GET /api/config` | schema, effective values, overrides, env defaults, tool catalog, per-persona defaults, secrets as set/unset booleans |
+| `PUT /api/config` `{key: value}` | validated against the schema (types, choices, ranges), all-or-nothing; each change → `agent_log` persona `dashboard` |
+| `DELETE /api/config/{key}` | back to the env / code default |
+| `GET /api/config/preview/{persona}` | the composed system prompt + tool names the next Agent gets |
+| `GET /api/personas` · `POST /api/personas/{unit}/restart` | tiny-voice / tiny-telegram / tiny-thinker state + journal tail; restart (allow-listed, 30 s cooldown) |
+
+Sections: **Voice** (provider, model, voice, language, transcriber hint, VAD — `voice_listener.py` polls the `voice`
+generation every 2 s and ends the live session the way `stop_conversation` does, so a change is live in ~10 s without a
+unit restart), **Agent** (model id, fleet tools, per-persona personality note = `tools/prompts.py` override with its
+`FULL:` rule, per-persona tool checklist from the real tool objects — `shell`/`dispatch`/`manage_tools`/`environment`
+carry an amber note — and a read-only preview of the effective prompt), **Telegram** (default chat id, allowed users,
+heartbeat photos; telegram and thinker build a fresh Agent per message/cycle so they follow on the next turn),
+**Personas** (unit state + restart as the fallback). API keys, the bot token and `REACHY_*` never enter the store or the UI.
+
 ## Design (2026-10-01): the Strands design language
 
 The cockpit wears the same skin as the strands-labs/robots docs (`docs/stylesheets/extra.css` there): white or black
