@@ -1,6 +1,7 @@
-"""take_photo puts ONE (question + image) message in front of the realtime model and
-asks for ONE response; the session tuning pins language / VAD from env and never
-mutates Strands' module-level default config."""
+"""take_photo sends the frame (ImageBlock, no response requested) then the question
+(TextBlock, one response) through agent.send on Strands 1.57+; the session tuning
+pins language / VAD from env via the model's native `params` and never mutates
+Strands' module-level default config."""
 import asyncio
 import os
 import sys
@@ -14,42 +15,34 @@ from tools import vision  # noqa: E402
 from tools import voice_session  # noqa: E402
 
 
-class _Model:
-    def __init__(self):
-        self._connection_id = "conn"
-        self.events = []
-
-    async def _send_event(self, ev):
-        self.events.append(ev)
-
-
 class _Agent:
-    def __init__(self, model):
-        self.model = model
+    def __init__(self):
         self.sent = []
 
     async def send(self, content):
         self.sent.append(content)
 
 
-def test_inject_is_one_item_and_one_response():
-    model = _Model()
-    agent = _Agent(model)
-    asyncio.run(vision._inject(agent, "QUFB", "what do you see?"))
-    assert [e["type"] for e in model.events] == ["conversation.item.create", "response.create"]
-    content = model.events[0]["item"]["content"]
-    assert content[0] == {"type": "input_text", "text": "what do you see?"}
-    assert content[1]["type"] == "input_image"
-    assert content[1]["image_url"].startswith("data:image/jpeg;base64,QUFB")
-    assert agent.sent == [], "wire path must not also go through agent.send (double response)"
+def test_inject_is_image_then_question_through_agent_send():
+    agent = _Agent()
+    asyncio.run(vision._inject(agent, b"AAA", "what do you see?"))
+    assert [type(c).__name__ for c in agent.sent] == ["ImageBlock", "TextBlock"]
+    img, text = agent.sent
+    assert img.format == "jpeg" and img.source == {"bytes": b"AAA"}
+    assert text.text == "what do you see?"
 
 
-def test_inject_falls_back_to_agent_send_for_other_providers():
-    class _Other:
-        pass
-    agent = _Agent(_Other())
-    asyncio.run(vision._inject(agent, "QUFB", "q"))
-    assert [type(c).__name__ for c in agent.sent] == ["BidiImageInputEvent", "BidiTextInputEvent"]
+def test_openai_image_send_creates_no_response_of_its_own():
+    """1.57.1 OpenAIRealtimeModel: the image item is created silently, the text item asks for
+    the (single) response - so image-then-text is one answer that sees both."""
+    cls = vision._realtime_model_class()
+    if cls is None:
+        pytest.skip("no Realtime model class in this env")
+    import inspect
+    assert hasattr(cls, "_send_image_content")
+    assert "response" not in inspect.getsource(cls._send_image_content).replace("_send_event", "")
+    assert "_request_response" in inspect.getsource(cls._send_text_content)
+    assert not hasattr(vision, "_patch_openai_image_support"), "the 1.20 monkey patch must be gone"
 
 
 def test_take_photo_has_a_default_question():
@@ -101,13 +94,27 @@ def test_semantic_vad_and_transcribe_prompt(monkeypatch):
     assert "language" not in o["transcription"]
 
 
-def test_session_patch_is_idempotent_and_applies():
+def test_session_params_merge_natively_and_pass_the_barge_in_check(monkeypatch):
+    """OpenAIRealtimeModel(params=session_params()) is deep-merged over DEFAULT_SESSION_CONFIG by
+    _build_session_config; the result must carry our VAD and the create/interrupt flags strands.bidi
+    main refuses to connect without."""
     cls = vision._realtime_model_class()
     if cls is None:
         pytest.skip("no Realtime model class in this env")
-    assert voice_session.patch_openai_realtime_session()
-    assert voice_session.patch_openai_realtime_session()
-    m = cls.__new__(cls)
-    m.config = {"audio": {}, "inference": {}}
+    monkeypatch.setenv("VOICE_LANG", "tr")
+    monkeypatch.setenv("VOICE_VAD_THRESHOLD", "0.7")
+    m = cls(model_id="gpt-realtime-2", voice="shimmer", transcription_model_id="gpt-4o-transcribe",
+            api_key="sk-test", params=voice_session.session_params())
     cfg = m._build_session_config("hi", None)
-    assert cfg["audio"]["input"]["turn_detection"]["threshold"] == voice_session.session_overrides()["turn_detection"]["threshold"]
+    inp = cfg["audio"]["input"]
+    assert inp["turn_detection"]["threshold"] == 0.7
+    assert inp["turn_detection"]["create_response"] is True and inp["turn_detection"]["interrupt_response"] is True
+    assert inp["transcription"] == {"model": "gpt-4o-transcribe", "language": "tr"}
+    assert cfg["audio"]["output"]["voice"] == "shimmer"
+    assert voice_session.session_config_is_valid(cfg)
+    assert not voice_session.session_config_is_valid({"audio": {"input": {"turn_detection": None}}})
+    # the module default is untouched
+    from importlib import import_module
+    default = import_module(cls.__module__).DEFAULT_SESSION_CONFIG
+    assert "language" not in (default["audio"]["input"].get("transcription") or {})
+    assert default["audio"]["input"]["turn_detection"]["threshold"] == 0.5

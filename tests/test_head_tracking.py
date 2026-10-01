@@ -92,18 +92,18 @@ def test_speaking_handoff_weights(dash):
     async def run():
         await h({"type": "bidi_response_start"})
         assert dash.holds == {}
-        await h({"type": "bidi_audio_stream", "audio": b"..."})
-        await h({"type": "bidi_audio_stream", "audio": b"..."})
+        await h({"type": "bidi_audio_delta", "audio": b"..."})
+        await h({"type": "bidi_audio_delta", "audio": b"..."})
         assert dash.holds == {"speaking": 30.0}         # ONE hold for the whole utterance
         assert sum(1 for _, p, _ in dash.calls if p.endswith("/hold")) == 1
-        await h({"type": "bidi_response_complete"})
+        await h({"type": "bidi_response_stop"})
         assert "speaking" in dash.holds                 # tail: playback still draining
         await asyncio.sleep(0.15)
         assert dash.holds == {}                         # released → weight 1 on the daemon
         # interruption releases immediately
-        await h({"type": "bidi_audio_stream"})
+        await h({"type": "bidi_audio_delta"})
         assert "speaking" in dash.holds
-        await h({"type": "bidi_interruption", "reason": "user_speech"})
+        await h({"type": "bidi_barge_in", "reason": "user_speech"})
         assert dash.holds == {}
         # stop() is safe and idempotent
         await h.stop()
@@ -115,8 +115,8 @@ def test_handoff_survives_dashboard_down(dash):
     h = ht.SpeakingHandoff(tail_s=0)
 
     async def run():
-        await h({"type": "bidi_audio_stream"})
-        await h({"type": "bidi_response_complete"})
+        await h({"type": "bidi_audio_delta"})
+        await h({"type": "bidi_response_stop"})
     asyncio.run(run())                                  # no exception
 
 
