@@ -1,9 +1,10 @@
 """One import surface for Strands bidirectional streaming.
 
-strands-agents 1.57.1 ships bidi under ``strands.experimental.bidi``; harness-sdk main
-(#4707, unreleased) graduated it to ``strands.bidi`` and turns the experimental path into a
-deprecation shim that is removed in v1.60.0. Everything in TINY that touches bidi imports
-from HERE, so the day the stable package lands the robot keeps booting without a diff.
+TINY runs strands-agents built from harness-sdk MAIN (``scripts/strands_wheel.sh`` pins the
+sha), where bidi lives in ``strands.bidi`` (#4707). ``strands.experimental.bidi`` is only a
+deprecation shim there (gone in v1.60.0) and is the one place PyPI 1.57.1 still has it; it is
+kept as a guarded fallback because it costs five lines, but nothing else in TINY may import
+it, and the test suite asserts the stable package is the one in use.
 
 Resolution order: ``strands.bidi`` first, then ``strands.experimental.bidi``.
 
@@ -20,9 +21,9 @@ What this module gives the rest of the code base:
 * ``hooks``              the bidi hook events + the core ``MessageAddedEvent``
 * ``EVENTS``             frozen output-event type strings (``EVENTS.AUDIO_DELTA`` ...)
 * ``LEGACY_EVENTS``      1.20 -> 1.57 event-name map, so sinks accept both for one release
-* ``stop_conversation``  TINY's own tool: 1.57.1 ``request_state["stop_event_loop"]`` AND
-                              main's ``agent.cancel()`` when present (the stock tool is
-                              deprecated in 1.57.1 and deleted on main, #4664)
+* ``stop_conversation``  TINY's own tool: ``tool_context.agent.cancel()`` (#4664; the stock
+                              tool and the 1.57.1 ``request_state["stop_event_loop"]`` flag
+                              are both gone on main)
 * ``event_type(event)``  the normalised (new-style) type string of any output event
 """
 from __future__ import annotations
@@ -39,7 +40,8 @@ try:
     from strands.types.media import ImageBlock
 except ImportError as _e:  # strands-agents < 1.57: BidiTextInputEvent era, dropped on purpose
     raise ImportError(
-        "TINY's voice persona needs strands-agents[bidi]>=1.57.1,<1.60 (agent.send(TextBlock|ImageBlock)); "
+        "TINY's voice persona needs strands-agents[bidi]>=1.57.2.dev0,<1.60 built from harness-sdk main "
+        "(scripts/strands_wheel.sh; agent.send(TextBlock|ImageBlock), agent.cancel()); "
         "see MIGRATION.md for the robot upgrade recipe"
     ) from _e
 
@@ -55,7 +57,7 @@ def _resolve_package() -> tuple[Any, str]:
             last = e
     raise ImportError(
         "no Strands bidi package found (tried strands.bidi, strands.experimental.bidi); "
-        'install strands-agents[bidi]>=1.57.1'
+        "build strands-agents from harness-sdk main with scripts/strands_wheel.sh"
     ) from last
 
 
@@ -181,16 +183,14 @@ def _stop_conversation(tool_context) -> str:
     Use ONLY when the user says "stop conversation" or clearly asks TINY to end the voice
     session. Do NOT use for "stop", "goodbye", "bye" or other farewells or phrases.
     """
-    state = getattr(tool_context, "invocation_state", None)
-    if isinstance(state, dict):
-        state.setdefault("request_state", {})["stop_event_loop"] = True   # 1.57.x loop checks this
+    # strands.bidi (main, #4664): BidiAgent.cancel() sets a thread-safe signal the event loop
+    # honours after the current tool group completes. The 1.57.1 request_state["stop_event_loop"]
+    # flag does not exist on main, so it is not set here (1.57.1 is not a supported target).
     agent = getattr(tool_context, "agent", None)
     cancel = getattr(agent, "cancel", None)
-    if callable(cancel):                                                   # strands.bidi (main, #4664)
-        try:
-            cancel()
-        except Exception:  # noqa: BLE001
-            pass
+    if not callable(cancel):
+        return "Cannot end the conversation: this agent has no cancel() (strands.bidi main is required)"
+    cancel()
     return "Ending conversation"
 
 

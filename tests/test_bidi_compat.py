@@ -1,6 +1,7 @@
-"""tools/bidi_compat is the ONE place TINY touches Strands bidi: it resolves strands.bidi first,
-falls back to strands.experimental.bidi, maps 1.20 event names onto 1.57 ones, and ships our own
-stop_conversation (1.57.1: request_state flag; strands.bidi main: agent.cancel())."""
+"""tools/bidi_compat is the ONE place TINY touches Strands bidi. TINY runs harness-sdk MAIN
+(scripts/strands_wheel.sh), so the stable ``strands.bidi`` package MUST be the one resolved;
+the experimental fallback is a guarded import nobody else may touch. It maps 1.20 event names
+onto the current ones and ships our own stop_conversation (``agent.cancel()``, #4664)."""
 import asyncio
 import importlib
 import sys
@@ -13,23 +14,36 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools import bidi_compat as c  # noqa: E402
 
 
-def test_resolves_a_bidi_package_and_the_agent():
-    assert c.BIDI_PACKAGE in ("strands.bidi", "strands.experimental.bidi")
-    assert c.IS_STABLE == (c.BIDI_PACKAGE == "strands.bidi")
+def test_resolves_the_stable_package_and_the_agent():
+    """strands.bidi is what we run (harness-sdk main); the experimental shim must not be picked."""
+    assert c.BIDI_PACKAGE == "strands.bidi"
+    assert c.IS_STABLE is True
     assert c.BidiAgent.__name__ == "BidiAgent"
-    assert c.BidiAgent is importlib.import_module(c.BIDI_PACKAGE).BidiAgent
-    for name in ("send", "run", "receive", "start", "stop"):
+    assert c.BidiAgent is importlib.import_module("strands.bidi").BidiAgent
+    for name in ("send", "run", "receive", "start", "stop", "cancel", "cancel_signal"):
         assert hasattr(c.BidiAgent, name)
 
 
-def test_stable_path_is_preferred_when_present():
-    """When strands.bidi exists it wins; on 1.57.1 (experimental only) the fallback is taken."""
-    try:
-        importlib.import_module("strands.bidi")
-    except ImportError:
-        assert c.BIDI_PACKAGE == "strands.experimental.bidi"
-    else:
-        assert c.BIDI_PACKAGE == "strands.bidi"
+def test_installed_strands_is_a_main_build_not_pypi_1_57_1():
+    """The wheel comes from harness-sdk main: a dev version past 1.57.1, with #4642 in the OpenAI model."""
+    import importlib.metadata as md
+    from packaging.version import Version
+    v = Version(md.version("strands-agents"))
+    assert v > Version("1.57.1") and v < Version("1.60"), v
+    openai_src = Path(importlib.import_module("strands.bidi.models.openai").__file__).read_text(encoding="utf-8")
+    assert "input_audio_pending" in openai_src, "#4642 (deferred response.create) missing: not a main build"
+
+
+def test_import_touches_no_deprecated_path():
+    """Importing TINY's bidi surface must not trip the strands.experimental.bidi DeprecationWarning."""
+    import subprocess
+    import sys as _sys
+    root = Path(__file__).resolve().parents[1]
+    r = subprocess.run(
+        [_sys.executable, "-W", "error::DeprecationWarning", "-c", "import tools.bidi_compat"],
+        cwd=root, capture_output=True, text=True, timeout=120,
+    )
+    assert r.returncode == 0, r.stderr[-800:]
 
 
 def test_send_types_are_the_core_blocks():
@@ -68,7 +82,7 @@ def test_events_are_the_1_57_names_and_legacy_maps_onto_them():
 
 def test_event_names_exist_in_the_installed_strands():
     """Every EVENTS value is a type string some installed event class emits."""
-    ev = importlib.import_module(f"{c.BIDI_PACKAGE}.types.events")
+    ev = importlib.import_module("strands.bidi.types.events")
     src = Path(ev.__file__).read_text(encoding="utf-8")
     for name, value in vars(c.EVENTS).items():
         assert f'"{value}"' in src, f"{name}={value} is not emitted by {ev.__file__}"
@@ -89,7 +103,7 @@ def test_event_type_normalises_both_vintages():
 def test_hooks_namespace():
     from strands.hooks import MessageAddedEvent
     assert c.hooks.MessageAddedEvent is MessageAddedEvent
-    hooks = importlib.import_module(f"{c.BIDI_PACKAGE}.hooks")
+    hooks = importlib.import_module("strands.bidi.hooks")
     assert c.hooks.ResponseStop is hooks.BidiResponseStopEvent
     assert c.hooks.BargeIn is hooks.BidiBargeInEvent
     assert c.hooks.AgentStop is hooks.BidiAgentStopEvent
@@ -109,24 +123,46 @@ class _Ctx:
         self.agent = agent
 
 
-def test_stop_conversation_sets_the_1_57_flag_and_calls_cancel_when_present():
+def test_stop_conversation_calls_agent_cancel():
     class _Agent:
-        cancelled = False
+        cancelled = 0
 
         def cancel(self):
-            self.cancelled = True
+            self.cancelled += 1
 
     ctx = _Ctx(_Agent())
     assert c.stop_conversation.tool_spec["name"] == "stop_conversation"
     assert c.stop_conversation._tool_func(ctx) == "Ending conversation"
-    assert ctx.invocation_state["request_state"]["stop_event_loop"] is True
-    assert ctx.agent.cancelled is True
+    assert ctx.agent.cancelled == 1
+    assert "stop_event_loop" not in ctx.invocation_state.get("request_state", {})   # 1.57.1-only flag, dropped
 
 
-def test_stop_conversation_without_cancel_is_fine():
+def test_stop_conversation_on_a_real_bidi_agent_sets_the_cancel_signal():
+    """Against the installed BidiAgent (no model connection): cancel() flips cancel_signal (#4664)."""
+    BidiModel = importlib.import_module("strands.bidi.models.model").BidiModel
+
+    class _Model(BidiModel):  # never connected; the agent only stores it at construction
+        model_id = "test"
+
+        async def start(self, *a, **k): ...
+        async def stop(self): ...
+        async def send(self, content): ...
+        def receive(self):  # pragma: no cover
+            raise NotImplementedError
+        def get_config(self):
+            return {}
+        def update_config(self, **cfg): ...
+
+    agent = c.BidiAgent(model=_Model(), tools=[c.stop_conversation])
+    assert not agent.cancel_signal.is_set()
+    assert c.stop_conversation._tool_func(_Ctx(agent)) == "Ending conversation"
+    assert agent.cancel_signal.is_set()
+    assert "stop_conversation" in agent.tool_names
+
+
+def test_stop_conversation_without_cancel_refuses_clearly():
     ctx = _Ctx(object())
-    assert c.stop_conversation._tool_func(ctx) == "Ending conversation"
-    assert ctx.invocation_state["request_state"]["stop_event_loop"] is True
+    assert c.stop_conversation._tool_func(ctx).startswith("Cannot end the conversation")
 
 
 def test_sinks_use_the_compat_names_not_literals():
