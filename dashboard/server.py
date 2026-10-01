@@ -493,8 +493,7 @@ def create_app(robot: Optional[Robot] = None) -> FastAPI:
 
     # ── runtime settings (tools/config.py store; reads gated by _gate, writes by _control like every POST) ──
     def _cfg_log(kind: str, text: str, who: str, **meta: Any) -> None:
-        robot.log(kind, text[:300], who, **meta)                 # dashboard event → WS
-        agent_log_record("dashboard", "system", text[:1000], {"kind": kind, "who": who, **meta})
+        robot.log(kind, text[:300], who, **meta)                 # one row: agent_log persona "dashboard" + WS event
 
     @app.get("/api/config")
     async def config_get():

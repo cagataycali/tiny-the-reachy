@@ -100,7 +100,7 @@ def test_put_round_trip_logs_and_bumps_the_voice_generation(client):
     assert d["generations"]["voice"] == before + 1
     assert d["values"]["voice.vad_silence_ms"] == 650 and d["values"]["telegram.heartbeat_photos"] is False
     rows = [x for x in _agent_log() if x["persona"] == "dashboard" and "voice.vad_silence_ms" in x["text"]]
-    assert rows and "600 -> 650" in rows[-1]["text"]
+    assert len(rows) == 1 and "600 -> 650" in rows[0]["text"]          # exactly one audit row per change
     # PUT the same value again: no change, no generation bump
     r2 = client.put("/api/config", headers=HDR, json={"voice.vad_silence_ms": 650})
     assert r2.json()["changed"] == {} and r2.json()["generations"]["voice"] == before + 1
