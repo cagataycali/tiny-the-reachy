@@ -22,3 +22,6 @@ dashboard/frontend/dist/
 dashboard/frontend/public/mujoco/
 docs/SHOWCASE-RUNBOOK.md
 tools/landing/model-hi/
+
+# source-built strands-agents wheels (scripts/strands_wheel.sh); never commit binaries
+dist/
