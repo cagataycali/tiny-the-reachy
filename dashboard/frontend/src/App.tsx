@@ -1,4 +1,4 @@
-// v3 shell — mobile-first, camera-first, agent-as-overlay (scout.cagatay.my pattern, ported to React).
+// v3 shell: mobile-first, camera-first, agent-as-overlay (scout.cagatay.my pattern, ported to React), in the Strands design language.
 // Gate → Cockpit. Cockpit = topbar · full-bleed viewport (camera + twin PiP, swappable) with the mind overlay · cmdbar · slide-up docks.
 // Desktop (≥ 960 px) shows the same components in two columns: viewport left, mind timeline + open dock right.
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -10,6 +10,9 @@ import { HeadPad } from './components/Joystick'
 import { Live, PERSONA, Timeline } from './components/Timeline'
 import { LockCard, Telemetry } from './components/System'
 import { Gate } from './components/Gate'
+import { Brand } from './components/Brand'
+import { Ico } from './components/Icons'
+import { useScheme } from './lib/scheme'
 
 type Thought = Live
 type Dock = null | 'look' | 'emotions' | 'say' | 'settings' | 'mind'
@@ -46,6 +49,24 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
   const [lift, setLift] = useState(0)                                 // mind bubbles lift above a bottom-corner PiP
   const seq = useRef(0)
   const wide = useMedia('(min-width: 960px)')
+  const [scheme, setScheme] = useScheme()
+  const sheetRef = useRef<HTMLDivElement>(null)
+  // sheets trap focus: first focusable on open, Tab cycles inside, focus returns to the cmdbar button on close
+  useEffect(() => {
+    const el = sheetRef.current; if (!dock || !el) return
+    const opener = document.activeElement as HTMLElement | null
+    const focusables = () => Array.from(el.querySelectorAll<HTMLElement>('button, input, [tabindex]:not([tabindex="-1"])')).filter((n) => !n.hasAttribute('disabled'))
+    const first = focusables()[0]; first?.focus()
+    const trap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const f = focusables(); if (!f.length) return
+      const i = f.indexOf(document.activeElement as HTMLElement)
+      if (e.shiftKey && (i <= 0)) { e.preventDefault(); f[f.length - 1].focus() }
+      else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus() }
+    }
+    el.addEventListener('keydown', trap)
+    return () => { el.removeEventListener('keydown', trap); opener?.focus?.() }
+  }, [dock])
 
   const onAgent = useCallback((e: AgentEvent) => {
     setThoughts((t) => {
@@ -114,19 +135,19 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
   }
   const look = (yaw: number, pitch: number) => ctl('look', { yaw, pitch, roll, body_yaw: body, duration: 0.8 })
   const track = async (on: boolean) => {
-    try { const r = await api.tracking(on); setToast(on ? (r.tracking?.detected ? 'following your face' : 'tracking ON — looking for a face') : 'tracking OFF'); return r } catch (e: any) {
+    try { const r = await api.tracking(on); setToast(on ? (r.tracking?.detected ? 'following your face' : 'tracking ON: looking for a face') : 'tracking OFF'); return r } catch (e: any) {
       if (e instanceof ApiError && e.status === 401) { onLock(); return null }
       setToast(e instanceof ApiError ? e.message : String(e)); return null
     }
   }
   const doaTurn = async (on: boolean) => {
-    try { await api.doaTurn(on); setToast(on ? 'turn-to-sound ON — TINY turns toward speech when no face is locked' : 'turn-to-sound OFF'); return true } catch (e: any) {
+    try { await api.doaTurn(on); setToast(on ? 'turn-to-sound ON: TINY turns toward speech when no face is locked' : 'turn-to-sound OFF'); return true } catch (e: any) {
       if (e instanceof ApiError && e.status === 401) { onLock(); return null }
       setToast(e instanceof ApiError ? e.message : String(e)); return null
     }
   }
   const home = () => { setRoll(0); setBody(0); setAntR(0); setAntL(0); return ctl('home') }
-  const doSay = async () => { const t = say.trim(); if (!t) return; const r = await ctl('say', { text: t }); if (r) { setSay(''); setToast(r.engine === 'piper-local' ? `speaking (${r.seconds}s)` : (r.warning || 'queued — no voice backend')) } }
+  const doSay = async () => { const t = say.trim(); if (!t) return; const r = await ctl('say', { text: t }); if (r) { setSay(''); setToast(r.engine === 'piper-local' ? `speaking (${r.seconds}s)` : (r.warning || 'queued: no voice backend')) } }
   const doAsk = async (text: string) => { setThoughts([]); const r = await ctl('ask', { text }); return !!r }
   const submitAsk = async () => { const t = ask.trim(); if (!t || askBusy) return; if (await doAsk(t)) setAsk('') }
   const toggleDock = (d: Dock) => setDock((cur) => (cur === d ? null : d))
@@ -145,13 +166,13 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
           <Slider label="roll" v={roll} min={-40} max={40} set={setRoll} can={can} onDone={(v) => ctl('look', { roll: v, yaw: s?.head?.yaw ?? 0, pitch: s?.head?.pitch ?? 0, body_yaw: body })} />
           <Slider label="body" v={body} min={-160} max={160} set={setBody} can={can} onDone={(v) => ctl('look', { roll, yaw: s?.head?.yaw ?? 0, pitch: s?.head?.pitch ?? 0, body_yaw: v, duration: 1.2 })} />
           <div className="btnrow">
-            <button className="btn" disabled={!can} onClick={home}>⌂ home</button>
-            <button className="btn" disabled={!can} onClick={() => ctl('look', { yaw: 40, duration: 1 })}>◄</button>
-            <button className="btn" disabled={!can} onClick={() => ctl('look', { yaw: -40, duration: 1 })}>►</button>
-            <button className="btn" disabled={!can} onClick={() => ctl('look', { pitch: -25, duration: 1 })}>▲</button>
-            <button className="btn" disabled={!can} onClick={() => ctl('look', { pitch: 25, duration: 1 })}>▼</button>
+            <button className="btn" disabled={!can} onClick={home}>home <kbd>H</kbd></button>
+            <button className="btn" disabled={!can} onClick={() => ctl('look', { yaw: 40, duration: 1 })} aria-label="look left">left</button>
+            <button className="btn" disabled={!can} onClick={() => ctl('look', { yaw: -40, duration: 1 })} aria-label="look right">right</button>
+            <button className="btn" disabled={!can} onClick={() => ctl('look', { pitch: -25, duration: 1 })} aria-label="look up">up</button>
+            <button className="btn" disabled={!can} onClick={() => ctl('look', { pitch: 25, duration: 1 })} aria-label="look down">down</button>
           </div>
-          <div className="dock-sub">📡 antennas</div>
+          <div className="dock-sub">antennas</div>
           <Slider label="right" v={antR} min={-150} max={150} set={setAntR} can={can} onDone={(v) => ctl('antennas', { right: v, left: antL })} />
           <Slider label="left" v={antL} min={-150} max={150} set={setAntL} can={can} onDone={(v) => ctl('antennas', { right: antR, left: v })} />
           <div className="btnrow">
@@ -166,8 +187,8 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
         <>
           <div className="reel">
             {reel?.running
-              ? <button className="btn stop wide" disabled={!can} onClick={() => ctl('reel', { action: 'abort' })}>■ abort reel · {reel.elapsed}s</button>
-              : <button className="btn primary wide" disabled={!can} onClick={() => ctl('reel', { action: 'start' })}>▶ play the {reel?.total_s ?? 0}s show</button>}
+              ? <button className="btn stop wide" disabled={!can} onClick={() => ctl('reel', { action: 'abort' })}>abort reel · {reel.elapsed}s</button>
+              : <button className="btn primary wide" disabled={!can} onClick={() => ctl('reel', { action: 'start' })}>play the {reel?.total_s ?? 0}s show</button>}
             {reel?.running && <ol className="timeline-steps">{(reel.steps ?? []).map((st, i) => <li key={i} className={i < reel.step ? 'done' : i === reel.step ? 'now' : ''}>{st}</li>)}</ol>}
           </div>
           <EmotionGrid emotions={emotions} playing={playing} can={can} onPlay={(n) => ctl('express', { name: n })} />
@@ -176,7 +197,7 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
       {dock === 'say' && (
         <div className="dock-say">
           <div className="inline">
-            <input value={say} onChange={(e) => setSay(e.target.value)} placeholder="Hello, I'm TINY…" disabled={!can} onKeyDown={(e) => e.key === 'Enter' && doSay()} autoFocus data-testid="say-input" />
+            <input value={say} onChange={(e) => setSay(e.target.value)} placeholder="Hello, I am TINY" disabled={!can} onKeyDown={(e) => e.key === 'Enter' && doSay()} autoFocus data-testid="say-input" />
             <button className="btn primary" disabled={!can || !say.trim()} onClick={doSay}>say</button>
           </div>
           <div className="chips" style={{ marginTop: 10 }}>
@@ -187,19 +208,22 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
       )}
       {dock === 'settings' && (
         <div className="dock-settings">
-          <div className="dock-sub">⚡ robot</div>
+          <div className="dock-sub">robot</div>
           <div className="btnrow">
-            <button className="btn" disabled={!can} onClick={() => ctl('wake')}>☀ wake</button>
-            <button className="btn" disabled={!can} onClick={() => confirm('Sleep the robot? The thinker persona depends on it being awake.') && ctl('sleep')}>🌙 sleep</button>
+            <button className="btn" disabled={!can} onClick={() => ctl('wake')}>wake</button>
+            <button className="btn" disabled={!can} onClick={() => confirm('Sleep the robot? The thinker persona depends on it being awake.') && ctl('sleep')}>sleep</button>
             <button className="btn" disabled={!can} onClick={() => ctl('motors', { mode: 'enabled' })}>motors on</button>
             <button className="btn" disabled={!can} onClick={() => confirm('Disable motors? The head will go limp.') && ctl('motors', { mode: 'disabled' })}>motors off</button>
             <button className="btn" disabled={!can} onClick={() => ctl('motors', { mode: 'gravity_compensation' })}>gravity comp</button>
           </div>
-          <div className="dock-sub">📈 telemetry</div>
+          <div className="dock-sub">telemetry</div>
           <Telemetry s={s} />
-          <div className="dock-sub">🔐 lock &amp; demo</div>
-          <LockCard auth={auth} can={can} demo={!!s?.demo} onDemo={(on) => ctl('demo', { on }).then((r) => { if (r) setToast(on ? 'demo mode ON — thinker paused' : 'thinker resumed') })} onToast={setToast} />
-          <div className="dock-sub">🖥 display</div>
+          <div className="dock-sub">lock and demo</div>
+          <LockCard auth={auth} can={can} demo={!!s?.demo} onDemo={(on) => ctl('demo', { on }).then((r) => { if (r) setToast(on ? 'demo mode ON: thinker paused' : 'thinker resumed') })} onToast={setToast} />
+          <div className="dock-sub">display</div>
+          <div className="scheme-row" data-testid="scheme-row"><span className="muted small">scheme</span>
+            {(['auto', 'paper', 'dark'] as const).map((z) => <button key={z} className="btn small" aria-pressed={scheme === z} onClick={() => setScheme(z)}>{z}</button>)}
+          </div>
           <label className="switch"><input type="checkbox" checked={overlayOn} onChange={(e) => setOverlayOn(e.target.checked)} /><span className="track" /> agent overlay on the camera</label>
           <label className="switch"><input type="checkbox" checked={pip.open} onChange={(e) => setPip((p) => (e.target.checked ? { ...p, open: true } : { ...p, open: false, swapped: false }))} data-testid="set-pip-open" /><span className="track" /> digital twin PiP</label>
           <div className="btnrow" data-testid="set-pip-size">
@@ -208,8 +232,8 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
             <button className="btn small" onClick={() => setPip((p) => ({ ...p, corner: 'tr', size: null }))}>reset</button>
           </div>
           <div className="muted small keys">shortcuts: <kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> look · <kbd>space</kbd> STOP · <kbd>H</kbd> home · <kbd>D</kbd> demo · <kbd>F</kbd> face-track · <kbd>T</kbd> twin PiP · <kbd>X</kbd> swap · <kbd>L</kbd> look · <kbd>E</kbd> emotions · <kbd>/</kbd> ask · <kbd>esc</kbd> close</div>
-          <button className="btn ghost wide" onClick={onLock}>🔒 lock · sign out ({auth.who})</button>
-          <div className="muted small">reachy.cagatay.my · dashboard {hello?.version ?? ''} · uptime {Math.round((s?.uptime_s ?? 0) / 60)} min · {s?.camera?.clients ?? 0} viewer{(s?.camera?.clients ?? 0) === 1 ? '' : 's'}</div>
+          <button className="btn ghost wide" onClick={onLock}>lock and sign out ({auth.who})</button>
+          <div className="muted small mono">{location.host} · dashboard {hello?.version ?? ''} · uptime {Math.round((s?.uptime_s ?? 0) / 60)} min · {s?.camera?.clients ?? 0} viewer{(s?.camera?.clients ?? 0) === 1 ? '' : 's'}</div>
         </div>
       )}
     </>
@@ -219,25 +243,27 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
   return (
     <div className={`shell ${wide ? 'wide' : ''}`} data-testid="cockpit">
       <header className="topbar glass">
-        <div className="brand"><span className="logo">🤖</span><div className="brand-txt"><strong>tiny</strong><small>{online ? 'live' : 'daemon offline'} · {connected ? 'ws' : 'reconnecting'}</small></div></div>
+        <h1 className="sr-only">tiny / reachy cockpit</h1>
+        <Brand />
+        <div className="brand-txt"><small data-testid="link-state">{online ? 'live' : 'daemon offline'} · {connected ? 'ws' : 'reconnecting'}</small></div>
         <div className="stat-pills" data-testid="pills">
-          <span className={`pill ${s?.control_mode === 'enabled' ? '' : 'warn'}`} title="motors">⚙ {s?.control_mode ?? '…'}</span>
-          <span className={`pill ${(sys?.wifi_signal_dbm ?? 0) < -75 ? 'warn' : ''}`} title={`Wi-Fi ${s?.wifi?.ssid ?? ''}`}>📶 {sys?.wifi_signal_dbm ?? '—'}</span>
-          <span className={`pill ${(sys?.cpu_c ?? 0) >= 70 ? 'crit' : ''}`} title="CM4 CPU temperature">🌡 {sys?.cpu_c != null ? `${Math.round(sys.cpu_c)}°` : '—'}</span>
-          <button className={`pill ${s?.demo ? 'on' : ''}`} disabled={!can} onClick={() => ctl('demo', { on: !s?.demo }).then((r) => { if (r) setToast(!s?.demo ? 'demo mode ON — thinker paused' : 'thinker resumed') })} title="demo mode = pause the thinker persona">{s?.demo ? '🎬 demo' : '🧠 thinker'}</button>
-          <button className={`pill ${s?.tracking?.enabled ? (s?.tracking?.detected ? 'on' : 'warn') : ''}`} disabled={!can || s?.tracking?.available === false} data-testid="track-pill" onClick={() => track(!s?.tracking?.enabled)}
+          <span className={`pill ${s?.control_mode === 'enabled' ? '' : 'warn'}`} title="motors" aria-label={`motors ${s?.control_mode ?? 'unknown'}`}><Ico.motor className="ico" /> {s?.control_mode ?? '--'}</span>
+          <span className={`pill ${(sys?.wifi_signal_dbm ?? 0) < -75 ? 'warn' : ''}`} title={`Wi-Fi ${s?.wifi?.ssid ?? ''}`} aria-label={`Wi-Fi ${sys?.wifi_signal_dbm ?? 'unknown'} dBm`}><Ico.wifi className="ico" /> {sys?.wifi_signal_dbm != null ? `${sys.wifi_signal_dbm} dBm` : '--'}</span>
+          <span className={`pill ${(sys?.cpu_c ?? 0) >= 70 ? 'crit' : ''}`} title="CM4 CPU temperature" aria-label={`CPU ${sys?.cpu_c != null ? Math.round(sys.cpu_c) : 'unknown'} degrees C`}><Ico.temp className="ico" /> {sys?.cpu_c != null ? `${Math.round(sys.cpu_c)} C` : '--'}</span>
+          <button className={`pill ${s?.demo ? 'on' : ''}`} disabled={!can} onClick={() => ctl('demo', { on: !s?.demo }).then((r) => { if (r) setToast(!s?.demo ? 'demo mode ON: thinker paused' : 'thinker resumed') })} title="demo mode = pause the thinker persona" aria-pressed={!!s?.demo}>{s?.demo ? <><Ico.film className="ico" /> demo</> : <><Ico.brain className="ico" /> thinker</>}</button>
+          <button className={`pill ${s?.tracking?.enabled ? (s?.tracking?.detected ? 'on' : 'warn') : ''}`} disabled={!can || s?.tracking?.available === false} data-testid="track-pill" aria-pressed={!!s?.tracking?.enabled} onClick={() => track(!s?.tracking?.enabled)}
             title={s?.tracking?.available === false ? `face tracking unavailable: ${s?.tracking?.error ?? 'daemon has no camera'}` : 'follow the closest face (daemon face tracking, F)'}>
-            👁 {s?.tracking?.enabled ? (s?.tracking?.paused ? 'paused' : (s?.tracking?.detected ? 'face' : 'track')) : 'track'}</button>
-          <button className={`pill ${s?.doa_turn?.enabled ? (s?.doa_turn?.speech ? 'on' : '') : ''}`} disabled={!can} data-testid="doa-pill" onClick={() => doaTurn(!s?.doa_turn?.enabled)}
-            title={s?.doa_turn?.enabled ? `turn toward whoever is talking (K) — ${s.doa_turn.turns ?? 0} turns${s.doa_turn.why ? ` · ${s.doa_turn.why}` : ''}${s.doa_turn.angle_deg != null ? ` · last sound ${Math.round(s.doa_turn.angle_deg)}°` : ''}` : 'turn toward whoever is talking when no face is locked (K)'}>
-            🔊 {s?.doa_turn?.enabled ? (s?.doa_turn?.speech ? 'speech' : 'sound') : 'sound'}</button>
+            <Ico.eye className="ico" /> {s?.tracking?.enabled ? (s?.tracking?.paused ? 'paused' : (s?.tracking?.detected ? 'face' : 'track')) : 'track'}</button>
+          <button className={`pill ${s?.doa_turn?.enabled ? (s?.doa_turn?.speech ? 'on' : '') : ''}`} disabled={!can} data-testid="doa-pill" aria-pressed={!!s?.doa_turn?.enabled} onClick={() => doaTurn(!s?.doa_turn?.enabled)}
+            title={s?.doa_turn?.enabled ? `turn toward whoever is talking (K): ${s.doa_turn.turns ?? 0} turns${s.doa_turn.why ? ` · ${s.doa_turn.why}` : ''}${s.doa_turn.angle_deg != null ? ` · last sound ${Math.round(s.doa_turn.angle_deg)}°` : ''}` : 'turn toward whoever is talking when no face is locked (K)'}>
+            <Ico.sound className="ico" /> {s?.doa_turn?.enabled ? (s?.doa_turn?.speech ? 'speech' : 'sound') : 'sound'}</button>
           {(s?.pressure?.warn || (s?.stream && !s.stream.connected)) && (
             <span className={`pill ${s?.pressure?.warn ? 'crit' : 'warn'}`} data-testid="pressure-pill"
-              title={s?.pressure?.warn ? `daemon under pressure: ${s.pressure.warn} — the systemd watchdog restarts it if /api/daemon/status stops answering` : `daemon state stream down: ${s?.stream?.error ?? 'reconnecting'} — falling back to slow polling`}>
-              {s?.pressure?.warn ? `⚠ ${s.pressure.warn}` : '⚠ daemon stream'}</span>
+              title={s?.pressure?.warn ? `daemon under pressure: ${s.pressure.warn}; the systemd watchdog restarts it if /api/daemon/status stops answering` : `daemon state stream down: ${s?.stream?.error ?? 'reconnecting'}; falling back to slow polling`}>
+              <Ico.alert className="ico" /> {s?.pressure?.warn ? s.pressure.warn : 'daemon stream'}</span>
           )}
         </div>
-        <button className="icon-btn" onClick={onLock} title="lock — sign out" data-testid="lock-btn">🔒</button>
+        <button className="icon-btn" onClick={onLock} title="lock: sign out" aria-label="lock and sign out" data-testid="lock-btn"><Ico.lock /></button>
       </header>
 
       <main className="stage">
@@ -245,54 +271,55 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
           <PiPViewport s={s} pip={pip} setPip={setPip} onToast={setToast} onLift={setLift} stale={stale} />
           <div className="cam-overlay">
             <div className="overlay-top">
-              <span className={`chip ${stale ? 'warn' : 'on'}`} data-testid="live-chip">{stale ? `● state stale ${staleS}s` : !pip.swapped ? `● LIVE ${s?.camera?.fps?.toFixed(0) ?? 0} fps` : '🧊 twin · mirrors the real motors'}</span>
-              {playing && <span className="chip playing">▶ {playing.name}</span>}
-              {reel?.running && <span className="chip">🎬 reel {reel.step + 1}/{reel.steps.length} · {reel.elapsed}s</span>}
+              <span className={`chip ${stale ? 'warn' : 'on'}`} data-testid="live-chip">{stale ? `state stale ${staleS}s` : !pip.swapped ? `LIVE ${s?.camera?.fps?.toFixed(0) ?? 0} fps` : 'twin: mirrors the real motors'}</span>
+              {playing && <span className="chip playing">playing {playing.name}</span>}
+              {reel?.running && <span className="chip">reel {reel.step + 1}/{reel.steps.length} · {reel.elapsed}s</span>}
               {s?.moves_running ? <span className="chip">{s.moves_running} move{s.moves_running > 1 ? 's' : ''}</span> : null}
-              <button className="chip" onClick={() => setPip((p) => ({ ...p, swapped: !p.swapped, open: true }))} data-testid="view-toggle" title="swap camera ⇄ twin (X, or double-tap the PiP)">{!pip.swapped ? '⇄ 🧊 twin' : '⇄ 📷 camera'}</button>
+              <button className="chip" onClick={() => setPip((p) => ({ ...p, swapped: !p.swapped, open: true }))} data-testid="view-toggle" title="swap camera and twin (X, or double-tap the PiP)" aria-label={!pip.swapped ? 'show the twin' : 'show the camera'}>{!pip.swapped ? <><Ico.swap className="ico" /> twin</> : <><Ico.swap className="ico" /> camera</>}</button>
             </div>
             {overlayOn && !wide && <MindOverlay rows={rows} live={thoughts} onOpen={() => setDock('mind')} lift={lift} />}
           </div>
-          <button className="estop" disabled={!can} onClick={() => ctl('stop')} title="STOP every move (space)" data-testid="stop">■</button>
+          <button className="estop" disabled={!can} onClick={() => ctl('stop')} title="STOP every move (space)" aria-label="STOP every move" data-testid="stop">STOP</button>
         </section>
 
         {wide && (
           <aside className="side glass">
-            {dock && dock !== 'mind' ? <div className="side-dock"><div className="dock-head"><h2>{DOCK_TITLE[dock]}</h2><button className="icon-btn sm" onClick={() => setDock(null)}>✕</button></div><div className="dock-body">{dockBody}</div></div>
-              : <div className="side-mind"><h2>🧠 TINY's mind <small className="muted">voice · telegram · thinker · dashboard</small></h2>{mindPanel}</div>}
+            {dock && dock !== 'mind' ? <div className="side-dock"><div className="dock-head"><h2>{DOCK_ICON[dock]}{DOCK_TITLE[dock]}</h2><button className="icon-btn sm" onClick={() => setDock(null)} aria-label="close panel"><Ico.close /></button></div><div className="dock-body">{dockBody}</div></div>
+              : <div className="side-mind"><h2>TINY's mind <small className="muted">voice · telegram · thinker · dashboard</small></h2>{mindPanel}</div>}
           </aside>
         )}
       </main>
 
       <footer className="cmdbar glass">
         <div className="askbar">
-          <input value={ask} onChange={(e) => setAsk(e.target.value)} placeholder={askBusy ? 'TINY is thinking…' : 'Ask TINY…'} disabled={!can || askBusy}
+          <input value={ask} onChange={(e) => setAsk(e.target.value)} placeholder={askBusy ? 'TINY is thinking' : 'Ask TINY'} disabled={!can || askBusy}
             onKeyDown={(e) => e.key === 'Enter' && submitAsk()} data-testid="ask-input" enterKeyHint="send" />
-          <button className="send-btn" disabled={!can || askBusy || !ask.trim()} onClick={submitAsk} title="ask (one Strands turn, streamed)">{askBusy ? '…' : '↑'}</button>
+          <button className="send-btn" disabled={!can || askBusy || !ask.trim()} onClick={submitAsk} title="ask (one Strands turn, streamed)" aria-label="ask">{askBusy ? <span className="caret">|</span> : <Ico.send />}</button>
         </div>
         <div className="cmd-icons">
-          <button className={`icon-btn ${dock === 'look' ? 'on' : ''}`} onClick={() => toggleDock('look')} title="head & antennas (L)" data-testid="dock-look">🕹</button>
-          <button className={`icon-btn ${dock === 'emotions' ? 'on' : ''}`} onClick={() => toggleDock('emotions')} title="emotions & reel (E)" data-testid="dock-emotions">🎭</button>
-          <button className={`icon-btn ${dock === 'say' ? 'on' : ''}`} onClick={() => toggleDock('say')} title="say" data-testid="dock-say">🗣</button>
-          {!wide && <button className={`icon-btn ${dock === 'mind' ? 'on' : ''}`} onClick={() => toggleDock('mind')} title="TINY's mind" data-testid="dock-mind">🧠</button>}
-          <button className={`icon-btn ${dock === 'settings' ? 'on' : ''}`} onClick={() => toggleDock('settings')} title="settings" data-testid="dock-settings">⚙</button>
+          <button className={`icon-btn ${dock === 'look' ? 'on' : ''}`} onClick={() => toggleDock('look')} title="head and antennas (L)" aria-label="head and antennas" aria-pressed={dock === 'look'} data-testid="dock-look"><Ico.look /><span className="lbl">look <kbd>L</kbd></span></button>
+          <button className={`icon-btn ${dock === 'emotions' ? 'on' : ''}`} onClick={() => toggleDock('emotions')} title="emotions and reel (E)" aria-label="emotions and reel" aria-pressed={dock === 'emotions'} data-testid="dock-emotions"><Ico.smile /><span className="lbl">emotions <kbd>E</kbd></span></button>
+          <button className={`icon-btn ${dock === 'say' ? 'on' : ''}`} onClick={() => toggleDock('say')} title="say" aria-label="say" aria-pressed={dock === 'say'} data-testid="dock-say"><Ico.say /><span className="lbl">say</span></button>
+          {!wide && <button className={`icon-btn ${dock === 'mind' ? 'on' : ''}`} onClick={() => toggleDock('mind')} title="TINY's mind" aria-label="agent timeline" aria-pressed={dock === 'mind'} data-testid="dock-mind"><Ico.brain /><span className="lbl">mind</span></button>}
+          <button className={`icon-btn ${dock === 'settings' ? 'on' : ''}`} onClick={() => toggleDock('settings')} title="settings" aria-label="settings" aria-pressed={dock === 'settings'} data-testid="dock-settings"><Ico.settings /><span className="lbl">settings</span></button>
         </div>
       </footer>
 
       {dock && (!wide || dock === 'mind') && (
         <div className="sheet-wrap" onClick={() => setDock(null)}>
-          <div className={`sheet glass ${dock === 'mind' || dock === 'emotions' ? 'tall' : ''}`} onClick={(e) => e.stopPropagation()} data-testid={`sheet-${dock}`}>
-            <div className="dock-head"><span className="grab" /><h2>{DOCK_TITLE[dock]}</h2><button className="icon-btn sm" onClick={() => setDock(null)}>✕</button></div>
+          <div className={`sheet glass ${dock === 'mind' || dock === 'emotions' ? 'tall' : ''}`} onClick={(e) => e.stopPropagation()} data-testid={`sheet-${dock}`} role="dialog" aria-modal="true" aria-labelledby="sheet-title" ref={sheetRef}>
+            <div className="dock-head"><span className="grab" /><h2 id="sheet-title">{DOCK_ICON[dock]}{DOCK_TITLE[dock]}</h2><button className="icon-btn sm" onClick={() => setDock(null)} aria-label="close sheet"><Ico.close /></button></div>
             <div className="dock-body">{dock === 'mind' ? mindPanel : dockBody}</div>
           </div>
         </div>
       )}
-      {toast && <div className="toast">{toast}</div>}
+      <div className="toast" role="status" aria-live="polite" hidden={!toast}>{toast}</div>
     </div>
   )
 }
 
-const DOCK_TITLE: Record<Exclude<Dock, null>, string> = { look: '🕹 head & antennas', emotions: '🎭 emotions & reel', say: '🗣 say', settings: '⚙ settings', mind: "🧠 TINY's mind" }
+const DOCK_TITLE: Record<Exclude<Dock, null>, string> = { look: 'head and antennas', emotions: 'emotions and reel', say: 'say', settings: 'settings', mind: "TINY's mind" }
+const DOCK_ICON: Record<Exclude<Dock, null>, JSX.Element> = { look: <Ico.look />, emotions: <Ico.smile />, say: <Ico.say />, settings: <Ico.settings />, mind: <Ico.brain /> }
 
 /** The agent as an overlay: the last few mind rows as glass bubbles over the camera, auto-fading; tap → full timeline. */
 function MindOverlay({ rows, live, onOpen, lift = 0 }: { rows: LogRow[]; live: Live[]; onOpen: () => void; lift?: number }) {
@@ -306,19 +333,19 @@ function MindOverlay({ rows, live, onOpen, lift = 0 }: { rows: LogRow[]; live: L
   return (
     <div className="mind-overlay" onClick={onOpen} data-testid="mind-overlay" style={lift ? { marginBottom: lift, transition: 'margin-bottom .28s' } : undefined}>
       {!asking && recent.map((r) => {
-        const a = age(r.ts), p = PERSONA[r.persona] ?? { chip: '•', color: '#9ca3af', label: r.persona }
+        const a = age(r.ts), p = PERSONA[r.persona] ?? { chip: 'dot' as const, color: 'var(--sr-muted)', label: r.persona }
         const faded = a > 90 ? 'faded' : a > 30 ? 'dim' : ''
         const role = r.role === 'tool' ? 'tool' : r.role === 'user' ? 'user' : 'bot'
-        return <div key={r.id} className={`bubble ${role} ${faded}`} style={{ '--c': p.color } as any}><span className="b-who">{p.chip} {r.role === 'user' ? (r.persona === 'voice' ? 'heard' : 'user') : r.role === 'tool' ? '🔧' : 'TINY'}</span>{r.text.length > 220 ? r.text.slice(0, 220) + '…' : r.text}</div>
+        return <div key={r.id} className={`bubble ${role} ${faded}`} style={{ '--c': p.color } as any}><span className="b-who">{p.label} · {r.role === 'user' ? (r.persona === 'voice' ? 'heard' : 'user') : r.role === 'tool' ? 'tool' : 'TINY'}</span>{r.text.length > 220 ? r.text.slice(0, 220) + '…' : r.text}</div>
       })}
       {asking && (
         <>
-          {live[0]?.kind === 'start' && <div className="bubble user" style={{ '--c': '#5eead4' } as any}><span className="b-who">you</span>{live[0].text}</div>}
-          {liveTool && <div className="bubble tool"><span className="b-who">🔧 {liveTool.name}</span>{liveTool.input}</div>}
-          <div className="bubble bot live" style={{ '--c': '#5eead4' } as any}><span className="b-who">TINY</span>{liveText || 'thinking'}<span className="caret">▍</span></div>
+          {live[0]?.kind === 'start' && <div className="bubble user" style={{ '--c': 'var(--sr-accent)' } as any}><span className="b-who">you</span>{live[0].text}</div>}
+          {liveTool && <div className="bubble tool"><span className="b-who">tool · {liveTool.name}</span>{liveTool.input}</div>}
+          <div className="bubble bot live" style={{ '--c': 'var(--sr-accent)' } as any}><span className="b-who">TINY</span>{liveText || 'thinking'}<span className="caret">|</span></div>
         </>
       )}
-      {!asking && recent.length === 0 && <div className="bubble sys">🧠 TINY's mind is quiet — ask something below</div>}
+      {!asking && recent.length === 0 && <div className="bubble sys">TINY's mind is quiet. Ask something below.</div>}
     </div>
   )
 }

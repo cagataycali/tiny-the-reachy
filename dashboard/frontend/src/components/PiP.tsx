@@ -1,4 +1,4 @@
-// Twin ⇄ camera picture-in-picture over the viewport.
+// Twin / camera picture-in-picture over the viewport.
 // Two persistent LAYERS (camera, twin) share the viewport; one fills it ("main"), the other is a floating,
 // draggable, corner-snapping card ("pip"). Swap = re-assign boxes (animated), so neither the MJPEG stream nor the
 // MuJoCo sim ever restarts and the CM4 sees exactly one camera client. Prefs (corner, size, swapped, open) persist
@@ -7,6 +7,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import type { State } from '../lib/api'
 import { Camera } from './Camera'
 import Twin from './Twin'
+import { Ico } from './Icons'
 import { Box, PAD, PiPPrefs, PiPSize, TOP_OFF, autoSize, bubbleLift, cornerBox, deg, isSplit, loadPrefs, nextSize, rad2deg, readoutH, savePrefs, snapCorner, splitBoxes } from '../lib/pip'
 
 export function usePiPPrefs(): [PiPPrefs, Dispatch<SetStateAction<PiPPrefs>>] {
@@ -44,7 +45,7 @@ export function PiPViewport({ s, pip, setPip, onToast, onLift, stale = false }: 
   // first visit: a 3-second hint on how to use the card
   useEffect(() => {
     if (pip.hinted || !ready || !pip.open) return
-    const t = setTimeout(() => { onToast?.('🧊 twin PiP — drag to a corner · double-tap to swap · T hides it'); setPip((p) => ({ ...p, hinted: true })) }, 1200)
+    const t = setTimeout(() => { onToast?.('twin PiP: drag to a corner · double-tap to swap · T hides it'); setPip((p) => ({ ...p, hinted: true })) }, 1200)
     return () => clearTimeout(t)
   }, [pip.hinted, pip.open, ready, setPip, onToast])
 
@@ -84,18 +85,18 @@ export function PiPViewport({ s, pip, setPip, onToast, onLift, stale = false }: 
             <>
               <div className={`pip-chrome ${drag ? 'dragging' : ''} ${split ? 'split' : ''}`} style={style(card, 'pip')} data-testid="pip-card">
                 <div className="pip-handle" onPointerDown={onHandleDown} onPointerMove={onHandleMove} onPointerUp={onHandleUp} onPointerCancel={() => { dragStart.current = null; setDrag(null) }} data-testid="pip-handle">
-                  <span className="pip-title">{pip.swapped ? '📷 camera' : '🧊 twin'}</span>
+                  <span className="pip-title">{pip.swapped ? 'camera' : 'twin'}</span>
                   <span className="pip-grip" />
-                  <button className="pip-btn" onPointerDown={(e) => e.stopPropagation()} onClick={swap} title="swap camera ⇄ twin (double-tap)" data-testid="pip-swap">⇄</button>
-                  {!split && <button className="pip-btn" onPointerDown={(e) => e.stopPropagation()} onClick={cycle} title={`size ${size} → ${nextSize(size, W, H)}`} data-testid="pip-size">{size}</button>}
-                  <button className="pip-btn" onPointerDown={(e) => e.stopPropagation()} onClick={close} title="close (T)" data-testid="pip-close">✕</button>
+                  <button className="pip-btn" onPointerDown={(e) => e.stopPropagation()} onClick={swap} title="swap camera and twin (double-tap)" aria-label="swap camera and twin" data-testid="pip-swap"><Ico.swap /></button>
+                  {!split && <button className="pip-btn" onPointerDown={(e) => e.stopPropagation()} onClick={cycle} title={`size ${size}, next ${nextSize(size, W, H)}`} aria-label={`twin size ${size}`} data-testid="pip-size">{size}</button>}
+                  <button className="pip-btn" onPointerDown={(e) => e.stopPropagation()} onClick={close} title="close (T)" aria-label="hide the twin" data-testid="pip-close"><Ico.close /></button>
                 </div>
               </div>
               <Readout s={s} box={card} split={split} dragging={!!drag} size={size} stale={stale} />
             </>
           )}
           {!pip.open && (
-            <button className="chip pip-chip" style={{ top: TOP_OFF - 40, right: PAD }} onClick={() => setPip((p) => ({ ...p, open: true }))} title="show the digital twin (T)" data-testid="pip-chip">🧊 twin</button>
+            <button className="chip pip-chip" style={{ top: TOP_OFF - 40, right: PAD }} onClick={() => setPip((p) => ({ ...p, open: true }))} title="show the digital twin (T)" data-testid="pip-chip"><Ico.cube className="ico" /> twin</button>
           )}
         </>
       )}
@@ -107,16 +108,16 @@ export function PiPViewport({ s, pip, setPip, onToast, onLift, stale = false }: 
 function Readout({ s, box, split, dragging, size, stale }: { s: State | null; box: Box; split: boolean; dragging: boolean; size: PiPSize; stale: boolean }) {
   const h = s?.head, a = s?.antennas, hz = s?.daemon?.loop_hz, rh = readoutH(size)
   const st: CSSProperties = split ? { left: box.x + 8, top: box.y + box.h - rh - 8, width: box.w - 16 } : { left: box.x, top: box.y + box.h, width: box.w, height: rh }
-  const mode = SHORT_MODE[s?.control_mode ?? ''] ?? (s?.control_mode ?? '—')
+  const mode = SHORT_MODE[s?.control_mode ?? ''] ?? (s?.control_mode ?? '--')
   return (
     <div className={`pip-readout ${size === 'S' ? 'two-rows' : ''} ${dragging ? 'dragging' : ''} ${split ? 'split' : ''} ${stale ? 'stale' : ''}`} style={st} data-testid="pip-readout" data-stale={stale}
       data-roll={h?.roll?.toFixed(1)} data-pitch={h?.pitch?.toFixed(1)} data-yaw={h?.yaw?.toFixed(1)} data-body={s?.body_yaw?.toFixed(1)}>
       <div className="ro-row"><span title="head roll">R {deg(h?.roll)}</span><span title="head pitch">P {deg(h?.pitch)}</span><span title="head yaw">Y {deg(h?.yaw)}</span></div>
       <div className="ro-row">
-        <span title="body yaw">⟳{deg(s?.body_yaw)}</span>
-        <span title="antennas right / left">📡{a ? `${a[0].toFixed(0)}/${a[1].toFixed(0)}` : '—'}</span>
-        <span title="daemon control loop">{hz != null ? `${hz.toFixed(0)}Hz` : '—Hz'}</span>
-        <span title="motor mode" className={s?.control_mode === 'enabled' ? '' : 'warn'}>⚙{mode}</span>
+        <span title="body yaw">B {deg(s?.body_yaw)}</span>
+        <span title="antennas right / left">A {a ? `${a[0].toFixed(0)}/${a[1].toFixed(0)}` : '--'}</span>
+        <span title="daemon control loop">{hz != null ? `${hz.toFixed(0)} Hz` : '-- Hz'}</span>
+        <span title="motor mode" className={s?.control_mode === 'enabled' ? '' : 'warn'}>{mode}</span>
       </div>
     </div>
   )
@@ -138,7 +139,7 @@ function TwinDetail({ s }: { s: State | null }) {
         </div>
       )}
       {doa && <DoaArc angle={doa.angle as number} speech={!!doa.speech_detected} />}
-      {(lifted || tilted) && <span className="imu-badge" data-testid="imu-badge">{lifted ? '🫳 lifted' : '↗ tilted'}</span>}
+      {(lifted || tilted) && <span className="imu-badge" data-testid="imu-badge">{lifted ? 'lifted' : 'tilted'}</span>}
     </div>
   )
 }
@@ -157,7 +158,7 @@ function DoaArc({ angle, speech }: { angle: number; speech: boolean }) {
         <line x1={cx} y1={cy} x2={nx} y2={ny} className="doa-needle" />
         <circle cx={nx} cy={ny} r="3" className="doa-tip" />
       </svg>
-      <span className="doa-label">{speech ? '🗣' : '·'} {a.toFixed(0)}°</span>
+      <span className="doa-label">{speech ? 'speech' : 'sound'} {a.toFixed(0)} deg</span>
     </div>
   )
 }

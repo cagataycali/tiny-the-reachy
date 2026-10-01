@@ -33,12 +33,12 @@ Move TINY's head to a pose (smooth interpolation).
 
 | argument | envelope |
 |---|---|
-| `x, y, z` | head translation in millimetres (small, ~[-20,20]). |
-| `roll, pitch, yaw` | head orientation in DEGREES. pitch/roll clamped to [-40,40], yaw to [-180,180]. |
-| `body_yaw` | body rotation in DEGREES (clamped [-160,160]). None = keep current. |
+| `x, y, z` | head translation in mm (~[-20,20]). |
+| `roll, pitch, yaw` | degrees. Negative pitch looks up, positive yaw turns left. pitch/roll clamped to [-40,40], yaw to [-180,180]. |
+| `body_yaw` | body rotation in DEGREES ([-160,160]); None = keep current. |
 
 ```python
-reachy_look(pitch=15, yaw=20)              # look up-and-right
+reachy_look(pitch=-15, yaw=-20)            # look up-and-right
 ```
 
 <small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L35" title="tools/reachy_motion.py:35">source ↗</a></small>
@@ -63,7 +63,7 @@ reachy_antennas(45, 45)     # both up — alert / happy
 reachy_body_turn(yaw: float = 0.0, duration: float = 1.0) -> dict
 ```
 
-Rotate TINY's body around the vertical axis, in DEGREES ([-160,160]).
+Rotate TINY's body (yaw), in DEGREES ([-160,160]).
 
 <small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L111" title="tools/reachy_motion.py:111">source ↗</a></small>
 
@@ -73,7 +73,7 @@ Rotate TINY's body around the vertical axis, in DEGREES ([-160,160]).
 reachy_home(duration: float = 1.0) -> dict
 ```
 
-Return TINY to the neutral/init pose (head centered, antennas rest).
+Return TINY to the neutral pose (head centered, antennas rest).
 
 <small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L128" title="tools/reachy_motion.py:128">source ↗</a></small>
 

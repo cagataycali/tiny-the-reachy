@@ -3,15 +3,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { LogRow } from '../lib/api'
 
-export const PERSONA: Record<string, { chip: string; color: string; label: string }> = {
-  voice: { chip: '🎙', color: '#f472b6', label: 'voice' },
-  telegram: { chip: '💬', color: '#60a5fa', label: 'telegram' },
-  thinker: { chip: '🧠', color: '#a78bfa', label: 'thinker' },
-  dashboard: { chip: '🖥', color: '#5eead4', label: 'dashboard' },
-  shell: { chip: '⌨️', color: '#fbbf24', label: 'shell' },
-  system: { chip: '⚙️', color: '#9ca3af', label: 'system' },
+import { Ico, IconName } from './Icons'
+
+// Personas tell apart by a line icon and a mono label; the colour stays in the palette (ink for people-facing
+// personas, the accent for this dashboard, muted for system/shell).
+export const PERSONA: Record<string, { chip: IconName; color: string; label: string }> = {
+  voice: { chip: 'mic', color: 'var(--sr-fg)', label: 'voice' },
+  telegram: { chip: 'chat', color: 'var(--sr-fg)', label: 'telegram' },
+  thinker: { chip: 'brain', color: 'var(--sr-fg)', label: 'thinker' },
+  dashboard: { chip: 'monitor', color: 'var(--sr-accent)', label: 'dashboard' },
+  shell: { chip: 'terminal', color: 'var(--sr-muted)', label: 'shell' },
+  system: { chip: 'motor', color: 'var(--sr-muted)', label: 'system' },
 }
-const personaOf = (p: string) => PERSONA[p] ?? { chip: '•', color: '#9ca3af', label: p }
+const personaOf = (p: string) => PERSONA[p] ?? { chip: 'dot' as IconName, color: 'var(--sr-muted)', label: p }
 
 export type Live = { id: number; kind: 'start' | 'text' | 'tool' | 'end' | 'timeout'; text: string; name?: string; input?: string }
 
@@ -69,35 +73,35 @@ export function Timeline({ rows, live, askBusy, can, onAsk, height = 420 }: {
     <div className="timeline" data-testid="timeline">
       <div className="tl-filters">
         {personas.map((p) => { const d = personaOf(p); return (
-          <button key={p} className={`chip ${filter.size === 0 || filter.has(p) ? 'on' : ''}`} style={{ '--c': d.color } as any} onClick={() => toggle(p)} title={`filter ${p}`}>{d.chip} {d.label}</button>
+          <button key={p} className={`chip ${filter.size === 0 || filter.has(p) ? 'on' : ''}`} style={{ '--c': d.color } as any} onClick={() => toggle(p)} title={`filter ${p}`} aria-pressed={filter.size === 0 || filter.has(p)}>{Ico[d.chip]({ className: 'ico' })} {d.label}</button>
         ) })}
         <label className="chip sys"><input type="checkbox" checked={showSys} onChange={(e) => setShowSys(e.target.checked)} /> system rows</label>
-        {!follow && <button className="chip on" onClick={() => { setFollow(true); ref.current?.scrollTo({ top: ref.current.scrollHeight }) }}>↓ follow</button>}
+        {!follow && <button className="chip on" onClick={() => { setFollow(true); ref.current?.scrollTo({ top: ref.current.scrollHeight }) }}>follow</button>}
       </div>
       <div className="tl-scroll" ref={ref} onScroll={onScroll} style={{ maxHeight: height }}>
-        {visible.length === 0 && <div className="muted" style={{ padding: 12 }}>no agent activity yet — the personas' reasoning, tool calls and voice transcripts appear here live</div>}
+        {visible.length === 0 && <div className="muted" style={{ padding: 12 }}>No agent activity yet. The personas' reasoning, tool calls and voice transcripts appear here live.</div>}
         {visible.map((it) => <Row key={it.k} it={it} />)}
         {live.length > 0 && (
           <div className="tl-live">
             {live.map((l) => (
               l.kind === 'start' ? <div key={l.id} className="tl-row role-user"><Chip p="dashboard" /><div className="tl-body"><span className="tl-who">you</span>{l.text}</div></div>
-              : l.kind === 'text' ? <div key={l.id} className="tl-row role-assistant streaming"><Chip p="dashboard" /><div className="tl-body"><span className="tl-who">TINY</span>{l.text}<span className="caret">▍</span></div></div>
-              : l.kind === 'tool' ? <div key={l.id} className="tl-row role-tool"><Chip p="dashboard" /><div className="tl-body tool"><span className="tl-tool">🔧 {l.name ?? l.text}</span>{l.input && <code className="tl-in">{l.input}</code>}<span className="tl-pending">running…</span></div></div>
-              : <div key={l.id} className={`tl-row role-system ${l.kind}`}><Chip p="dashboard" /><div className="tl-body muted">{l.kind === 'end' ? '✓ ' : '⏱ '}{l.text}</div></div>
+              : l.kind === 'text' ? <div key={l.id} className="tl-row role-assistant streaming"><Chip p="dashboard" /><div className="tl-body"><span className="tl-who">TINY</span>{l.text}<span className="caret">|</span></div></div>
+              : l.kind === 'tool' ? <div key={l.id} className="tl-row role-tool"><Chip p="dashboard" /><div className="tl-body tool"><span className="tl-tool">{l.name ?? l.text}</span>{l.input && <code className="tl-in">{l.input}</code>}<span className="tl-pending">running</span></div></div>
+              : <div key={l.id} className={`tl-row role-system ${l.kind}`}><Chip p="dashboard" /><div className="tl-body muted">{l.kind === 'end' ? 'done: ' : 'timeout: '}{l.text}</div></div>
             ))}
           </div>
         )}
       </div>
       <div className="tl-ask">
-        <input value={ask} onChange={(e) => setAsk(e.target.value)} placeholder={can ? 'Ask TINY… (one Strands turn — watch it think and act)' : 'sign in to ask TINY'} disabled={!can || askBusy}
+        <input value={ask} onChange={(e) => setAsk(e.target.value)} placeholder={can ? 'Ask TINY (one Strands turn: watch it think and act)' : 'sign in to ask TINY'} disabled={!can || askBusy}
           onKeyDown={(e) => e.key === 'Enter' && submit()} data-testid="ask-input" />
-        <button className="btn primary" disabled={!can || askBusy || !ask.trim()} onClick={submit}>{askBusy ? '…' : 'ask'}</button>
+        <button className="btn primary" disabled={!can || askBusy || !ask.trim()} onClick={submit}>{askBusy ? 'asking' : 'ask'}</button>
       </div>
     </div>
   )
 }
 
-function Chip({ p }: { p: string }) { const d = personaOf(p); return <span className="tl-chip" style={{ color: d.color }} title={d.label}>{d.chip}</span> }
+function Chip({ p }: { p: string }) { const d = personaOf(p); return <span className="tl-chip" style={{ color: d.color }} title={d.label}>{Ico[d.chip]({ className: 'ico', label: d.label })}</span> }
 
 function Row({ it }: { it: Item }) {
   const [open, setOpen] = useState(false)
@@ -107,10 +111,10 @@ function Row({ it }: { it: Item }) {
       <div className={`tl-row role-tool ${it.pending ? 'pending' : ''}`} data-role="tool">
         <span className="tl-ts">{it.ts}</span><Chip p={it.persona} />
         <div className="tl-body tool" onClick={() => setOpen(!open)}>
-          <span className="tl-tool">🔧 {it.name}</span>
-          {it.input && <code className="tl-in">{open || it.input.length < 140 ? it.input : it.input.slice(0, 140) + '…'}</code>}
-          {it.pending ? <span className="tl-pending">running…</span>
-            : it.result != null && <span className={`tl-res ${ok ? 'ok' : 'bad'}`}>{ok ? '→' : '✗'} {open || it.result.length < 160 ? it.result : it.result.slice(0, 160) + '…'}</span>}
+          <span className="tl-tool">{it.name}</span>
+          {it.input && <code className="tl-in">{open || it.input.length < 140 ? it.input : it.input.slice(0, 140) + '...'}</code>}
+          {it.pending ? <span className="tl-pending">running</span>
+            : it.result != null && <span className={`tl-res ${ok ? 'ok' : 'bad'}`}>{ok ? 'ok:' : 'failed:'} {open || it.result.length < 160 ? it.result : it.result.slice(0, 160) + '...'}</span>}
         </div>
       </div>
     )
@@ -120,7 +124,7 @@ function Row({ it }: { it: Item }) {
       <div className="tl-row role-reasoning" data-role="reasoning">
         <span className="tl-ts">{it.ts}</span><Chip p={it.persona} />
         <div className="tl-body" onClick={() => setOpen(!open)}>
-          <span className="tl-who">💭 reasoning</span>{open ? it.text : (it.text.length > 90 ? it.text.slice(0, 90) + '… (tap)' : it.text)}
+          <span className="tl-who">reasoning</span>{open ? it.text : (it.text.length > 90 ? it.text.slice(0, 90) + '... (tap)' : it.text)}
         </div>
       </div>
     )

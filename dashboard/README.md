@@ -12,7 +12,7 @@ tunnel traffic also arrives from 127.0.0.1 but carries the public Host + Cloudfl
 `REACHY_LOOPBACK_READS=0` turns it off. Tests: `cd dashboard && REACHY_NO_AUTOAPP=1 python -m pytest tests -q`.
 
 ```
-dashboard/deploy/sync.sh          # rsync dashboard/ + dist/ to pollen@192.168.1.5 and restart the unit
+dashboard/deploy/sync.sh          # rsync dashboard/ + dist/ to pollen@192.168.1.5 and restart the unit (REACHY_SSH= to override; SSHPASS= for password auth)
 cd dashboard/frontend && npm i && npm run build   # rebuild the SPA on a laptop (no node on the CM4)
 ```
 
@@ -23,17 +23,40 @@ Camera: the Wireless camera is a CSI sensor behind libcamera; `cv2.VideoCapture(
 Routes: see the docstring at the top of `server.py`. Every control write is logged to the personas' shared `agent_log`
 as persona `dashboard`.
 
+## Design (2026-10-01): the Strands design language
+
+The cockpit wears the same skin as the strands-labs/robots docs (`docs/stylesheets/extra.css` there): white or black
+surfaces, the Strands green, the pixel STRANDS wordmark, JetBrains Mono for headings, labels, pills and numbers over
+Space Grotesk text, 1px borders, 8px radius. No glass, no blur, no gradients, no shadows. Red is not in the palette, so
+warnings are amber and **STOP is a solid ink square** (black on paper, white on dark) that reads STOP, with a green ring
+on focus; it stays the most visible control at every size.
+
+- **Tokens** live at the top of `frontend/src/styles.css` as `--sr-*` custom properties, one block per scheme:
+  paper (default) and `html[data-scheme="dark"]`. Accent `#007a3d` on paper (deepened so it clears AA as text),
+  `#00cc60` on dark; muted `#767373` / `#999696`; viewer surface `--sr-viewer-bg`, grid `--sr-grid-major/minor`
+  (the MuJoCo twin reads them for its floor and grid); warn `#946e00` / `#f6bc00`.
+- **Scheme**: `index.html` sets `data-scheme` before paint from `localStorage["reachy-scheme"]` (paper | dark) or the OS;
+  Settings > display > scheme offers `auto / paper / dark` (`src/lib/scheme.ts`). `auto` clears the stored choice.
+- **Fonts** load from Google Fonts in `index.html`, the way the docs load them.
+- **Brand**: `components/Brand.tsx` carries the wordmark SVG (from robots `overrides/partials/wordmark.svg`); the Gate card
+  and the topbar show `STRANDS / reachy`. `components/Icons.tsx` holds the line icons that replaced the emoji glyphs; every
+  icon button has an `aria-label`, sheets are `role=dialog` with a focus trap, and `axe` reports 0 violations on 12 views
+  (WCAG 2.1 AA). PWA icons are the Strands pixel mark on black (`public/icon-*.png`, `mark.svg`).
+- **Gate** (`components/Gate.tsx`) is the team mate's first screen: passkey as the green primary, "enrol another device"
+  and "use a token" as quiet links. Enrolling a new device needs the one-time `REACHY_REG_TOKEN` from the robot's env;
+  the card explains that step in one line, and the owner sends the token out of band.
+
 ## Frontend v3 (2026-09-17) — mobile-first cockpit, the agent as an overlay
 
 `Gate` → `Cockpit`. Nothing but the passkey card renders until `/api/auth/status` says `authenticated` (TOFU first
 enrol → passkey login → "use a token" fallback → "enrol another device" with `REACHY_REG_TOKEN`). The cockpit unmounts on
-🔒 lock, on any 401 and on a gated WebSocket hello, so a lost session goes straight back to the card.
+lock, on any 401 and on a gated WebSocket hello, so a lost session goes straight back to the card.
 
-Layout (`src/App.tsx`, `src/styles.css`): glass **topbar** (state pills: motors · Wi-Fi dBm · CM4 °C · demo/thinker
-toggle · 🔒) · full-bleed **viewport** = live camera **with the MuJoCo twin as a picture-in-picture card** (v4, see `docs/DASHBOARD.md`: drag/snap, double-tap or `X` to swap, `T` to hide, readout of head R/P/Y · body · antennas · Hz · mode under it) · **agent overlay** = the last mind rows as
-glass bubbles over the picture, dimming with age, the live Ask stream with a caret (tap → the full timeline sheet) ·
-**STOP** always visible in the viewport corner (`space`) · bottom **cmdbar** = Ask box + 🕹 look pad / 🎭 emotions & reel
-/ 🗣 say / 🧠 mind / ⚙ settings as slide-up sheets. ≥960 px: viewport left, mind timeline (or the open dock) right.
+Layout (`src/App.tsx`, `src/styles.css`): flat **topbar** (wordmark · state pills: motors · Wi-Fi dBm · CM4 °C · demo/thinker
+toggle · track · sound · lock) · full-bleed **viewport** = live camera **with the MuJoCo twin as a picture-in-picture card** (v4, see `docs/DASHBOARD.md`: drag/snap, double-tap or `X` to swap, `T` to hide, readout of head R/P/Y · body · antennas · Hz · mode under it) · **agent overlay** = the last mind rows as
+flat cards over the picture, dimming with age, the live Ask stream with a caret (tap → the full timeline sheet) ·
+**STOP** always visible in the viewport corner (`space`) · bottom **cmdbar** = Ask box + look pad / emotions & reel
+/ say / mind / settings as slide-up sheets. ≥960 px: viewport left, mind timeline (or the open dock) right.
 Keys: `←→↑↓` look · `space` STOP · `H` home · `D` demo · `F` face-track · `T` twin PiP · `X` swap · `L` look · `E` emotions · `/` ask · `esc` close.
 
 PWA: `public/manifest.webmanifest` (standalone, icons, shortcuts `?action=ask|reel`) + `public/sw.js` (app shell only:
