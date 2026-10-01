@@ -7,7 +7,9 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$0")/../.." && pwd)"
 HOST="${REACHY_SSH:-pollen@192.168.1.5}"
 SSH=(ssh -o ConnectTimeout=8 -o StrictHostKeyChecking=no)
-[ -n "${SSHPASS:-}" ] && SSH=(sshpass -e "${SSH[@]}")
+# Password mode: do not offer keys first. On some LANs the robot refuses pubkey auth and counting the offered keys
+# as failures trips "Too many authentication failures" before sshpass gets its turn.
+[ -n "${SSHPASS:-}" ] && SSH=(sshpass -e "${SSH[@]}" -o PubkeyAuthentication=no -o PreferredAuthentications=password)
 RS="${SSH[*]}"
 rsync -az --delete -e "$RS" \
   --exclude node_modules --exclude src --exclude public --exclude 'package*.json' --exclude '*.ts' --exclude 'tsconfig*' \
