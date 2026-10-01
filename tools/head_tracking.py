@@ -8,7 +8,7 @@ like reachy_mini_conversation_app/tools/head_tracking.py: POST /api/tracking on 
 robot itself (127.0.0.1) that route is allowed without a key (dashboard/auth.loopback_write); from anywhere
 else set REACHY_TOKEN / TINY_DASHBOARD_TOKEN.
 
-Also here: `SpeakingHandoff` — a Strands `BidiOutput` for the voice persona that pauses tracking
+Also here: `SpeakingHandoff` — a Strands bidi `OutputStream` for the voice persona that pauses tracking
 (weight 0.0) while TINY's speech audio streams and hands the head back (weight 1.0) afterwards, the way
 Pollen's MovementManager.set_speaking does. Wired in voice_listener.py.
 """
@@ -111,8 +111,9 @@ def stop_head_tracking() -> None:
 
 
 class SpeakingHandoff:
-    """`BidiOutput`: while the model streams speech audio → tracking hold "speaking" (weight 0.0 once a face
-    is locked); on response complete / interruption → release (weight 1.0) after a short playback tail.
+    """`OutputStream`: while the model streams speech audio → tracking hold "speaking" (weight 0.0 once a face
+    is locked); on response stop / barge-in → release (weight 1.0) after a short playback tail. Event names
+    via tools.bidi_compat (1.57 names, 1.20 names accepted for one release).
     Cheap: one loopback POST at speech start, one at the end; audio chunks in between are not forwarded."""
 
     def __init__(self, tail_s: float = SPEAK_TAIL_S):
@@ -155,15 +156,16 @@ class SpeakingHandoff:
 
     async def __call__(self, event) -> None:
         try:
-            t = event.get("type") if isinstance(event, dict) else None
-            if t == "bidi_audio_stream":
+            from .bidi_compat import EVENTS, event_type
+            t = event_type(event)
+            if t == EVENTS.AUDIO_DELTA:
                 now = time.monotonic()
                 if not self.speaking:
                     await asyncio.to_thread(self._set, True)
                 elif now - self._last_audio > 20:              # long answer: refresh the 30 s hold
                     await asyncio.to_thread(tracking_hold, "speaking", True, 30.0)
                 self._last_audio = now
-            elif t in ("bidi_response_complete", "bidi_interruption", "bidi_connection_close"):
-                self._set(False, immediate=(t != "bidi_response_complete"))
+            elif t in (EVENTS.RESPONSE_STOP, EVENTS.BARGE_IN, EVENTS.CONNECTION_STOP):
+                self._set(False, immediate=(t != EVENTS.RESPONSE_STOP))
         except Exception as e:  # noqa: BLE001
             print(f"[head_tracking] speaking handoff: {e}", file=sys.stderr)
