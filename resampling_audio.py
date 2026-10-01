@@ -11,10 +11,12 @@ resamples on the fly with audioop.ratecv:
 Nova Sonic (16 kHz) needs no resampling — set device_rate == model_rate and the
 resampler becomes a no-op passthrough.
 
-Drop-in replacement for strands' AudioIO (1.57+): exposes .input() / .output().
-Built on the private _AudioInputStream / _AudioOutputStream (via tools.bidi_compat)
-because AudioIO validates that the device rate equals the model rate and has no
-resampler of its own. Model rates come from ``agent.model.get_audio_config()``.
+Drop-in replacement for strands' AudioIO (strands.bidi, harness-sdk main): exposes
+.input() / .output(). Built on the private _AudioInputStream / _AudioOutputStream (via
+tools.bidi_compat) because AudioIO validates that the device rate equals the model rate
+and has no resampler of its own. Model rates come from ``agent.model.get_audio_config()``.
+Main's output stream also owns a rich/prompt_toolkit ConsoleIO transcript printer; TINY
+runs headless under systemd, so a no-op console stands in and is never started.
 """
 import asyncio
 import audioop
@@ -26,6 +28,27 @@ import pyaudio
 from tools.bidi_compat import EVENTS, AudioDelta, audio_streams, event_type
 
 _AudioInputStream, _AudioOutputStream, _AudioBuffer = audio_streams()
+
+
+class _NullConsoleOutput:
+    """What ``ConsoleIO.output()`` returns, minus the terminal: never started, never written."""
+
+    async def start(self, agent) -> None:  # pragma: no cover - the subclass never calls it
+        return None
+
+    async def stop(self) -> None:  # pragma: no cover
+        return None
+
+    async def __call__(self, event) -> None:  # pragma: no cover
+        return None
+
+
+class _NullConsole:
+    """Stand-in for strands' ConsoleIO: main's _AudioOutputStream requires one at construction
+    (``console=``) to print transcripts to a TTY. The transcript goes to tools.agent_log instead."""
+
+    def output(self) -> _NullConsoleOutput:
+        return _NullConsoleOutput()
 
 
 def _find_device(kind: str) -> int | None:
@@ -105,7 +128,7 @@ class _ResamplingOutput(_AudioOutputStream):
     """
 
     def __init__(self, config: dict[str, Any]) -> None:
-        super().__init__(config, audio_processor=None)
+        super().__init__(config, console=_NullConsole(), audio_processor=None)
         self._device_rate = config.get("device_rate", 16000)
         self._ratecv_state = None
         self._drop_until_next_response = False
@@ -130,7 +153,7 @@ class _ResamplingOutput(_AudioOutputStream):
         )
 
     async def stop(self) -> None:
-        # The stock stream also stops a rich transcript printer we never started.
+        # The stock stream also stops the ConsoleIO transcript printer we never started.
         if hasattr(self, "_stream"):
             self._stream.close()
         if hasattr(self, "_audio"):
