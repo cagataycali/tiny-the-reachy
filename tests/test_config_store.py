@@ -243,3 +243,14 @@ def test_watch_config_cancels_when_the_private_loop_is_missing(db):
         r = await vl.watch_config(Bare(), task, generation_fn=lambda: gen["n"], poll_s=0.02)
         return r, task.cancelled()
     assert asyncio.run(go()) == (True, True)
+
+
+def test_bidi_model_builder_reads_the_configured_model(db, monkeypatch):
+    """Regression: `_build_bidi_model` names its provider_config `cfg`, which shadowed the config reader on the robot
+    ('dict' object is not callable, crash loop at deploy 2026-10-01)."""
+    tiny = importlib.import_module("tiny")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key-not-real")
+    monkeypatch.delenv("VOICE_MODEL", raising=False)
+    config.set_many({"voice.model": "gpt-realtime-test", "voice.name": "coral"})
+    model = tiny._build_bidi_model("openai", "coral")
+    assert getattr(model, "model_id", None) == "gpt-realtime-test"

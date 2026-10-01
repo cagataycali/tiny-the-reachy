@@ -41,7 +41,7 @@ from tools.manage_tools import manage_tools as manage_tools_tool
 from tools.prompts import prompts, get_override as _prompt_override
 from tools.vision import take_photo
 from tools import tiny_mcp  # fleet bridge (tiny.technology MCP) — OFF unless TINY_MCP=1
-from tools.config import cfg, tools_for as _cfg_tools_for   # runtime config (cockpit Settings): DB -> env -> default
+from tools.config import cfg, get as _cfg_get, tools_for as _cfg_tools_for   # runtime config (cockpit Settings): DB -> env -> default
 
 # Reachy robot tools imported individually for the slim voice toolset
 from tools.reachy_motion import (
@@ -499,8 +499,8 @@ def _build_bidi_model(provider: str, voice: Optional[str] = None):
             patch_openai_realtime_session()   # VOICE_LANG / VOICE_VAD_* → session.update
         except Exception as e:  # noqa: BLE001
             print(f"⚠️ voice session tuning not applied: {e}")
-        if cfg("voice.model"):
-            kwargs["model_id"] = cfg("voice.model")
+        if _cfg_get("voice.model"):                 # `cfg` is the provider_config dict in this function
+            kwargs["model_id"] = _cfg_get("voice.model")
         if os.getenv("OPENAI_API_KEY"):
             kwargs["client_config"] = {"api_key": os.getenv("OPENAI_API_KEY")}
         return BidiOpenAIRealtimeModel(**kwargs)
