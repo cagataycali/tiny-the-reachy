@@ -20,4 +20,4 @@ async take_photo(question: str = '', device: int = 0) -> dict
 
 LOOK.
 
-<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/vision.py#L152" title="tools/vision.py:152">source ↗</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/vision.py#L79" title="tools/vision.py:79">source ↗</a></small>

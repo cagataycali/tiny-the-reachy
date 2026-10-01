@@ -1,7 +1,7 @@
-# Core agent stack
-strands-agents
+# Core agent stack (bidi voice: strands.experimental.bidi on 1.57.x, strands.bidi from 1.58 —
+# tools/bidi_compat.py resolves both; <1.60 because that release deletes the experimental path)
+strands-agents[bidi]>=1.57.1,<1.60
 strands-agents-tools
-strands-agents[bidi]
 
 # Reachy Mini SDK (talks to the daemon on :8000)
 # Extras: opencv (camera frames), examples (gradio_client for TTS), mujoco (sim)

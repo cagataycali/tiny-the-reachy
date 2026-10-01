@@ -165,9 +165,11 @@ def audio_streams():
 
 
 # ── stop_conversation ──────────────────────────────────────────────────────
-@tool(context=True)
-def stop_conversation(tool_context) -> str:
-    """Stop the voice conversation gracefully.
+# Built with tool(...)(fn), not @tool: this is Strands session plumbing (the stock tool it
+# replaces was never one of TINY's documented abilities), so scripts/tooldoc.py and the
+# landing's tool wall keep counting TINY's own tools only.
+def _stop_conversation(tool_context) -> str:
+    """End the voice session.
 
     Use ONLY when the user says "stop conversation" or clearly asks TINY to end the voice
     session. Do NOT use for "stop", "goodbye", "bye" or other farewells or phrases.
@@ -183,6 +185,9 @@ def stop_conversation(tool_context) -> str:
         except Exception:  # noqa: BLE001
             pass
     return "Ending conversation"
+
+
+stop_conversation = tool(name="stop_conversation", context=True)(_stop_conversation)
 
 
 __all__ = [
