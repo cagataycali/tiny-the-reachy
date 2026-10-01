@@ -22,8 +22,13 @@ def _out():
     return o
 
 
-def _audio(n=4):
-    return {"type": "bidi_audio_stream", "audio": base64.b64encode(b"\x01\x02" * n).decode()}
+def _audio(n=4, kind="bidi_audio_delta"):
+    return {"type": kind, "audio": base64.b64encode(b"\x01\x02" * n).decode(), "format": "pcm",
+            "sample_rate": 16000, "channels": 1}
+
+
+def _barge():
+    return {"type": "bidi_barge_in", "reason": "user_speech"}
 
 
 def _queued(o):
@@ -35,7 +40,7 @@ def test_interruption_flushes_and_drops_stragglers():
     asyncio.run(o({"type": "bidi_response_start", "response_id": "r1"}))
     asyncio.run(o(_audio())); asyncio.run(o(_audio()))
     assert _queued(o) == 16
-    asyncio.run(o({"type": "bidi_interruption", "reason": "user_speech"}))
+    asyncio.run(o(_barge()))
     assert _queued(o) == 0
     asyncio.run(o(_audio()))                       # straggler of the cancelled response
     assert _queued(o) == 0 and o.stats["dropped_chunks"] == 1
@@ -51,13 +56,31 @@ def test_partial_chunk_is_flushed_too():
     asyncio.run(o(_audio(64)))                     # 128 bytes queued
     o._buffer.get(10)                               # speaker consumed 10 → 118 sit in _data
     assert len(o._buffer._data) == 118
-    asyncio.run(o({"type": "bidi_interruption", "reason": "user_speech"}))
+    asyncio.run(o(_barge()))
     assert _queued(o) == 0
 
 
 def test_interruption_with_no_active_response_does_not_mute_the_next_one():
     o = _out()
-    asyncio.run(o({"type": "bidi_interruption", "reason": "user_speech"}))
+    asyncio.run(o(_barge()))
     asyncio.run(o({"type": "bidi_response_start", "response_id": "r1"}))
     asyncio.run(o(_audio()))
     assert _queued(o) == 8
+
+
+def test_legacy_1_20_event_names_still_work_for_one_release():
+    o = _out()
+    asyncio.run(o({"type": "bidi_response_start", "response_id": "r1"}))
+    asyncio.run(o(_audio(kind="bidi_audio_stream")))
+    assert _queued(o) == 8
+    asyncio.run(o({"type": "bidi_interruption", "reason": "user_speech"}))
+    assert _queued(o) == 0 and o.stats["interruptions"] == 1
+
+
+def test_output_is_a_strands_output_stream_without_the_transcript_printer():
+    from tools.bidi_compat import audio_streams
+    _, out_cls, _ = audio_streams()
+    o = _out()
+    assert isinstance(o, out_cls)
+    assert o._audio_processor is None
+    asyncio.run(o.stop())        # our stop never touches the rich transcript printer

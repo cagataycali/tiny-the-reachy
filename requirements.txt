@@ -1,7 +1,13 @@
-# Core agent stack
-strands-agents
+# Core agent stack. strands-agents is built from harness-sdk SOURCE, not PyPI:
+#   strands-agents: built from harness-sdk @ 957579a9 (python/v1.57.1 + 54 = 1.57.2.dev54), see scripts/strands_wheel.sh
+# strands.bidi (graduated in #4707), #4642 deferred response.create, #4664 agent.cancel() are
+# main-only today; PyPI 1.57.1 lacks all three. The range below resolves to that wheel when it is
+# on the path and to a PyPI 1.58+ once one ships; <1.60 because that release deletes the
+# experimental shim tools/bidi_compat.py still tolerates. Install the wheel FIRST (MIGRATION.md),
+# with the [bidi] extra only: [bidi-openai] pins websockets>=16, which reachy_mini refuses (<16);
+# the OpenAI realtime model runs fine on the websockets 15.x reachy_mini brings.
+strands-agents[bidi]>=1.57.2.dev0,<1.60
 strands-agents-tools
-strands-agents[bidi]
 
 # Reachy Mini SDK (talks to the daemon on :8000)
 # Extras: opencv (camera frames), examples (gradio_client for TTS), mujoco (sim)

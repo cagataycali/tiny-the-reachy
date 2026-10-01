@@ -1,11 +1,10 @@
-"""Vision tool — capture a TINY camera frame and inject it into the bidi voice
-agent's multimodal context (BidiImageInputEvent), so the realtime model SEES
-the image natively. Adapted from neon/tools/vision.py.
+"""Vision tool — capture a TINY camera frame and send it to the bidi voice agent
+(``agent.send([ImageBlock, TextBlock])``, strands.bidi), so the realtime model SEES the image
+natively. Adapted from neon/tools/vision.py.
 
 On Reachy Mini the frame comes from the daemon camera (reachy_camera tool) or,
 as a dev fallback on macOS, from ffmpeg avfoundation.
 """
-import base64
 import os
 import platform
 import shutil
@@ -15,72 +14,16 @@ import time
 from pathlib import Path
 
 from strands import tool
-from strands.experimental.bidi.types.events import (
-    BidiImageInputEvent,
-    BidiTextInputEvent,
-)
+
+from .bidi_compat import ImageBlock, TextBlock, realtime_model_class
 
 CACHE_DIR = Path(tempfile.gettempdir()) / "tiny_vision"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _realtime_model_class():
-    """Find BidiOpenAIRealtimeModel across Strands versions (1.20: openai_realtime, 1.5x: openai)."""
-    for mod in ("strands.experimental.bidi.models.openai_realtime",
-                "strands.experimental.bidi.models.openai"):
-        try:
-            import importlib
-            return getattr(importlib.import_module(mod), "BidiOpenAIRealtimeModel")
-        except (ImportError, AttributeError):
-            continue
-    return None
-
-
-def _patch_openai_image_support() -> None:
-    """Add BidiImageInputEvent dispatch to BidiOpenAIRealtimeModel (idempotent).
-
-    Strands < 1.5x has no image path on the Realtime model. We add one that
-    mirrors what newer Strands does natively: a user ``input_image`` item
-    followed by ``response.create`` — WITHOUT the response.create the image
-    sits in the conversation and the model stays silent until the next
-    utterance, which is what "TINY doesn't see me in voice" looked like.
-    On a Strands that already ships ``_send_image_content`` this is a no-op.
-    """
-    cls = _realtime_model_class()
-    if cls is None or getattr(cls, "_image_patched", False):
-        return
-    if hasattr(cls, "_send_image_content"):
-        cls._image_patched = True   # native support (Strands >= 1.5x) — leave it alone
-        return
-
-    async def _send_image_content(self, image_input: BidiImageInputEvent) -> None:
-        b64 = image_input.image
-        mime = image_input.mime_type or "image/jpeg"
-        data_url = f"data:{mime};base64,{b64}"
-        item = {
-            "type": "message",
-            "role": "user",
-            "content": [{"type": "input_image", "image_url": data_url}],
-        }
-        await self._send_event({"type": "conversation.item.create", "item": item})
-        await self._send_event({"type": "response.create"})
-
-    _orig_send = cls.send
-
-    async def _patched_send(self, content):
-        if isinstance(content, BidiImageInputEvent):
-            if not self._connection_id:
-                raise RuntimeError("model not started | call start before sending")
-            await self._send_image_content(content)
-            return
-        await _orig_send(self, content)
-
-    cls._send_image_content = _send_image_content
-    cls.send = _patched_send
-    cls._image_patched = True
-
-
-_patch_openai_image_support()
+    """OpenAIRealtimeModel via the compat layer (None when websockets is missing)."""
+    return realtime_model_class()
 
 
 def _capture_frame_macos(device: int = 0) -> Path:
@@ -112,33 +55,18 @@ def _capture_frame(device: int = 0) -> Path:
     raise RuntimeError("no camera frame available (daemon camera + ffmpeg both failed)")
 
 
-async def _inject(agent, img_b64: str, question: str) -> None:
-    """Put ONE user message (question + image) in front of the realtime model and ask
-    for ONE response.
+async def _inject(agent, img_bytes: bytes, question: str, fmt: str = "jpeg") -> None:
+    """Put the frame and the question in front of the model as ONE user message.
 
-    On OpenAI Realtime we talk to the wire directly: a single
-    ``conversation.item.create`` carrying ``input_text`` + ``input_image`` and a single
-    ``response.create``. Going through ``agent.send`` twice (text, then image) yields
-    two responses on Strands >= 1.5x (both sends trigger one) and, on 1.20, a reply
-    about the text before the image has arrived. Other providers fall back to
-    ``agent.send`` (image, then question).
+    strands.bidi (harness-sdk main): ``agent.send([ImageBlock, TextBlock])`` builds one
+    ``BidiMessage`` with both blocks in order; the OpenAI model turns it into a single
+    ``conversation.item.create`` (``input_image`` then ``input_text``) followed by at most one
+    ``response.create``, which ``_flush_response_request`` DEFERS while the user is still
+    speaking (``input_audio_pending``, #4642) or another response / tool call is in flight.
+    That is the fix for the ``conversation_already_has_active_response`` errors the robot
+    logged on 1.20, where this tool pushed a raw ``response.create`` over the wire.
     """
-    model = getattr(agent, "model", None)
-    send_event = getattr(model, "_send_event", None)
-    if send_event is not None and getattr(model, "_connection_id", None):
-        item = {
-            "type": "message",
-            "role": "user",
-            "content": [
-                {"type": "input_text", "text": question},
-                {"type": "input_image", "image_url": f"data:image/jpeg;base64,{img_b64}"},
-            ],
-        }
-        await send_event({"type": "conversation.item.create", "item": item})
-        await send_event({"type": "response.create"})
-        return
-    await agent.send(BidiImageInputEvent(image=img_b64, mime_type="image/jpeg"))
-    await agent.send(BidiTextInputEvent(text=question, role="user"))
+    await agent.send([ImageBlock(format=fmt, source={"bytes": img_bytes}), TextBlock(question)])
 
 
 DEFAULT_QUESTION = os.getenv(
@@ -172,9 +100,8 @@ async def take_photo(tool_context, question: str = "", device: int = 0) -> dict:
         return {"status": "error", "stage": "capture", "message": str(e)}
 
     q = question.strip() or DEFAULT_QUESTION
-    img_b64 = base64.b64encode(image_path.read_bytes()).decode("ascii")
     try:
-        await _inject(agent, img_b64, q)
+        await _inject(agent, image_path.read_bytes(), q)
     except Exception as e:
         return {"status": "error", "stage": "inject", "message": str(e),
                 "image_path": str(image_path)}

@@ -88,7 +88,7 @@ build_tools()            # text personas: everything above (+ use_github/use_spo
 build_voice_tools()      # voice + dashboard Ask: the latency-slim list
 build_agent(persona)     # shell · telegram · thinker · dashboard — one factory, per-persona prompt
 build_shell_agent()      # the REPL you get from `make run`
-build_voice_agent()      # the bidi voice persona (openai · nova_sonic · gemini)
+build_voice_agent()      # the voice persona: strands.bidi via tools/bidi_compat (openai · nova_sonic · gemini)
 ```
 
 Change a tool once, every face gets it. Daemon down → every tool returns an error string the model can read aloud.

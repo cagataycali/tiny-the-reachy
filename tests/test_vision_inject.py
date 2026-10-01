@@ -1,6 +1,8 @@
-"""take_photo puts ONE (question + image) message in front of the realtime model and
-asks for ONE response; the session tuning pins language / VAD from env and never
-mutates Strands' module-level default config."""
+"""take_photo sends the frame and the question as ONE user message
+(agent.send([ImageBlock, TextBlock]), strands.bidi); on the wire the OpenAI model makes one
+conversation.item.create and at most one response.create, deferred while the user is speaking
+(#4642). The session tuning pins language / VAD from env via the model's native `params` and
+never mutates Strands' module-level default config."""
 import asyncio
 import os
 import sys
@@ -14,42 +16,101 @@ from tools import vision  # noqa: E402
 from tools import voice_session  # noqa: E402
 
 
-class _Model:
-    def __init__(self):
-        self._connection_id = "conn"
-        self.events = []
-
-    async def _send_event(self, ev):
-        self.events.append(ev)
-
-
 class _Agent:
-    def __init__(self, model):
-        self.model = model
+    def __init__(self):
         self.sent = []
 
     async def send(self, content):
         self.sent.append(content)
 
 
-def test_inject_is_one_item_and_one_response():
-    model = _Model()
-    agent = _Agent(model)
-    asyncio.run(vision._inject(agent, "QUFB", "what do you see?"))
-    assert [e["type"] for e in model.events] == ["conversation.item.create", "response.create"]
-    content = model.events[0]["item"]["content"]
-    assert content[0] == {"type": "input_text", "text": "what do you see?"}
-    assert content[1]["type"] == "input_image"
-    assert content[1]["image_url"].startswith("data:image/jpeg;base64,QUFB")
-    assert agent.sent == [], "wire path must not also go through agent.send (double response)"
+def test_inject_is_one_message_image_then_question_through_agent_send():
+    agent = _Agent()
+    asyncio.run(vision._inject(agent, b"AAA", "what do you see?"))
+    assert len(agent.sent) == 1 and isinstance(agent.sent[0], list)
+    img, text = agent.sent[0]
+    assert type(img).__name__ == "ImageBlock" and type(text).__name__ == "TextBlock"
+    assert img.format == "jpeg" and img.source == {"bytes": b"AAA"}
+    assert text.text == "what do you see?"
 
 
-def test_inject_falls_back_to_agent_send_for_other_providers():
-    class _Other:
-        pass
-    agent = _Agent(_Other())
-    asyncio.run(vision._inject(agent, "QUFB", "q"))
-    assert [type(c).__name__ for c in agent.sent] == ["BidiImageInputEvent", "BidiTextInputEvent"]
+class _Wire:
+    """A started OpenAIRealtimeModel with the websocket replaced by a recorder (real _SessionState)."""
+
+    def __init__(self, cls):
+        self.events = []
+        self.model = cls(model_id="gpt-realtime-2", transcription_model_id="gpt-4o-transcribe", api_key="sk-test")
+        self.model._connection_id = "test-conn"
+
+        async def _send_event(event):
+            self.events.append(event)
+        self.model._send_event = _send_event
+
+    @property
+    def state(self):
+        return self.model._session_state
+
+    def types(self):
+        return [e["type"] for e in self.events]
+
+    def send_photo(self, question="what do you see?"):
+        import importlib
+        BidiMessage = importlib.import_module("strands.bidi.types.content").BidiMessage
+        from strands.types.content import TextBlock
+        from strands.types.media import ImageBlock
+        # exactly what BidiAgent.send([ImageBlock, TextBlock]) hands to the model
+        asyncio.run(self.model.send(BidiMessage(content=[ImageBlock(format="jpeg", source={"bytes": b"AAA"}),
+                                                         TextBlock(question)])))
+
+
+def _wire():
+    cls = vision._realtime_model_class()
+    if cls is None:
+        pytest.skip("no Realtime model class in this env")
+    assert not hasattr(vision, "_patch_openai_image_support"), "the 1.20 monkey patch must be gone"
+    return _Wire(cls)
+
+
+def test_openai_wire_is_one_item_and_exactly_one_response_create():
+    w = _wire()
+    w.send_photo()
+    assert w.types() == ["conversation.item.create", "response.create"]
+    item = w.events[0]["item"]
+    assert item["role"] == "user" and [c["type"] for c in item["content"]] == ["input_image", "input_text"]
+    assert item["content"][0]["image_url"].startswith("data:image/jpeg;base64,")
+    assert item["content"][1]["text"] == "what do you see?"
+    assert w.state.response_requested is True and w.state.response_pending is False
+    assert w.state.pending_input_ids == set()
+
+
+def test_openai_wire_defers_response_create_while_the_user_is_speaking():
+    """#4642: speech_started sets input_audio_pending; the item goes out, the response.create waits."""
+    w = _wire()
+    w.state.input_audio_pending = True
+    w.send_photo()
+    assert w.types() == ["conversation.item.create"], "response.create must be deferred during user speech"
+    assert w.state.response_pending is True and w.state.response_requested is False
+    assert len(w.state.pending_input_ids) == 1
+    # speech ends: the receive loop clears the flag (committed -> VAD owns that response) or, if
+    # no VAD response comes, the next flush sends exactly one response.create
+    w.state.input_audio_pending = False
+    asyncio.run(w.model._flush_response_request(w.state))
+    assert w.types() == ["conversation.item.create", "response.create"]
+    asyncio.run(w.model._flush_response_request(w.state))
+    assert w.types().count("response.create") == 1
+
+
+def test_openai_wire_never_doubles_a_response_while_one_is_active():
+    """A photo while TINY is still answering: the item is appended, the response is coalesced."""
+    w = _wire()
+    w.state.active_responses.add("resp_1")
+    w.send_photo()
+    assert w.types() == ["conversation.item.create"]
+    assert w.state.response_pending is True
+    # response.done for resp_1 -> the model's receive loop would flush; emulate that step
+    w.state.active_responses.clear()
+    asyncio.run(w.model._flush_response_request(w.state))
+    assert w.types().count("response.create") == 1
 
 
 def test_take_photo_has_a_default_question():
@@ -101,13 +162,27 @@ def test_semantic_vad_and_transcribe_prompt(monkeypatch):
     assert "language" not in o["transcription"]
 
 
-def test_session_patch_is_idempotent_and_applies():
+def test_session_params_merge_natively_and_pass_the_barge_in_check(monkeypatch):
+    """OpenAIRealtimeModel(params=session_params()) is deep-merged over DEFAULT_SESSION_CONFIG by
+    _build_session_config; the result must carry our VAD and the create/interrupt flags strands.bidi
+    main refuses to connect without."""
     cls = vision._realtime_model_class()
     if cls is None:
         pytest.skip("no Realtime model class in this env")
-    assert voice_session.patch_openai_realtime_session()
-    assert voice_session.patch_openai_realtime_session()
-    m = cls.__new__(cls)
-    m.config = {"audio": {}, "inference": {}}
+    monkeypatch.setenv("VOICE_LANG", "tr")
+    monkeypatch.setenv("VOICE_VAD_THRESHOLD", "0.7")
+    m = cls(model_id="gpt-realtime-2", voice="shimmer", transcription_model_id="gpt-4o-transcribe",
+            api_key="sk-test", params=voice_session.session_params())
     cfg = m._build_session_config("hi", None)
-    assert cfg["audio"]["input"]["turn_detection"]["threshold"] == voice_session.session_overrides()["turn_detection"]["threshold"]
+    inp = cfg["audio"]["input"]
+    assert inp["turn_detection"]["threshold"] == 0.7
+    assert inp["turn_detection"]["create_response"] is True and inp["turn_detection"]["interrupt_response"] is True
+    assert inp["transcription"] == {"model": "gpt-4o-transcribe", "language": "tr"}
+    assert cfg["audio"]["output"]["voice"] == "shimmer"
+    assert voice_session.session_config_is_valid(cfg)
+    assert not voice_session.session_config_is_valid({"audio": {"input": {"turn_detection": None}}})
+    # the module default is untouched
+    from importlib import import_module
+    default = import_module(cls.__module__).DEFAULT_SESSION_CONFIG
+    assert "language" not in (default["audio"]["input"].get("transcription") or {})
+    assert default["audio"]["input"]["turn_detection"]["threshold"] == 0.5

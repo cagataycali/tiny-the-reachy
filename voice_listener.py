@@ -59,19 +59,19 @@ class ConfigRestart(Exception):
 
 
 async def request_session_end(agent) -> bool:
-    """Ask a running 1.20 BidiAgent to end its conversation the way `stop_conversation` does: a
-    BidiConnectionCloseEvent(reason="user_request") on the loop's event queue makes `receive()` return,
-    `agent.run` then cancels the inputs and stops the model + IO in its own `finally`. Returns False
-    when the private loop handle is missing (caller falls back to cancelling the run task)."""
+    """Ask the running BidiAgent to end its conversation the way our `stop_conversation` tool does:
+    `BidiAgent.cancel()` (strands.bidi main, #4664) sets a thread-safe signal the event loop honours,
+    `agent.run` then stops the model + IO in its own `finally`. Returns False when the agent has no
+    cancel() (caller falls back to cancelling the run task)."""
+    cancel = getattr(agent, "cancel", None)
+    if not callable(cancel):
+        print("[voice] graceful session end unavailable (agent has no cancel()); cancelling", file=sys.stderr)
+        return False
     try:
-        from strands.experimental.bidi.types.events import BidiConnectionCloseEvent
-        loop = agent._loop
-        cid = getattr(agent.model, "_connection_id", "unknown")
-        await asyncio.wait_for(loop._event_queue.put(BidiConnectionCloseEvent(connection_id=cid, reason="user_request")),
-                               timeout=SESSION_END_GRACE_S / 2)
+        cancel()
         return True
     except Exception as e:  # noqa: BLE001
-        print(f"[voice] graceful session end unavailable ({e.__class__.__name__}: {e}); cancelling", file=sys.stderr)
+        print(f"[voice] graceful session end failed ({e.__class__.__name__}: {e}); cancelling", file=sys.stderr)
         return False
 
 

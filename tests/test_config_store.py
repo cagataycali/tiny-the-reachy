@@ -169,26 +169,18 @@ def test_voice_session_overrides_follow_config(db):
     assert t["type"] == "server_vad" and t["threshold"] == 0.7 and t["silence_duration_ms"] == 900
 
 
-# ── the voice watcher ends the live 1.20 session the way stop_conversation does ──
-class _Queue:
+# ── the voice watcher ends the live session the way stop_conversation does: agent.cancel() ──
+class _FakeAgent:
+    """Stands in for a strands.bidi BidiAgent: cancel() flips a signal run() is waiting on."""
     def __init__(self):
-        self.items, self.ev = [], asyncio.Event()
+        self.cancelled, self.ev = 0, asyncio.Event()
 
-    async def put(self, x):
-        self.items.append(x)
+    def cancel(self):
+        self.cancelled += 1
         self.ev.set()
 
-
-class _FakeAgent:
-    class model:
-        _connection_id = "conn-1"
-
-    def __init__(self):
-        self._loop = type("L", (), {})()
-        self._loop._event_queue = _Queue()
-
     async def run(self):
-        await self._loop._event_queue.ev.wait()          # receive() breaks on the close event → run returns
+        await self.ev.wait()                             # the event loop honours cancel_signal → run returns
 
 
 def test_watch_config_ends_the_session_on_a_generation_change(db, capsys):
@@ -207,8 +199,7 @@ def test_watch_config_ends_the_session_on_a_generation_change(db, capsys):
 
     restarted, agent, task = asyncio.run(go())
     assert restarted is True and task.done() and not task.cancelled()
-    ev = agent._loop._event_queue.items[0]
-    assert type(ev).__name__ == "BidiConnectionCloseEvent" and ev.get("reason") == "user_request"
+    assert agent.cancelled == 1                           # ended via BidiAgent.cancel(), not a task cancel
     assert "config generation 3 -> 4" in capsys.readouterr().err
 
 
@@ -223,12 +214,10 @@ def test_watch_config_returns_false_when_the_session_ends_by_itself(db):
     assert asyncio.run(go()) is False
 
 
-def test_watch_config_cancels_when_the_private_loop_is_missing(db):
+def test_watch_config_cancels_the_task_when_the_agent_has_no_cancel(db):
     vl = importlib.import_module("voice_listener")
 
     class Bare:
-        model = _FakeAgent.model
-
         async def run(self):
             await asyncio.sleep(30)
     gen = {"n": 0}

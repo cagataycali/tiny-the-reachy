@@ -232,19 +232,22 @@ def make_callback(persona: str, meta: Optional[dict] = None, chain=None):
 
 
 class BidiTranscriptSink:
-    """`BidiOutput` for a BidiAgent: records FINAL transcripts (user speech → role user,
-    model speech → role assistant) and tool calls (from the agent's own message hook)."""
+    """`OutputStream` for a BidiAgent: records FINAL transcripts (user speech -> role user,
+    model speech -> role assistant) and tool calls (from the agent's own message hook).
+
+    Strands 1.57+ event names via tools.bidi_compat (transcript_delta / transcript_stop /
+    response_stop / barge_in); the 1.20 names are still accepted for one release."""
 
     def __init__(self, persona: str = "voice", meta: Optional[dict] = None):
         self.persona, self.meta = persona, meta
         self._names: dict = {}
-        self._partial: dict = {}          # role → accumulated partial transcript (fallback when no final arrives)
+        self._partial: dict = {}          # role -> accumulated partial transcript (fallback when no final arrives)
 
     async def start(self, agent) -> None:
         # tool use / result rows via the message hook (covers every provider)
         try:
-            from strands.experimental.bidi.hooks.events import BidiMessageAddedEvent
-            agent.hooks.add_callback(BidiMessageAddedEvent, self._on_message)
+            from .bidi_compat import hooks
+            agent.hooks.add_callback(hooks.MessageAddedEvent, self._on_message)
         except Exception:
             pass
         record(self.persona, "system", "voice session started", self.meta)
@@ -260,24 +263,25 @@ class BidiTranscriptSink:
 
     async def __call__(self, event) -> None:
         try:
-            t = event.get("type") if isinstance(event, dict) else None
-            if t == "bidi_transcript_stream":
+            from .bidi_compat import EVENTS, LEGACY_ERROR_EVENT, event_type, transcript_text
+            t = event_type(event)
+            if t == EVENTS.TRANSCRIPT_STOP:
                 role = str(event.get("role", "assistant"))
-                if event.get("is_final"):
-                    text = (event.get("current_transcript") or event.get("text") or self._partial.pop(role, "")).strip()
-                    self._partial.pop(role, None)
-                    if text:
-                        record(self.persona, "user" if role == "user" else "assistant", text, self.meta)
-                else:
-                    self._partial[role] = self._partial.get(role, "") + str(event.get("text") or "")
-            elif t == "bidi_response_complete":
-                # some providers stream assistant deltas without a final → flush what we have
+                text = (transcript_text(event) or self._partial.pop(role, "")).strip()
+                self._partial.pop(role, None)
+                if text:
+                    record(self.persona, "user" if role == "user" else "assistant", text, self.meta)
+            elif t == EVENTS.TRANSCRIPT_DELTA:
+                role = str(event.get("role", "assistant"))
+                self._partial[role] = self._partial.get(role, "") + transcript_text(event)
+            elif t == EVENTS.RESPONSE_STOP:
+                # some providers stream assistant deltas without a final -> flush what we have
                 text = self._partial.pop("assistant", "").strip()
                 if text:
                     record(self.persona, "assistant", text, self.meta)
-            elif t == "bidi_interruption":
+            elif t == EVENTS.BARGE_IN:
                 self._partial.pop("assistant", None)
-            elif t == "bidi_error":
+            elif t == LEGACY_ERROR_EVENT:
                 record(self.persona, "system", f"voice error: {str(event.get('error') or event)[:300]}", self.meta)
         except Exception:
             pass

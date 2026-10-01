@@ -1,5 +1,5 @@
-"""Realtime session tuning for the voice persona — what Strands' provider_config
-cannot reach (1.20 only forwards voice / sample rates / a few inference keys).
+"""Realtime session tuning for the voice persona: OpenAI ``session.update`` keys that
+Strands' constructor does not expose as keywords (VAD, transcription language/prompt).
 
 Why: the voice log fills with phantom transcripts in random languages ("שרון",
 "よっべ", "Fiecare dată") on room noise — the default server VAD (threshold 0.5)
@@ -19,9 +19,13 @@ bootstrap defaults, so nothing here is hard-coded per household:
     VOICE_VAD_EAGERNESS     semantic_vad only: low | medium | high | auto
 interrupt_response / create_response are always set true (barge-in is the server's job).
 
-Applied by wrapping BidiOpenAIRealtimeModel._build_session_config (idempotent),
-deep-copying the config so the module-level DEFAULT_SESSION_CONFIG is never mutated
-(the stock implementation shallow-copies it). No-op for other providers.
+Applied NATIVELY on Strands 1.57+: ``session_params()`` is passed as
+``OpenAIRealtimeModel(params=...)`` and ``_build_session_config`` deep-merges it over
+DEFAULT_SESSION_CONFIG (``_merge_config``), so no monkey patch and no mutation of the
+module default. ``apply_session_config`` does the same merge on a plain dict (tests,
+and the one assertion the model makes on strands.bidi main: turn_detection must carry
+create_response=True and interrupt_response=True or the constructor-time build raises).
+No-op for other providers.
 """
 from __future__ import annotations
 
@@ -96,22 +100,12 @@ def apply_session_config(config: dict) -> dict:
     return cfg
 
 
-def patch_openai_realtime_session() -> bool:
-    """Wrap BidiOpenAIRealtimeModel._build_session_config once. True if patched (or already)."""
-    try:
-        from .vision import _realtime_model_class
-    except ImportError:  # pragma: no cover
-        return False
-    cls = _realtime_model_class()
-    if cls is None:
-        return False
-    if getattr(cls, "_session_patched", False):
-        return True
-    orig = cls._build_session_config
+def session_params() -> dict:
+    """The ``params`` keyword for ``OpenAIRealtimeModel``: our audio.input overrides."""
+    return {"audio": {"input": session_overrides()}}
 
-    def _patched(self, system_prompt, tools):
-        return apply_session_config(orig(self, system_prompt, tools))
 
-    cls._build_session_config = _patched
-    cls._session_patched = True
-    return True
+def session_config_is_valid(config: dict) -> bool:
+    """The check strands.bidi (main) performs before connecting: barge-in keys present and true."""
+    turn = (config.get("audio") or {}).get("input", {}).get("turn_detection")
+    return bool(turn) and bool(turn.get("create_response", True)) and bool(turn.get("interrupt_response", True))
