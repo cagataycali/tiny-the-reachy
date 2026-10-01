@@ -44,11 +44,8 @@ def reachy_look(
 
     Args:
         x, y, z: head translation in millimetres (small, ~[-20,20]).
-        roll, pitch, yaw: head orientation in DEGREES (SDK frame: x forward, y left, z up,
-            right-hand rule). SIGNS, verified on the robot 2026-10-01:
-              pitch > 0 = look DOWN,  pitch < 0 = look UP
-              yaw   > 0 = turn LEFT,  yaw   < 0 = turn RIGHT
-              roll  > 0 = tilt the top of the head toward the robot's LEFT
+        roll, pitch, yaw: head orientation in DEGREES. pitch<0 = UP, pitch>0 = DOWN;
+            yaw>0 = LEFT, yaw<0 = RIGHT (SDK frame, verified on the robot).
             pitch/roll clamped to [-40,40], yaw to [-180,180].
         body_yaw: body rotation in DEGREES (clamped [-160,160]). None = keep current.
         antennas: optional [right_deg, left_deg] antenna angles.
@@ -56,9 +53,6 @@ def reachy_look(
         method: "minjerk" (default) | "linear" | "ease_in_out" | "cartoon".
 
     Examples:
-        reachy_look(pitch=-15)                     # look UP (negative pitch)
-        reachy_look(pitch=15)                      # look DOWN
-        reachy_look(yaw=20)                        # turn LEFT; yaw=-20 turns right
         reachy_look(pitch=-15, yaw=-20)            # look up-and-right
         reachy_look(roll=15, antennas=[30,-30])    # curious head-tilt + ears
         reachy_look(yaw=0, body_yaw=45)            # spin body, keep head level
