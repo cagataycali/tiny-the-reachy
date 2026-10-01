@@ -383,49 +383,48 @@ def build_agent(persona: str, *, chat_id: Optional[str] = None,
 
 
 # ── voice (BidiAgent) factory ───────────────────────────────────────
+# Strands 1.57+ (strands.bidi-ready via tools/bidi_compat): model_id is REQUIRED, the
+# voice is a keyword, provider knobs go in `params`, and the old provider_config /
+# client_config dicts are gone.
 _DEFAULT_VOICES = {"openai": "alloy", "nova_sonic": "tiffany", "gemini": "Kore"}
+_DEFAULT_MODEL_IDS = {
+    "openai": "gpt-realtime-2",                 # the robot's unit pins this via VOICE_MODEL too
+    "nova_sonic": "amazon.nova-2-sonic-v1:0",
+    "gemini": "gemini-3.8-live",
+}
+_PROVIDER_ALIASES = {"openai_realtime": "openai", "novasonic": "nova_sonic", "nova": "nova_sonic",
+                     "gemini_live": "gemini"}
+_TRANSCRIBE_MODEL = "gpt-4o-transcribe"
+
+
+def _voice_model_id(provider: str) -> str:
+    return os.getenv("VOICE_MODEL") or _DEFAULT_MODEL_IDS[provider]
 
 
 def _build_bidi_model(provider: str, voice: Optional[str] = None):
+    from tools.bidi_compat import model_class
+
     provider = provider.lower()
-    v = voice or _DEFAULT_VOICES.get(provider)
-    if provider in ("nova_sonic", "novasonic", "nova"):
-        try:
-            from strands.experimental.bidi.models import BidiNovaSonicModel
-        except ImportError:
-            from strands.experimental.bidi.models.nova_sonic import BidiNovaSonicModel
-        region = os.getenv("AWS_REGION", "us-east-1")
-        cfg = {"audio": {"voice": v}} if v else {}
-        return BidiNovaSonicModel(provider_config=cfg or None, client_config={"region": region})
-    if provider in ("openai", "openai_realtime"):
-        try:
-            from strands.experimental.bidi.models import BidiOpenAIRealtimeModel
-        except ImportError:
-            from strands.experimental.bidi.models.openai_realtime import BidiOpenAIRealtimeModel
-        cfg = {"audio": {"voice": v}} if v else {}
-        kwargs = {"provider_config": cfg or None}
-        try:
-            from tools.voice_session import patch_openai_realtime_session
-            patch_openai_realtime_session()   # VOICE_LANG / VOICE_VAD_* → session.update
-        except Exception as e:  # noqa: BLE001
-            print(f"⚠️ voice session tuning not applied: {e}")
-        if os.getenv("VOICE_MODEL"):
-            kwargs["model_id"] = os.getenv("VOICE_MODEL")
+    provider = _PROVIDER_ALIASES.get(provider, provider)
+    if provider not in _DEFAULT_MODEL_IDS:
+        raise ValueError(f"unknown voice provider: {provider}")
+    cls = model_class(provider)
+    v = voice or _DEFAULT_VOICES[provider]
+    model_id = _voice_model_id(provider)
+    if provider == "nova_sonic":
+        return cls(model_id=model_id, voice=v, region=os.getenv("AWS_REGION", "us-east-1"))
+    if provider == "openai":
+        from tools.voice_session import session_params   # VOICE_LANG / VOICE_VAD_* -> session.update
+        kwargs = {"model_id": model_id, "voice": v, "transcription_model_id": _TRANSCRIBE_MODEL,
+                  "params": session_params()}
         if os.getenv("OPENAI_API_KEY"):
-            kwargs["client_config"] = {"api_key": os.getenv("OPENAI_API_KEY")}
-        return BidiOpenAIRealtimeModel(**kwargs)
-    if provider in ("gemini", "gemini_live"):
-        try:
-            from strands.experimental.bidi.models import BidiGeminiLiveModel
-        except ImportError:
-            from strands.experimental.bidi.models.gemini_live import BidiGeminiLiveModel
-        cfg = {"audio": {"voice": v}} if v else {}
-        kwargs = {"provider_config": cfg or None}
-        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-        if api_key:
-            kwargs["client_config"] = {"api_key": api_key}
-        return BidiGeminiLiveModel(**kwargs)
-    raise ValueError(f"unknown voice provider: {provider}")
+            kwargs["api_key"] = os.getenv("OPENAI_API_KEY")
+        return cls(**kwargs)
+    kwargs = {"model_id": model_id, "voice": v}                       # gemini
+    api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+    if api_key:
+        kwargs["client_args"] = {"api_key": api_key}
+    return cls(**kwargs)
 
 
 def build_voice_agent(provider: str = "openai", voice: Optional[str] = None):
@@ -438,8 +437,7 @@ def build_voice_agent(provider: str = "openai", voice: Optional[str] = None):
     custom DDS transport like neon's G1BidiAudioIO. The head-wobble-on-speech
     is driven daemon-side via the SDK, so TINY still 'talks with its head'.
     """
-    from strands.experimental.bidi import BidiAgent
-    from strands.experimental.bidi.tools import stop_conversation
+    from tools.bidi_compat import BidiAgent, stop_conversation
 
     model = _build_bidi_model(provider, voice)
     tools = build_voice_tools(persona="voice") + [stop_conversation]
@@ -454,6 +452,6 @@ def build_voice_agent(provider: str = "openai", voice: Optional[str] = None):
         audio_io = ResamplingAudioIO(device_rate=device_rate)
     except Exception:
         # Fallback to plain IO (works only if device rate == model rate)
-        from strands.experimental.bidi.io import BidiAudioIO
-        audio_io = BidiAudioIO()
+        from tools.bidi_compat import audio_io_class
+        audio_io = audio_io_class()()
     return agent, audio_io
