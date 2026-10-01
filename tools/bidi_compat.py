@@ -33,8 +33,15 @@ from typing import Any
 
 from strands import tool
 from strands.hooks import MessageAddedEvent
-from strands.types.content import TextBlock
-from strands.types.media import ImageBlock
+
+try:
+    from strands.types.content import TextBlock
+    from strands.types.media import ImageBlock
+except ImportError as _e:  # strands-agents < 1.57: BidiTextInputEvent era, dropped on purpose
+    raise ImportError(
+        "TINY's voice persona needs strands-agents[bidi]>=1.57.1,<1.60 (agent.send(TextBlock|ImageBlock)); "
+        "see MIGRATION.md for the robot upgrade recipe"
+    ) from _e
 
 _CANDIDATES = ("strands.bidi", "strands.experimental.bidi")
 
