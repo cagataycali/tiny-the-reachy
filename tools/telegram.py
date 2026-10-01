@@ -27,9 +27,26 @@ from strands import tool
 
 # ── config ─────────────────────────────────────────────────────────────
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-DEFAULT_CHAT_ID = os.getenv("TELEGRAM_DEFAULT_CHAT_ID", "")
-ALLOWED = {u.strip() for u in os.getenv("TELEGRAM_ALLOWED_USERS", "").split(",") if u.strip()}
 HISTORY_LIMIT = int(os.getenv("TELEGRAM_HISTORY_LIMIT") or "20")
+
+
+def default_chat_id() -> str:
+    """Live default route: cockpit config `telegram.default_chat_id`, else TELEGRAM_DEFAULT_CHAT_ID (read per call,
+    never cached at import, so a Settings change applies to the next message)."""
+    try:
+        from .config import telegram_default_chat_id  # noqa: PLC0415
+        return telegram_default_chat_id()
+    except Exception:  # noqa: BLE001
+        return os.getenv("TELEGRAM_DEFAULT_CHAT_ID", "")
+
+
+def allowed_users() -> set:
+    """Live allow-list (usernames / numeric ids): config `telegram.allowed_users`, else TELEGRAM_ALLOWED_USERS."""
+    try:
+        from .config import telegram_allowed  # noqa: PLC0415
+        return telegram_allowed()
+    except Exception:  # noqa: BLE001
+        return {u.strip() for u in os.getenv("TELEGRAM_ALLOWED_USERS", "").split(",") if u.strip()}
 API = lambda: f"https://api.telegram.org/bot{TOKEN}"
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -161,7 +178,8 @@ def telegram(
     if not TOKEN:
         return "TELEGRAM_BOT_TOKEN not set"
 
-    cid = str(chat_id or DEFAULT_CHAT_ID) if chat_id is not None or DEFAULT_CHAT_ID else None
+    _default = default_chat_id()
+    cid = str(chat_id or _default) if chat_id is not None or _default else None
 
     # ── messages ──
     if action == "send_message":
@@ -286,9 +304,10 @@ def _save_offset(off: int):
 
 
 def _user_allowed(user: dict) -> bool:
-    if not ALLOWED:
+    allowed = allowed_users()           # read per message: the cockpit may have changed the list
+    if not allowed:
         return True
-    return user.get("username", "") in ALLOWED or str(user.get("id", "")) in ALLOWED
+    return user.get("username", "") in allowed or str(user.get("id", "")) in allowed
 
 
 def listen(callback: Callable[[dict], None], stop_event: Optional[threading.Event] = None):
@@ -301,7 +320,7 @@ def listen(callback: Callable[[dict], None], stop_event: Optional[threading.Even
         raise RuntimeError("TELEGRAM_BOT_TOKEN not set")
 
     offset = _load_offset()
-    print(f"[telegram] listening (offset={offset}, allowed={ALLOWED or 'all'})")
+    print(f"[telegram] listening (offset={offset}, allowed={allowed_users() or 'all'})")
 
     while not (stop_event and stop_event.is_set()):
         try:
