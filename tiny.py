@@ -22,7 +22,7 @@ from typing import Optional
 # Disable devduck server boot whenever this module is imported (dispatch uses it).
 os.environ.setdefault("DEVDUCK_AUTO_START_SERVERS", "false")
 
-MODEL_ID = os.getenv("TINY_MODEL_ID", "global.anthropic.claude-opus-4-8")
+MODEL_ID = os.getenv("TINY_MODEL_ID", "global.anthropic.claude-opus-4-8")   # bootstrap; model_id() is the live value
 
 from strands import Agent
 from strands_tools import shell, environment, image_reader
@@ -41,6 +41,7 @@ from tools.manage_tools import manage_tools as manage_tools_tool
 from tools.prompts import prompts, get_override as _prompt_override
 from tools.vision import take_photo
 from tools import tiny_mcp  # fleet bridge (tiny.technology MCP) — OFF unless TINY_MCP=1
+from tools.config import cfg, get as _cfg_get, tools_for as _cfg_tools_for   # runtime config (cockpit Settings): DB -> env -> default
 
 # Reachy robot tools imported individually for the slim voice toolset
 from tools.reachy_motion import (
@@ -66,13 +67,83 @@ use_spotify = _try_import("devduck.tools.use_spotify", "use_spotify")
 
 
 # ── canonical tool lists ────────────────────────────────────────────
-def build_tools(include_telegram: bool = True, include_robot: bool = True, *,
-                persona: str = "shell", fleet: bool = False) -> list:
-    """Single source of truth for what TINY exposes (shell/telegram/thinker).
+def model_id() -> str:
+    """The Bedrock model for shell/telegram/thinker/dashboard Ask — config `agent.model_id`, else TINY_MODEL_ID."""
+    return str(cfg("agent.model_id") or MODEL_ID)
 
-    persona/fleet only steer the optional tiny.technology fleet tools (tools/tiny_mcp.py):
-    fleet=True marks a turn that ARRIVED from another device → no fleet tools (depth cap).
-    """
+
+def _tool_name(t) -> str:
+    """A tool's wire name, as Agent.tool_names will spell it: @tool objects carry tool_name; a strands_tools
+    MODULE carries TOOL_SPEC["name"] or a same-named @tool attribute (strands_tools.shell.shell)."""
+    n = getattr(t, "tool_name", None)
+    if not n:
+        spec = getattr(t, "TOOL_SPEC", None)
+        n = spec.get("name") if isinstance(spec, dict) else None
+    if not n and isinstance(t, type(os)):                       # a module: its basename is the tool it exports
+        base = t.__name__.rsplit(".", 1)[-1]
+        inner = getattr(t, base, None)
+        n = getattr(inner, "tool_name", None) or base
+    return n or getattr(t, "__name__", None) or str(t)
+
+
+def _catalog_tools() -> list:
+    """Every tool object a persona may be given (the Settings checklist is generated from this)."""
+    seen: dict = {}
+    for t in [memory, shell, environment, image_reader, prompts, manage_messages, manage_tools_tool,
+              voice_say, take_photo, dispatch, telegram, *TINY_ALL_TOOLS, use_github, use_spotify]:
+        if t is not None:
+            seen.setdefault(_tool_name(t), t)
+    return list(seen.values())
+
+
+_CATALOG_GROUPS = (
+    ("brain", (memory, prompts, manage_messages, manage_tools_tool, dispatch, voice_say, telegram, take_photo)),
+    ("host", (shell, environment, image_reader)),
+    ("robot", tuple(TINY_ALL_TOOLS)),
+    ("extras", tuple(t for t in (use_github, use_spotify) if t is not None)),
+)
+
+
+def tool_catalog() -> list:
+    """[{name, group, dangerous}] — the full menu the cockpit shows for `agent.tools.<persona>`."""
+    from tools.config import DANGEROUS_TOOLS  # noqa: PLC0415
+    out, seen = [], set()
+    for group, objs in _CATALOG_GROUPS:
+        for t in objs:
+            n = _tool_name(t)
+            if n in seen:
+                continue
+            seen.add(n)
+            out.append({"name": n, "group": group, "dangerous": n in DANGEROUS_TOOLS})
+    return out
+
+
+def _apply_tool_config(persona: str, default: list) -> list:
+    """`agent.tools.<persona>` from the config store narrows/extends the code default; None = default."""
+    catalog = {_tool_name(t): t for t in _catalog_tools()}
+    names = _cfg_tools_for(persona, catalog.keys())
+    if names is None:
+        return default
+    return [catalog[n] for n in names]
+
+
+def _default_tools(persona: str, include_telegram: bool = True, include_robot: bool = True) -> list:
+    """The code-default tool objects per persona (before the cockpit's `agent.tools.<persona>` and fleet tools)."""
+    if persona in ("voice", "dashboard"):
+        tools = [
+            # cross-persona infra
+            memory, shell, prompts, manage_messages, manage_tools_tool,
+            voice_say, take_photo, dispatch, telegram,
+            # robot expression (the personality)
+            reachy_look, reachy_antennas, reachy_body_turn, reachy_home, reachy_wake,
+            reachy_express, reachy_list_emotions,
+            reachy_get_state, reachy_look_at, reachy_camera,
+            head_tracking, head_tracking_status, turn_to_sound, turn_to_sound_status,
+            reachy_volume,   # "silent" → 0 before replying; TINY keeps listening at 0
+        ]
+        if use_spotify is not None:
+            tools.append(use_spotify)
+        return tools
     t = [
         memory, shell, environment, image_reader,
         prompts, manage_messages, manage_tools_tool,
@@ -85,7 +156,19 @@ def build_tools(include_telegram: bool = True, include_robot: bool = True, *,
     for extra in (use_github, use_spotify):
         if extra is not None:
             t.append(extra)
-    t.extend(tiny_mcp.get_tools(persona, fleet=fleet))   # [] unless TINY_MCP=1 + token + node
+    return t
+
+
+def build_tools(include_telegram: bool = True, include_robot: bool = True, *,
+                persona: str = "shell", fleet: bool = False) -> list:
+    """Single source of truth for what TINY exposes (shell/telegram/thinker).
+
+    persona/fleet only steer the optional tiny.technology fleet tools (tools/tiny_mcp.py):
+    fleet=True marks a turn that ARRIVED from another device → no fleet tools (depth cap).
+    The cockpit's `agent.tools.<persona>` list (tools/config.py) replaces the code default when set.
+    """
+    t = _apply_tool_config(persona, _default_tools(persona, include_telegram, include_robot))
+    t.extend(tiny_mcp.get_tools(persona, fleet=fleet))   # [] unless fleet tools are on + token + node
     return t
 
 
@@ -94,22 +177,21 @@ def build_voice_tools(*, persona: str = "voice", fleet: bool = False) -> list:
 
     Also used by the dashboard Ask (persona="dashboard"). Fleet tools ride along only for
     personas listed in TINY_MCP_PERSONAS (default excludes voice) and never for fleet turns.
+    The cockpit's `agent.tools.<persona>` list (tools/config.py) replaces the code default when set.
     """
-    tools = [
-        # cross-persona infra
-        memory, shell, prompts, manage_messages, manage_tools_tool,
-        voice_say, take_photo, dispatch, telegram,
-        # robot expression (the personality)
-        reachy_look, reachy_antennas, reachy_body_turn, reachy_home, reachy_wake,
-        reachy_express, reachy_list_emotions,
-        reachy_get_state, reachy_look_at, reachy_camera,
-        head_tracking, head_tracking_status, turn_to_sound, turn_to_sound_status,
-        reachy_volume,   # "silent" → 0 before replying; TINY keeps listening at 0
-    ]
-    if use_spotify is not None:
-        tools.append(use_spotify)
+    tools = _apply_tool_config(persona, _default_tools("voice" if persona not in ("voice", "dashboard") else persona))
     tools.extend(tiny_mcp.get_tools(persona, fleet=fleet))
     return tools
+
+
+def default_tool_names(persona: str) -> list:
+    """The code-default tool names for a persona (what the cockpit shows ticked before any override)."""
+    return [_tool_name(t) for t in _default_tools(persona)]
+
+
+def effective_tool_names(persona: str) -> list:
+    """What the next Agent of this persona gets (config applied; fleet tools excluded, they are env-gated)."""
+    return [_tool_name(t) for t in _apply_tool_config(persona, _default_tools(persona))]
 
 
 # ── prompt loading ──────────────────────────────────────────────────
@@ -207,9 +289,9 @@ reachy_antennas(45,45), reachy_body_turn(30). Show the person you're alive.
 
 
 def _voice_prompt() -> str:
-    chat_id = os.getenv("TELEGRAM_DEFAULT_CHAT_ID", "")
-    allowed = os.getenv("TELEGRAM_ALLOWED_USERS", "")
-    primary_user = allowed.split(",")[0].strip() if allowed else "the user"
+    chat_id = str(cfg("telegram.default_chat_id") or "")
+    allowed = list(cfg("telegram.allowed_users") or [])
+    primary_user = allowed[0] if allowed else "the user"
     fleet_on = False
     try:
         fleet_on = tiny_mcp.enabled() and tiny_mcp.persona_enabled("voice")
@@ -276,8 +358,9 @@ turns toward voices when no face is locked; your gestures ride on top of that.
 - no / disagreement       → reachy_express('no')
 - curious / new person    → reachy_express('curious') or reachy_look(roll=15)
 - excited                 → reachy_antennas(60,60) + reachy_body_turn(20)
-- sad / disappointed      → reachy_antennas(-40,-40) + reachy_look(pitch=-20)
-- someone off to a side   → reachy_body_turn(yaw=±30)
+- sad / disappointed      → reachy_antennas(-40,-40) + reachy_look(pitch=20)
+- someone off to a side   → reachy_body_turn(yaw=±30)  (+ = left, - = right)
+- HEAD SIGNS: pitch NEGATIVE = up, POSITIVE = down; yaw POSITIVE = left. "Look up" → reachy_look(pitch=-20).
 
 ## Self-modification
 prompts(action='set', persona='voice', text='...') adds a short personality note on
@@ -289,8 +372,10 @@ Time: {datetime.now():%Y-%m-%d %H:%M}
 
 
 def _thinker_prompt() -> str:
-    chat_id = os.getenv("TELEGRAM_DEFAULT_CHAT_ID", "")
-    primary_user = (os.getenv("TELEGRAM_ALLOWED_USERS", "").split(",") or [""])[0].strip()
+    chat_id = str(cfg("telegram.default_chat_id") or "")
+    allowed = list(cfg("telegram.allowed_users") or [])
+    primary_user = allowed[0] if allowed else ""
+    photos = bool(cfg("telegram.heartbeat_photos"))
 
     tg_block = ""
     if chat_id:
@@ -319,10 +404,7 @@ report it. You are TINY's heartbeat.
      d. small body scan: reachy_body_turn(yaw=±30)
    Antennas + small head moves are ALWAYS safe. When unsure, wiggle antennas.
 
-3. **TELEGRAM A PHOTO + STATUS** to the primary user (chat={chat_disp}):
-   telegram(action='send_photo', chat_id='{chat_id}',
-            file_path='/tmp/tiny_view.jpg',
-            caption='<one short sentence — what TINY sees + what it just did>')
+3. {heartbeat_step}
 
 4. **JOURNAL** the cycle:
    memory(action='log_add', text='<one-line summary>', tag='thinker')
@@ -344,7 +426,16 @@ Never "as an AI". TINY is a small robot with a big personality.
 Time: {now_str}
 """.format(
         chat_disp=chat_id or "(none)", user_disp=primary_user or "?",
-        tg_disp=tg_block or "(no telegram history)", chat_id=chat_id, now_str=now_str,
+        tg_disp=tg_block or "(no telegram history)", now_str=now_str,
+        heartbeat_step=(
+            f"**TELEGRAM A PHOTO + STATUS** to the primary user (chat={chat_id or '(none)'}):\n"
+            f"   telegram(action='send_photo', chat_id='{chat_id}',\n"
+            "            file_path='/tmp/tiny_view.jpg',\n"
+            "            caption='<one short sentence — what TINY sees + what it just did>')"
+            if photos and chat_id else
+            "**NO TELEGRAM THIS CYCLE** — heartbeat photos are switched off in the cockpit "
+            "(Settings > Telegram); journal only, never send_photo/send_message unless something is urgent."
+        ),
     )
     return _resolve_body("thinker", _BASE + extra) + _agent_log_block(limit=30, exclude_persona="thinker")
 
@@ -353,7 +444,7 @@ Time: {now_str}
 def build_shell_agent() -> Agent:
     """REPL/shell agent: slim toolset + live-state header (agent.py runs this)."""
     return Agent(
-        model=MODEL_ID,
+        model=model_id(),
         tools=build_voice_tools(),
         system_prompt=_shell_prompt(),
     )
@@ -376,7 +467,7 @@ def build_agent(persona: str, *, chat_id: Optional[str] = None,
     from strands.handlers.callback_handler import PrintingCallbackHandler
     from tools.agent_log import make_callback
     meta = {"chat_id": chat_id} if chat_id else None
-    return Agent(model=MODEL_ID,
+    return Agent(model=model_id(),
                  tools=build_tools(include_telegram=True, include_robot=True, persona=persona),
                  system_prompt=prompt + tiny_mcp.prompt_block(persona),
                  callback_handler=make_callback(persona, meta, chain=PrintingCallbackHandler()))
@@ -398,7 +489,8 @@ _TRANSCRIBE_MODEL = "gpt-4o-transcribe"
 
 
 def _voice_model_id(provider: str) -> str:
-    return os.getenv("VOICE_MODEL") or _DEFAULT_MODEL_IDS[provider]
+    # cockpit Settings (`voice.model`, DB -> VOICE_MODEL env -> "") then the provider default
+    return str(_cfg_get("voice.model") or "").strip() or os.getenv("VOICE_MODEL") or _DEFAULT_MODEL_IDS[provider]
 
 
 def _build_bidi_model(provider: str, voice: Optional[str] = None):
@@ -427,10 +519,18 @@ def _build_bidi_model(provider: str, voice: Optional[str] = None):
     return cls(**kwargs)
 
 
-def build_voice_agent(provider: str = "openai", voice: Optional[str] = None):
+def voice_settings() -> dict:
+    """Effective voice session settings (tools/config.py `voice.*`): what the next session will use."""
+    return {"provider": str(cfg("voice.provider") or "openai"), "model": str(cfg("voice.model") or ""),
+            "voice": str(cfg("voice.name") or ""), "lang": str(cfg("voice.lang") or ""),
+            "turn_detection": str(cfg("voice.turn_detection") or "server_vad")}
+
+
+def build_voice_agent(provider: Optional[str] = None, voice: Optional[str] = None):
     """Build a BidiAgent + local PyAudio IO for TINY's voice persona.
 
-    Returns (BidiAgent, audio_io). The caller drives the run loop.
+    Returns (BidiAgent, audio_io). The caller drives the run loop. provider/voice default to the
+    cockpit config (`voice.provider`, `voice.name`), which defaults to VOICE_PROVIDER / VOICE_NAME.
 
     Reachy Mini's mic/speaker are on the same machine (Lite: laptop; Wireless:
     CM4), so we use the standard strands local audio IO (PyAudio) rather than a
@@ -439,7 +539,8 @@ def build_voice_agent(provider: str = "openai", voice: Optional[str] = None):
     """
     from tools.bidi_compat import BidiAgent, stop_conversation
 
-    model = _build_bidi_model(provider, voice)
+    vs = voice_settings()
+    model = _build_bidi_model(provider or vs["provider"], voice or vs["voice"] or None)
     tools = build_voice_tools(persona="voice") + [stop_conversation]
     agent = BidiAgent(model=model, tools=tools, system_prompt=_voice_prompt() + tiny_mcp.prompt_block("voice"))
 

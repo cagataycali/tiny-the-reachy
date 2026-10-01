@@ -19,6 +19,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from tools.agent_log import record as alog
+from tools import config as _config
 from tiny import build_agent, _thinker_prompt
 
 INTERVAL = int(os.getenv("THINKER_INTERVAL", "30"))
@@ -27,6 +28,25 @@ DISABLED = os.getenv("THINKER_DISABLED", "").lower() in ("1", "true", "yes")
 
 def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+class _AgentHolder:
+    """The thinker's Agent plus the config generation it was built at: a cockpit change to the model id or the
+    thinker's tool list (`agent` restart scope, tools/config.py) rebuilds it at the start of the next cycle."""
+
+    def __init__(self) -> None:
+        self.agent = None
+        self.generation = -1
+
+    def current(self):
+        gen = _config.generation("agent")
+        if self.agent is None or gen != self.generation:
+            if self.agent is not None:
+                print(f"[{_now()}] 🧠 config generation {self.generation} -> {gen}: rebuilding the thinker agent", flush=True)
+                alog("thinker", "system", f"config generation {self.generation} -> {gen}: agent rebuilt")
+            self.agent = build_agent("thinker")
+            self.generation = gen
+        return self.agent
 
 
 def cycle(agent) -> None:
@@ -40,6 +60,11 @@ def cycle(agent) -> None:
         agent.system_prompt = _thinker_prompt()
     except Exception as e:
         print(f"[{_now()}] ⚠️ prompt refresh failed: {e}", flush=True)
+    photos = bool(_config.get("telegram.heartbeat_photos")) and bool(_config.get("telegram.default_chat_id"))
+    step3 = ("  3. telegram(action='send_photo', chat_id from the prompt, "
+             "file_path='/tmp/tiny_view.jpg', caption='<1 sentence: what TINY saw + did>').\n"
+             if photos else
+             "  3. NO telegram this cycle (heartbeat photos are off in the cockpit) — skip send_photo/send_message.\n")
 
     user_turn = (
         "Run an active heartbeat cycle. TINY is alive — show it.\n"
@@ -51,8 +76,7 @@ def cycle(agent) -> None:
         "       (b) reachy_antennas(right, left)  — always safe\n"
         "       (c) reachy_look(pitch=, yaw=, roll=)  — gentle head move\n"
         "       (d) reachy_body_turn(yaw=±30)  — small scan\n"
-        "  3. telegram(action='send_photo', chat_id from env, "
-        "file_path='/tmp/tiny_view.jpg', caption='<1 sentence: what TINY saw + did>').\n"
+        + step3 +
         "  4. memory(action='log_add', text='<one line>', tag='thinker').\n"
         "Do steps in parallel where possible. Be terse. TINY is a small robot with "
         "a big personality — no 'as an AI' energy. ONE action, then ship it."
@@ -82,9 +106,10 @@ def main():
     signal.signal(signal.SIGINT, _sig)
     signal.signal(signal.SIGTERM, _sig)
 
+    holder = _AgentHolder()
     try:
-        agent = build_agent("thinker")
-        print(f"[{_now()}] 🧠 thinker agent built ({len(agent.tool_names)} tools)", flush=True)
+        agent = holder.current()
+        print(f"[{_now()}] 🧠 thinker agent built ({len(agent.tool_names)} tools, config generation {holder.generation})", flush=True)
     except Exception as e:
         print(f"❌ failed to build thinker agent: {e}")
         traceback.print_exc()
@@ -97,7 +122,7 @@ def main():
 
     while not stop["flag"]:
         try:
-            cycle(agent)
+            cycle(holder.current())
         except Exception as e:
             print(f"[{_now()}] ❌ outer cycle error: {e}", flush=True)
             traceback.print_exc()

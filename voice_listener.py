@@ -14,11 +14,14 @@ import signal
 import sys
 import time
 
-from tiny import build_voice_agent
+from tiny import build_voice_agent, voice_settings
+from tools import config as _config
 
-PROVIDER = os.getenv("VOICE_PROVIDER", "openai").lower()
-VOICE = os.getenv("VOICE_NAME", "")
+# VOICE_PROVIDER / VOICE_NAME are the bootstrap defaults of the cockpit config (`voice.*`, tools/config.py);
+# every session reads the live values through voice_settings() at build time.
 RESTART_DELAY = int(os.getenv("VOICE_RESTART_DELAY", "5"))
+CONFIG_POLL_S = float(os.getenv("VOICE_CONFIG_POLL_S", "2"))     # how often the live session checks for a Settings change
+SESSION_END_GRACE_S = 10.0                                      # graceful end budget before the run task is cancelled
 RESTART_DELAY_MAX = int(os.getenv("VOICE_RESTART_DELAY_MAX", "300"))
 # Daemon 1.10 owns mic+camera and PyAudio opens the ReSpeaker alongside it just fine (proven 2026-09-17: voice ran
 # for hours while the dashboard held /api/media/acquire). Releasing is legacy from 1.8 — and it is destructive:
@@ -51,6 +54,67 @@ def _is_fatal(err: BaseException) -> bool:
     return any(m in msg for m in _FATAL_MARKERS)
 
 
+class ConfigRestart(Exception):
+    """The live session ended because the cockpit changed a voice-scoped setting; rebuild without backoff."""
+
+
+async def request_session_end(agent) -> bool:
+    """Ask the running BidiAgent to end its conversation the way our `stop_conversation` tool does:
+    `BidiAgent.cancel()` (strands.bidi main, #4664) sets a thread-safe signal the event loop honours,
+    `agent.run` then stops the model + IO in its own `finally`. Returns False when the agent has no
+    cancel() (caller falls back to cancelling the run task)."""
+    cancel = getattr(agent, "cancel", None)
+    if not callable(cancel):
+        print("[voice] graceful session end unavailable (agent has no cancel()); cancelling", file=sys.stderr)
+        return False
+    try:
+        cancel()
+        return True
+    except Exception as e:  # noqa: BLE001
+        print(f"[voice] graceful session end failed ({e.__class__.__name__}: {e}); cancelling", file=sys.stderr)
+        return False
+
+
+async def watch_config(agent, run_task: "asyncio.Task", *, generation_fn=None, poll_s: float = CONFIG_POLL_S,
+                       scope: str = "voice") -> bool:
+    """Poll the config generation while the session runs; on a change, end the session and return True.
+
+    `generation_fn` defaults to tools.config.generation(scope). Returns False when run_task finished first."""
+    gen_fn = generation_fn or (lambda: _config.generation(scope))
+    start = await asyncio.to_thread(gen_fn)
+    while not run_task.done():
+        try:
+            await asyncio.wait_for(asyncio.shield(run_task), timeout=poll_s)
+            break                                   # the session ended on its own
+        except asyncio.TimeoutError:
+            pass
+        now = await asyncio.to_thread(gen_fn)
+        if now != start:
+            vs = voice_settings()
+            msg = (f"voice: config generation {start} -> {now}, restarting session "
+                   f"(provider={vs['provider']}, model={vs['model'] or 'default'}, voice={vs['voice'] or 'default'})")
+            print(f"[voice] {msg}", file=sys.stderr)
+            try:
+                from tools.agent_log import record as alog
+                alog("voice", "system", msg)
+            except Exception:  # noqa: BLE001
+                pass
+            if not await request_session_end(agent):
+                run_task.cancel()
+            try:
+                await asyncio.wait_for(asyncio.shield(run_task), timeout=SESSION_END_GRACE_S)
+            except asyncio.TimeoutError:
+                run_task.cancel()
+                try:
+                    await run_task
+                except (asyncio.CancelledError, Exception):  # noqa: BLE001
+                    pass
+            except (asyncio.CancelledError, Exception):  # noqa: BLE001
+                pass
+            return True
+    return False
+
+
 async def run_once():
     if RELEASE_MEDIA:
         _release_daemon_media()
@@ -61,7 +125,8 @@ async def run_once():
         await asyncio.to_thread(apply_params)
     except Exception as e:  # noqa: BLE001
         print(f"[voice] XVF3800 tuning skipped: {e}", file=sys.stderr)
-    agent, audio_io = build_voice_agent(provider=PROVIDER, voice=VOICE or None)
+    vs = voice_settings()                                       # cockpit config -> VOICE_* env -> defaults
+    agent, audio_io = build_voice_agent(provider=vs["provider"], voice=vs["voice"] or None)
     # transcripts (what was heard / what TINY said) + tool calls → shared agent_log for the dashboard feed
     from tools.agent_log import BidiTranscriptSink
     from tools.head_tracking import SpeakingHandoff
@@ -69,11 +134,23 @@ async def run_once():
     # face tracking (daemon, 1.10+): weight 0 while TINY speaks, 1 afterwards — Pollen's set_speaking handoff
     handoff = SpeakingHandoff()
     model_id = getattr(agent.model, "model_id", "default")
-    print(f"🎙 TINY voice up (provider={PROVIDER}, model={model_id}, "
-          f"voice={VOICE or 'default'})", file=sys.stderr)
-    print("   live mute: memory kv 'voice.muted' (true/false); /mute /unmute on Telegram.",
-          file=sys.stderr)
-    await agent.run(inputs=[audio_io.input()], outputs=[audio_io.output(), sink, handoff])
+    print(f"🎙 TINY voice up (provider={vs['provider']}, model={model_id}, "
+          f"voice={vs['voice'] or 'default'}, config generation {_config.generation('voice')})", file=sys.stderr)
+    print("   live mute: memory kv 'voice.muted' (true/false); /mute /unmute on Telegram; "
+          "voice settings: cockpit Settings > Voice (the session restarts itself).", file=sys.stderr)
+    # The session runs as a task so the config watcher can end it cleanly when the cockpit changes a voice
+    # setting; agent.run's own finally still stops the model and the audio IO (no API change vs. awaiting it).
+    run_task = asyncio.ensure_future(agent.run(inputs=[audio_io.input()], outputs=[audio_io.output(), sink, handoff]))
+    if await watch_config(agent, run_task):
+        raise ConfigRestart()
+    await run_task                                              # re-raise whatever ended the session
+
+
+def _sleep(seconds: float, stop: dict) -> None:
+    """Interruptible sleep: SIGTERM from systemctl must not wait out a 300 s nap."""
+    end = time.monotonic() + seconds
+    while not stop["flag"] and time.monotonic() < end:
+        time.sleep(min(1.0, end - time.monotonic()))
 
 
 def main():
@@ -90,6 +167,10 @@ def main():
             asyncio.run(run_once())
         except KeyboardInterrupt:
             break
+        except ConfigRestart:
+            delay = RESTART_DELAY
+            print("[voice] rebuilding the session with the new settings", file=sys.stderr)
+            continue                                   # no backoff: the owner asked for this restart
         except Exception as e:
             print(f"[voice err] {e}", file=sys.stderr)
             if stop["flag"]:
@@ -97,13 +178,18 @@ def main():
             if time.monotonic() - started > 60:
                 delay = RESTART_DELAY                      # a real session ran — the failure was transient
             if _is_fatal(e):
-                print(f"[voice] fatal provider error (bad/revoked {PROVIDER.upper()} key, quota or model) — "
-                      f"fix the key in .env and `systemctl --user restart tiny-voice`; retrying in {delay}s",
-                      file=sys.stderr)
+                # Bad/revoked key, quota, model - no retry fixes it; back off hard (5 -> 10 -> ... -> 300 s).
+                provider = voice_settings()["provider"]
+                print(f"[voice] fatal provider error (bad/revoked {provider.upper()} key, quota or model) - "
+                      f"fix the key in .env (or the model/provider in the cockpit: a voice change restarts this "
+                      f"session by itself); retrying in {delay}s", file=sys.stderr)
+                _sleep(delay, stop)
+                delay = min(delay * 2, RESTART_DELAY_MAX)
             else:
-                print(f"[voice] restarting in {delay}s", file=sys.stderr)
-            time.sleep(delay)
-            delay = min(delay * 2, RESTART_DELAY_MAX)      # 5 → 10 → 20 … → 300 s
+                # Transient (DNS not up yet after boot, ALSA busy while the daemon brings its pipeline up, ws drop):
+                # retry fast. 2026-09-20: the doubling backoff here left the robot mute for 10 min after a reboot.
+                print(f"[voice] transient error - restarting in {RESTART_DELAY}s", file=sys.stderr)
+                _sleep(RESTART_DELAY, stop)
         else:
             delay = RESTART_DELAY
     try:                                   # Pollen moves.py ~661: never leave the daemon tracking headless

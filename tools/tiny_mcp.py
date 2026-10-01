@@ -78,6 +78,14 @@ def filter_tool_names(names: Iterable[str]) -> List[str]:
 
 
 def enabled() -> bool:
+    """Fleet tools on? Cockpit config `agent.fleet_tools` (tools/config.py), else TINY_MCP=1."""
+    try:
+        from .config import cfg  # noqa: PLC0415
+        v = cfg("agent.fleet_tools")
+        if v is not None:
+            return bool(v)
+    except Exception:  # noqa: BLE001
+        pass
     return os.getenv("TINY_MCP", "0").strip().lower() in ("1", "true", "on", "yes")
 
 

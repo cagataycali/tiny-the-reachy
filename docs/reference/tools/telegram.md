@@ -35,4 +35,4 @@ telegram(
 
 Telegram bot — rich set of actions.
 
-<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/telegram.py#L123" title="tools/telegram.py:123">source ↗</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/telegram.py#L140" title="tools/telegram.py:140">source ↗</a></small>

@@ -34,6 +34,7 @@ GROUPS = [
     ("Control", r"^/api/control/.*"),
     ("Ask / chat", r"^/api/chat$"),
     ("Perception", r"^/api/tracking.*"),
+    ("Settings", r"^/api/(config|personas).*"),
     ("Auth", r"^/api/auth/.*"),
     ("Realtime", r"^/ws$"),
     ("Shell", r"^/($|\{path:path\})"),
@@ -127,17 +128,17 @@ def markdown(rs: list[dict]) -> str:
         rows = [r for r in rs if re.match(pat, r["path"]) and id(r) not in seen]
         if not rows:
             continue
-        lines += [f"### {title}", "", "| method | path | params | anonymous? | what |", "|---|---|---|---|---|"]
+        lines += [f"### {title}", "", "| method | path | params | gate (✅ public · 🔒 key) | what |", "|---|---|---|---|---|"]
         for r in rows:
             seen.add(id(r))
             f = r.get("file", "dashboard/server.py")
-            src = f'<a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/{f}#L{r["line"]}">src</a>'
-            lines.append(f"| `{r['method']}` | `{r['path']}` | {r['params']} | {'✅ public' if r['public'] else '🔒 key'} | {r['doc'].replace('|', '\\|') or '—'} · {src} |")
+            src = f'<a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/{f}#L{r["line"]}" title="source">↗</a>'
+            lines.append(f"| `{r['method']}` | `{r['path']}` | {r['params']} | {'✅' if r['public'] else '🔒'} | {r['doc'].replace('|', '\\|') or '—'} {src} |")
         lines.append("")
     rest = [r for r in rs if id(r) not in seen]
     if rest:
-        lines += ["### Other", "", "| method | path | params | anonymous? | what |", "|---|---|---|---|---|"]
-        lines += [f"| `{r['method']}` | `{r['path']}` | {r['params']} | {'✅ public' if r['public'] else '🔒 key'} | {r['doc'] or '—'} |" for r in rest]
+        lines += ["### Other", "", "| method | path | params | gate (✅ public · 🔒 key) | what |", "|---|---|---|---|---|"]
+        lines += [f"| `{r['method']}` | `{r['path']}` | {r['params']} | {'✅' if r['public'] else '🔒'} | {r['doc'] or '—'} |" for r in rest]
         lines.append("")
     n_pub = sum(1 for r in rs if r["public"])
     lines.append(f"_{len(rs)} routes · {n_pub} public._")

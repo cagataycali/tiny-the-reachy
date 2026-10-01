@@ -1,20 +1,41 @@
 {
-  "name": "TINY · Reachy Mini cockpit",
-  "short_name": "TINY",
-  "description": "Live camera, digital twin, controls and the shared mind of TINY the Reachy Mini.",
+  "name": "tiny / reachy: Reachy Mini cockpit",
+  "short_name": "reachy",
+  "description": "Live camera, digital twin, controls and the agent timeline of the Reachy Mini, in the Strands design.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#05050c",
-  "theme_color": "#05050c",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "Play the show", "url": "/?action=reel", "description": "Start the scripted demo reel" },
-    { "name": "Ask TINY", "url": "/?action=ask", "description": "Jump to the Ask box" }
+    {
+      "name": "Play the show",
+      "url": "/?action=reel",
+      "description": "Start the scripted demo reel"
+    },
+    {
+      "name": "Ask TINY",
+      "url": "/?action=ask",
+      "description": "Jump to the Ask box"
+    }
   ]
 }
