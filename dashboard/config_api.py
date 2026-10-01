@@ -129,8 +129,15 @@ def unit_status(unit: str) -> Dict[str, Any]:
     except ValueError:
         pid = None
     last = _last_restart.get(unit)
+    since = props.get("ActiveEnterTimestamp", "") or None
+    since_t: Optional[float] = None
+    if since:
+        try:   # "Thu 2026-10-01 16:50:42 BST" — local wall clock of the robot; the zone name is informational
+            since_t = time.mktime(time.strptime(" ".join(since.split()[:3]), "%a %Y-%m-%d %H:%M:%S"))
+        except ValueError:
+            since_t = None
     return {"unit": unit, "active": props.get("ActiveState", "unknown"), "sub": props.get("SubState", ""),
-            "pid": pid, "since": props.get("ActiveEnterTimestamp", "") or None,
+            "pid": pid, "since": since, "since_t": since_t,
             "restarts": props.get("NRestarts"), "journal": lines,
             "cooldown_s": max(0, int(RESTART_COOLDOWN_S - (time.monotonic() - last))) if last else 0}
 

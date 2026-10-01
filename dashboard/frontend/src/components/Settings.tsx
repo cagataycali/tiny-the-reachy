@@ -12,10 +12,9 @@ const GROUPS: { id: 'voice' | 'agent' | 'telegram'; title: string; blurb: string
 
 function same(a: unknown, b: unknown): boolean { return JSON.stringify(a ?? null) === JSON.stringify(b ?? null) }
 function fmt(v: unknown): string { if (v == null || v === '') return 'empty'; if (Array.isArray(v)) return v.length ? v.join(', ') : 'empty'; return String(v) }
-function since(ts: string | null | undefined): string {
-  if (!ts) return '--'
-  const t = Date.parse(ts.replace(/^[A-Za-z]{3} /, '')); if (Number.isNaN(t)) return ts
-  const s = Math.max(0, Math.round((Date.now() - t) / 1000)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60)
+function since(u: { since: string | null; since_t: number | null }, now: number): string {
+  if (u.since_t == null) return u.since ? u.since.replace(/^[A-Za-z]{3} /, '') : '--'
+  const s = Math.max(0, Math.round(now - u.since_t)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60)
   return h ? `${h}h${m.toString().padStart(2, '0')} ago` : m ? `${m}m ago` : `${s}s ago`
 }
 
@@ -164,7 +163,7 @@ export function ConfigPanel({ can, onToast }: { can: boolean; onToast: (m: strin
           <p className="muted small cfg-blurb">{g.blurb}</p>
           {g.id === 'voice' && voiceUnit && (
             <div className="cfg-status mono small" data-testid="voice-status">
-              <span className={`dot ${voiceUnit.active === 'active' ? 'on' : ''}`} /> tiny-voice {voiceUnit.active}{voiceUnit.since ? ` · ${since(voiceUnit.since)}` : ''} · generation {snap.generations.voice}
+              <span className={`dot ${voiceUnit.active === 'active' ? 'on' : ''}`} /> tiny-voice {voiceUnit.active}{voiceUnit.since ? ` · up ${since(voiceUnit, units!.t)}` : ''} · generation {snap.generations.voice}
               {voiceUnit.journal.length > 0 && <div className="muted cfg-journal">{voiceUnit.journal[voiceUnit.journal.length - 1]}</div>}
             </div>
           )}
@@ -209,7 +208,7 @@ export function ConfigPanel({ can, onToast }: { can: boolean; onToast: (m: strin
                 <tr key={u.unit}>
                   <td>{u.unit}</td>
                   <td><span className={`dot ${u.active === 'active' ? 'on' : ''}`} /> {u.active}{u.pid ? ` · pid ${u.pid}` : ''}</td>
-                  <td>{since(u.since)}</td>
+                  <td>{since(u, units.t)}</td>
                   <td><button type="button" className="btn small" disabled={!can || busy !== '' || u.cooldown_s > 0} onClick={() => restart(u)} aria-label={`restart ${u.unit}`}>{u.cooldown_s > 0 ? `wait ${u.cooldown_s}s` : 'restart'}</button></td>
                 </tr>
               ))}

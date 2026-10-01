@@ -46,7 +46,7 @@ export type ConfigSnapshot = { schema: ConfigKey[]; values: Record<string, unkno
 export type ConfigWrite = { changed: Record<string, { old: string; new: string }>; generations: { voice: number; agent: number }; restart: string[]
   values: Record<string, unknown>; overrides: Record<string, unknown> }
 export type Preview = { persona: string; prompt: string; chars: number; tools: string[]; model_id: string; note: string }
-export type PersonaUnit = { unit: string; active: string; sub: string; pid: number | null; since: string | null; restarts: string | null; journal: string[]; cooldown_s: number }
+export type PersonaUnit = { unit: string; active: string; sub: string; pid: number | null; since: string | null; since_t: number | null; restarts: string | null; journal: string[]; cooldown_s: number }
 export type Personas = { units: PersonaUnit[]; t: number }
 
 const TOKEN_KEY = 'reachy_token'
