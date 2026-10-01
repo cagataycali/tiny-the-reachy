@@ -1,5 +1,5 @@
 """Vision tool — capture a TINY camera frame and send it to the bidi voice agent
-(``agent.send(ImageBlock)``, Strands 1.57+), so the realtime model SEES the image
+(``agent.send([ImageBlock, TextBlock])``, strands.bidi), so the realtime model SEES the image
 natively. Adapted from neon/tools/vision.py.
 
 On Reachy Mini the frame comes from the daemon camera (reachy_camera tool) or,
@@ -56,16 +56,17 @@ def _capture_frame(device: int = 0) -> Path:
 
 
 async def _inject(agent, img_bytes: bytes, question: str, fmt: str = "jpeg") -> None:
-    """Put the frame and the question in front of the model and ask for ONE response.
+    """Put the frame and the question in front of the model as ONE user message.
 
-    Strands 1.57: ``agent.send(ImageBlock)`` creates the ``input_image`` item WITHOUT a
-    ``response.create`` (OpenAIRealtimeModel._send_image_content); ``agent.send(text)``
-    creates the ``input_text`` item and requests the response, coalesced with any response
-    already in flight (``_request_response``). Image first, question second = one answer that
-    sees both, on every provider, with no raw wire access.
+    strands.bidi (harness-sdk main): ``agent.send([ImageBlock, TextBlock])`` builds one
+    ``BidiMessage`` with both blocks in order; the OpenAI model turns it into a single
+    ``conversation.item.create`` (``input_image`` then ``input_text``) followed by at most one
+    ``response.create``, which ``_flush_response_request`` DEFERS while the user is still
+    speaking (``input_audio_pending``, #4642) or another response / tool call is in flight.
+    That is the fix for the ``conversation_already_has_active_response`` errors the robot
+    logged on 1.20, where this tool pushed a raw ``response.create`` over the wire.
     """
-    await agent.send(ImageBlock(format=fmt, source={"bytes": img_bytes}))
-    await agent.send(TextBlock(question))
+    await agent.send([ImageBlock(format=fmt, source={"bytes": img_bytes}), TextBlock(question)])
 
 
 DEFAULT_QUESTION = os.getenv(
