@@ -33,9 +33,9 @@ Move TINY's head to a pose (smooth interpolation).
 
 | argument | envelope |
 |---|---|
-| `x, y, z` | head translation in millimetres (small, ~[-20,20]). |
-| `roll, pitch, yaw` | head orientation in DEGREES. pitch<0 = UP, pitch>0 = DOWN; yaw>0 = LEFT, yaw<0 = RIGHT (SDK frame, verified on the robot). pitch/roll clamped to [-40,40], yaw to [-180,180]. |
-| `body_yaw` | body rotation in DEGREES (clamped [-160,160]). None = keep current. |
+| `x, y, z` | head translation in mm (~[-20,20]). |
+| `roll, pitch, yaw` | degrees. Negative pitch looks up, positive yaw turns left. pitch/roll clamped to [-40,40], yaw to [-180,180]. |
+| `body_yaw` | body rotation in DEGREES ([-160,160]); None = keep current. |
 
 ```python
 reachy_look(pitch=-15, yaw=-20)            # look up-and-right
@@ -55,7 +55,7 @@ Move just the two antennas (TINY's 'ears'), in DEGREES.
 reachy_antennas(45, 45)     # both up — alert / happy
 ```
 
-<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L91" title="tools/reachy_motion.py:91">source ↗</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L90" title="tools/reachy_motion.py:90">source ↗</a></small>
 
 ## `reachy_body_turn`
 
@@ -63,9 +63,9 @@ reachy_antennas(45, 45)     # both up — alert / happy
 reachy_body_turn(yaw: float = 0.0, duration: float = 1.0) -> dict
 ```
 
-Rotate TINY's body around the vertical axis, in DEGREES ([-160,160]).
+Rotate TINY's body (yaw), in DEGREES ([-160,160]).
 
-<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L112" title="tools/reachy_motion.py:112">source ↗</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L111" title="tools/reachy_motion.py:111">source ↗</a></small>
 
 ## `reachy_home`
 
@@ -73,9 +73,9 @@ Rotate TINY's body around the vertical axis, in DEGREES ([-160,160]).
 reachy_home(duration: float = 1.0) -> dict
 ```
 
-Return TINY to the neutral/init pose (head centered, antennas rest).
+Return TINY to the neutral pose (head centered, antennas rest).
 
-<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L129" title="tools/reachy_motion.py:129">source ↗</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L128" title="tools/reachy_motion.py:128">source ↗</a></small>
 
 ## `reachy_wake`
 
@@ -85,4 +85,4 @@ reachy_wake(sleep: bool = False) -> dict
 
 Wake TINY up (init pose + wake emote + sound) or put it to sleep.
 
-<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L143" title="tools/reachy_motion.py:143">source ↗</a></small>
+<small><a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/reachy_motion.py#L142" title="tools/reachy_motion.py:142">source ↗</a></small>

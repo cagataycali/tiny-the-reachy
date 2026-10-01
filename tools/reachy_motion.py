@@ -43,13 +43,12 @@ def reachy_look(
     """Move TINY's head to a pose (smooth interpolation). The primary gesture tool.
 
     Args:
-        x, y, z: head translation in millimetres (small, ~[-20,20]).
-        roll, pitch, yaw: head orientation in DEGREES. pitch<0 = UP, pitch>0 = DOWN;
-            yaw>0 = LEFT, yaw<0 = RIGHT (SDK frame, verified on the robot).
+        x, y, z: head translation in mm (~[-20,20]).
+        roll, pitch, yaw: degrees. Negative pitch looks up, positive yaw turns left.
             pitch/roll clamped to [-40,40], yaw to [-180,180].
-        body_yaw: body rotation in DEGREES (clamped [-160,160]). None = keep current.
-        antennas: optional [right_deg, left_deg] antenna angles.
-        duration: seconds for the move (>=0.5 recommended for smoothness).
+        body_yaw: body rotation in DEGREES ([-160,160]); None = keep current.
+        antennas: optional [right_deg, left_deg].
+        duration: seconds for the move (>=0.5 for smoothness).
         method: "minjerk" (default) | "linear" | "ease_in_out" | "cartoon".
 
     Examples:
@@ -110,7 +109,7 @@ def reachy_antennas(right: float = 0.0, left: float = 0.0, duration: float = 0.5
 
 @tool
 def reachy_body_turn(yaw: float = 0.0, duration: float = 1.0) -> dict:
-    """Rotate TINY's body around the vertical axis, in DEGREES ([-160,160]).
+    """Rotate TINY's body (yaw), in DEGREES ([-160,160]).
 
     The head stays level (automatic_body_yaw keeps IK consistent). Use this
     to turn toward a speaker or scan the room.
@@ -127,7 +126,7 @@ def reachy_body_turn(yaw: float = 0.0, duration: float = 1.0) -> dict:
 
 @tool
 def reachy_home(duration: float = 1.0) -> dict:
-    """Return TINY to the neutral/init pose (head centered, antennas rest)."""
+    """Return TINY to the neutral pose (head centered, antennas rest)."""
     import numpy as np
     from reachy_mini.utils import create_head_pose
     try:
