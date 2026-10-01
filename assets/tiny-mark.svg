@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="tiny">
+  <rect width="200" height="200" fill="#faf9f7"/>
+  <g transform="translate(54,54)">
+    <rect x="0" y="0" width="92" height="92" rx="24" fill="#7a6aa8"/>
+    <circle cx="28" cy="20" r="5.5" fill="#fff" opacity="0.92"/>
+    <circle cx="64" cy="20" r="5.5" fill="#fff" opacity="0.92"/>
+    <text x="46" y="72" text-anchor="middle" font-family="'Inter',system-ui,sans-serif" font-size="60" font-weight="650" letter-spacing="-3" fill="#fff">t</text>
+  </g>
+</svg>

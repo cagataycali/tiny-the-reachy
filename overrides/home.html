@@ -1,0 +1,296 @@
+{#- home.html — the tiny-the-reachy landing (docs/index.md → template: home.html). Extends main.html: Material header, tabs,
+    search and drawer stay; nav + toc hidden by the page's front matter. Owned by the reachy-landing lane (~/.tiny/reachy-landing-20260921).
+    RULE: every picture is the robot's real geometry (dashboard/frontend/public/model/*, posed by tools/landing/emotion_poses.py) or a
+    real cockpit screenshot; every number is read from a file named in a comment next to it. Nothing on this page calls the network
+    except the fonts Material already loads and (lazily, desktop only) three.js for the orbitable hero. -#}
+{% extends "main.html" %}
+
+{# fonts block runs before extrahead in Material's base.html — the preconnects must precede the Google Fonts stylesheet to help LCP #}
+{% block fonts %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  {{ super() }}
+{% endblock %}
+
+{# the landing has no mermaid diagram — skip mermaid.min.js + its init (the only extra_javascript); Material's bundle stays #}
+{% block scripts %}
+  <script src="{{ 'assets/javascripts/bundle.d7400e89.min.js' | url }}"></script>
+  {% for script in config.extra_javascript %}{% if 'mermaid' not in (script.path if script.path is defined else script) %}{{ script | script_tag }}{% endif %}{% endfor %}
+{% endblock %}
+
+{% block extrahead %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ 'stylesheets/landing.css' | url }}">
+  <link rel="preload" as="image" media="(prefers-reduced-motion: no-preference)" href="{{ 'assets/landing/hero-curious1-f00.webp' | url }}" imagesrcset="{{ 'assets/landing/hero-curious1-f00-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f00.webp' | url }} 1100w" imagesizes="(max-width: 60em) 78vw, 27rem" fetchpriority="high">
+  <link rel="preload" as="image" media="(prefers-reduced-motion: reduce)" href="{{ 'assets/landing/hero-curious1-f24.webp' | url }}" imagesrcset="{{ 'assets/landing/hero-curious1-f24-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f24.webp' | url }} 1100w" imagesizes="(max-width: 60em) 78vw, 27rem" fetchpriority="high">
+  <script>document.documentElement.classList.add("l-js"); document.documentElement.dataset.landing = "";</script>
+{% endblock %}
+
+{% block hero %}
+<div class="landing" id="landing">
+
+  {# ------------------------------------------------------------------ 1 · HERO — it turns to you
+     The first screen is itself a scrub: poses 0..24 of the recorded move `curious1` (t 0 → 2.0 s, the head yaws 40° toward the
+     camera and one antenna snaps up), rendered from the hero camera (twin.js VIEWS.hero) into docs/assets/landing/seq/hero/NN.webp
+     by tools/landing/render_all.sh heroseq. The LCP still is pose 0 (hero-curious1-f00.webp); reduced motion gets pose 24
+     (hero-curious1-f24.webp) via <picture>. Everything comes from the cockpit twin's own meshes posed by tools/landing/
+     emotion_poses.py (daemon IK + MuJoCo 3.13.0 on model/twin.xml); the instrument strip reads poses/curious1.json live.
+     PHOTO SLOT: a real photo replaces the still 1:1 — same 1100×1300 frame, robot centred with its foot at 88 % height and the
+     antenna tips inside the top 6 % (see OWNER-BRIEF); with a photo, drop data-seq and the strip shows the photo's caption. #}
+  <section class="l-stage l-stage--hero" id="hero" data-stage data-frames="25" data-seq="{{ 'assets/landing/seq/hero/' | url }}" data-poses="{{ 'assets/landing/poses/curious1.json' | url }}" aria-labelledby="l-h1">
+    <div class="l-sticky l-hero">
+    <div class="l-copy">
+      <p class="l-kicker">Reachy Mini Wireless · CM4 · daemon 1.10 · Strands</p>
+      <h1 class="l-h1" id="l-h1"><span class="l-w">A</span> <span class="l-w">robot</span> <span class="l-w">that</span> <span class="l-w">moves</span> <span class="l-w">when</span> <span class="l-w">it</span> <span class="l-w l-w--accent">talks.</span></h1>
+      <p class="l-thesis">TINY is a Reachy Mini with a <a href="https://strandsagents.com">Strands</a> agent inside. Four microphones that know where you are, a camera that finds your face, a six-axis head, two antennas and 81 recorded emotions — and a model that fires them <em>while</em> it speaks, not after.</p>
+      <p class="l-ctas">
+        <a class="l-btn l-btn--primary" href="{{ 'start/quickstart/' | url }}">Run it yourself</a>
+        <a class="l-btn" href="{{ 'reference/tools/' | url }}">The 28 tools</a>
+        <a class="l-btn l-btn--ghost" href="#emotion">Watch it look around ↓</a>
+      </p>
+    </div>
+    <figure class="l-fig">
+      <div class="l-figwrap" id="l-figwrap">
+        <picture>
+          <source media="(prefers-reduced-motion: reduce)" srcset="{{ 'assets/landing/hero-curious1-f24-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f24.webp' | url }} 1100w" sizes="(max-width: 60em) 78vw, 27rem">
+          <img class="l-still" src="{{ 'assets/landing/hero-curious1-f00.webp' | url }}" srcset="{{ 'assets/landing/hero-curious1-f00-660.webp' | url }} 660w, {{ 'assets/landing/hero-curious1-f00.webp' | url }} 1100w" sizes="(max-width: 60em) 78vw, 27rem" width="1100" height="1300" fetchpriority="high" decoding="async"
+               alt="TINY, a Reachy Mini: a cream rounded body on a dark printed foot, a flat cream head with two dark camera eyes, two thin black antennas — it turns its head toward you as you scroll">
+        </picture>
+        <canvas class="l-turn" width="660" height="780" aria-hidden="true"></canvas>
+        <canvas class="l-orbit" width="1100" height="1300" aria-hidden="true"></canvas>
+        <p class="l-scrollhint" aria-hidden="true"><span>scroll</span></p>
+      </div>
+      <figcaption class="l-caption l-caption--hero">
+        <span class="l-caption__k">rendered from the twin's own meshes · <code>curious1</code></span>
+        <span class="l-strip"><span class="l-strip__c">t <b data-hro="t">0.0</b> s</span><span class="l-strip__c">head yaw <b data-hro="yaw">5</b>°</span><span class="l-strip__c">roll <b data-hro="roll">4</b>°</span><span class="l-strip__c">antennas <b data-hro="ant">5 / 13</b>°</span></span>
+        {# hover the robot (pointer devices): the frame's real motor command — the daemon's own IK output for this pose, from
+           poses/curious1.json "motors" (emotion_poses.py: yaw_body + stewart_1..6 via AnalyticalKinematics, then the antennas).
+           The row keeps its height when hidden so the hero never shifts. #}
+        <span class="l-strip l-strip--motors" data-hro-motors aria-label="Motor command at this frame">
+          <span class="l-strip__c l-strip__k">motor command</span>
+          <span class="l-strip__c">yaw_body <b data-hm="0">0</b>°</span>
+          <span class="l-strip__c">stewart <b data-hm="1">0</b> <b data-hm="2">0</b> <b data-hm="3">0</b> <b data-hm="4">0</b> <b data-hm="5">0</b> <b data-hm="6">0</b>°</span>
+          <span class="l-strip__c">antennas <b data-hm="7">0</b> / <b data-hm="8">0</b>°</span>
+        </span>
+        <span class="l-caption__hint" hidden>drag it to turn it</span>
+      </figcaption>
+    </figure>
+    </div>
+  </section>
+
+  {# ------------------------------------------------------------------ 2 · THE EMOTION
+     Two REAL moves the reader can pick (the ring landing's swatch pattern): curious1 = 48 frames (every 3rd of the 142 poses in
+     assets/landing/poses/curious1.json, 11.79 s) and fear1 = 36 frames (of 42 poses, 3.48 s). Frames docs/assets/landing/seq/<move>/NN.webp
+     660×780 q76, lazy per move (fear1 loads only when picked). tools/landing/emotion_poses.py produced both jsons by replaying the
+     library's moves through the daemon's own head IK + MuJoCo. Quotes are the library's own descriptions. Note timestamps are read
+     from the same jsons (data-at = t / duration). Total sequence weight (both moves + the hero turn) stays < 1.2 MB. #}
+  <section class="l-stage l-emotion" id="emotion" data-stage data-move="curious1" aria-labelledby="l-emotion-h">
+    <div class="l-sticky">
+      <div class="l-split">
+        <figure class="l-fig l-emotion__fig">
+          <div class="l-frame" style="aspect-ratio: 660 / 780">
+            <img class="l-frame__still" src="{{ 'assets/landing/seq/curious1/08.webp' | url }}" width="660" height="780" loading="lazy" decoding="async"
+                 alt="TINY mid-move: head turned 40° to its left, one antenna raised straight up, the other lying nearly flat"
+                 data-alt-fear1="TINY ducking: head dropped 30 mm and rolled, both antennas flung out sideways">
+            <canvas class="l-frame__canvas" width="660" height="780" aria-hidden="true"></canvas>
+          </div>
+          <figcaption class="l-caption l-caption--seq">
+            <span class="l-readout" aria-live="off"><code data-ro="name">curious1</code> · t <b data-ro="t">2.0</b> s · head yaw <b data-ro="yaw">40</b>° roll <b data-ro="roll">−6</b>° · antennas <b data-ro="ant">5 / 77</b>° · body <b data-ro="body">8</b>°</span>
+            <span class="l-caption__k">pollen-robotics/reachy-mini-emotions-library · replayed through the daemon's IK + MuJoCo</span>
+          </figcaption>
+        </figure>
+        <div class="l-copy">
+          <p class="l-kicker">81 recorded emotions · pick one</p>
+          <div class="l-swatch" role="group" aria-label="Which move to scrub">
+            <button type="button" class="l-swatch__b" aria-pressed="true" data-pick="curious1" data-frames="48" data-seq="{{ 'assets/landing/seq/curious1/' | url }}" data-poses="{{ 'assets/landing/poses/curious1.json' | url }}" data-still="{{ 'assets/landing/seq/curious1/08.webp' | url }}"><code>curious1</code><small>looks around · 11.8 s</small></button>
+            <button type="button" class="l-swatch__b" aria-pressed="false" data-pick="fear1" data-frames="36" data-seq="{{ 'assets/landing/seq/fear1/' | url }}" data-poses="{{ 'assets/landing/poses/fear1.json' | url }}" data-still="{{ 'assets/landing/seq/fear1/08.webp' | url }}"><code>fear1</code><small>flinches · 3.5 s</small></button>
+          </div>
+          <h2 id="l-emotion-h"><span class="l-move" data-move="curious1">It looks around</span><span class="l-move" data-move="fear1" hidden>It flinches</span> <span class="l-w--accent">like it means it.</span></h2>
+          <div class="l-move" data-move="curious1">
+            <blockquote class="l-quote"><p>“You look around. Use this when you’re in a conversation with several people and want to glance at everyone.”</p><cite>— the move’s own description, <code>curious1</code></cite></blockquote>
+            <ol class="l-notes" aria-label="What happens during curious1">
+              <li class="l-note" data-at="0.17"><b>2.0 s</b> head yaw 40°, one antenna snaps up to 77°</li>
+              <li class="l-note" data-at="0.38"><b>4.5 s</b> yaw −37°, roll 14° — the other antenna drops to −85°</li>
+              <li class="l-note" data-at="0.59"><b>7.0 s</b> the whole body turns 61°, head 45°</li>
+              <li class="l-note" data-at="0.84"><b>10.0 s</b> yaw −45°, roll 16°, then…</li>
+              <li class="l-note" data-at="0.99"><b>11.8 s</b> home. <a href="{{ 'reference/tools/reachy_expression/' | url }}">reachy_expression</a> can fire any of the 81.</li>
+            </ol>
+          </div>
+          <div class="l-move" data-move="fear1" hidden>
+            <blockquote class="l-quote"><p>“When you face a threatening or dangerous situation. Can also be used when surprised or shocked.”</p><cite>— the move’s own description, <code>fear1</code></cite></blockquote>
+            <ol class="l-notes" aria-label="What happens during fear1">
+              <li class="l-note" data-at="0.14"><b>0.5 s</b> the head snaps 17° left and rolls −24°</li>
+              <li class="l-note" data-at="0.23"><b>0.8 s</b> it ducks — 30 mm down, antennas flung to −85° / 78°</li>
+              <li class="l-note" data-at="0.43"><b>1.5 s</b> it peeks: up to 186 mm, pitch −17°, roll −26°</li>
+              <li class="l-note" data-at="0.57"><b>2.0 s</b> antennas settle half-down, −33° / 19°</li>
+              <li class="l-note" data-at="0.99"><b>3.5 s</b> not quite home — roll 5°, antennas still down. It stays on guard.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ------------------------------------------------------------------ 3 · FIRE WHILE IT SPEAKS
+     The score is a schematic of ONE voice turn (no seconds on the axis — the only timed number is the real 0.8 s tail). Every
+     quoted line is verbatim from the repo at the path:line shown: tiny.py:266 (voice rules), tools/reachy_expression.py:89-90,
+     tools/head_tracking.py:114-115 + :28 (SPEAK_TAIL_S), tools/xmos_audio.py:9, tiny.py:446 (BidiAgent). #}
+  <section class="l-stage l-speak" id="speak" data-stage aria-labelledby="l-speak-h">
+    <div class="l-sticky">
+      <div class="l-split l-split--rev">
+        <div class="l-copy">
+          <p class="l-kicker">one realtime session · tools fire during speech</p>
+          <h2 id="l-speak-h">It moves <span class="l-w--accent">while</span> it speaks. Not after.</h2>
+          <p>The voice persona is one Strands <code>BidiAgent</code>: microphone in, speech out, tool calls inside the same response. The gesture lands on the word, face-tracking lets go of the head only while it talks, and you can interrupt it.</p>
+          <ol class="l-notes l-notes--code" aria-label="The lines that make it so">
+            <li class="l-note" data-at="0.08"><span class="l-src">tiny.py:266 · the voice rules</span><code>- Move WHILE you speak — gestures are simultaneous, never before/after.</code></li>
+            <li class="l-note" data-at="0.32"><span class="l-src">tools/reachy_expression.py:89</span><code>Call it alongside speaking, just like neon fires arm gestures.</code></li>
+            <li class="l-note" data-at="0.52"><span class="l-src">tools/head_tracking.py:114 · SpeakingHandoff</span><code>while the model streams speech audio → tracking hold "speaking" (weight 0.0 …); on response complete / interruption → release (weight 1.0) after a short playback tail.</code></li>
+            <li class="l-note" data-at="0.8"><span class="l-src">tools/xmos_audio.py:9 · XVF3800</span><code>PP_NLATTENONOFF=0  suppression 17 dB → 4 dB; barge-in confirmed by the owner.</code></li>
+          </ol>
+        </div>
+        <figure class="l-fig">
+          <div class="l-score" role="img" aria-label="A score of one voice turn: you speak; TINY answers while the reachy_express tool fires and the recorded move plays under the words; face tracking drops to weight 0 for the speech and returns 0.8 seconds after the last audio; you talk over it and it stops mid-sentence.">
+            <div class="l-score__head"><span>one turn</span><span class="l-score__legend">▮ audio · ▬ tool · ─ tracking weight</span></div>
+            <div class="l-lane"><span class="l-lane__k">you</span><span class="l-bar l-bar--voice" style="--a:.02;--b:.24"></span><span class="l-bar l-bar--voice" style="--a:.76;--b:.92"><i class="l-tag l-tag--r">barge-in</i></span></div>
+            <div class="l-lane"><span class="l-lane__k">TINY</span><span class="l-bar l-bar--speech" style="--a:.30;--b:.78"><i class="l-tag">speech · cut mid-sentence</i></span></div>
+            <div class="l-lane"><span class="l-lane__k">tool</span><span class="l-bar l-bar--tool" style="--a:.33;--b:.36"><i class="l-tag">reachy_express("curious")</i></span><span class="l-bar l-bar--move" style="--a:.36;--b:1"><i class="l-tag">curious1 plays under the words →</i></span></div>
+            <div class="l-lane l-lane--track"><span class="l-lane__k">tracking</span><span class="l-track" style="--a:.30;--b:.78;--tail:.06"><i class="l-tag l-tag--w1">weight 1</i><i class="l-tag l-tag--w0">0 while it speaks</i><i class="l-tag l-tag--tail">+0.8 s tail → 1</i><b class="l-track__low"></b></span></div>
+            <span class="l-playhead" aria-hidden="true"></span>
+          </div>
+          <figcaption class="l-caption">schematic of one turn — positions are not to scale; the tail is <code>SPEAK_TAIL_S = 0.8</code> (tools/head_tracking.py:28), mic 16 kHz resampled to the model (tiny.py:451)</figcaption>
+            {# the one sound on the page, labelled for what it is: the OFFLINE voice. tiny-tts.service on the CM4 = Piper en_US-lessac-medium
+               (docs/start/systemd.md); reachy_say() plays it through the speaker (tools/reachy_audio.py) — the text personas and the
+               dashboard sound like this. The live conversation voice is the realtime model's. The line is reachy_say's own docstring
+               example, synthesized offline from the same public voice model by tools/landing/voice.sh (5 KB Opus + AAC for Safari).
+               Never autoplays. #}
+            <div class="l-voice" id="l-voice">
+              <button type="button" class="l-voice__play" aria-label="Play: Hi, I'm TINY — the offline Piper voice, 1.3 seconds" data-play>
+                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path class="l-voice__ico-play" d="M4 2.5v11l9-5.5z" fill="currentColor"/><path class="l-voice__ico-stop" d="M3.5 3.5h9v9h-9z" fill="currentColor"/></svg>
+              </button>
+              <span class="l-voice__meter" aria-hidden="true"><i></i></span>
+              <span class="l-voice__t">
+                <code>reachy_say("Hi, I'm TINY!")</code>
+                <small class="l-voice__long">the offline voice · Piper <code>en_US-lessac-medium</code> on the CM4 (<code>tiny-tts.service</code>) · what the text personas sound like; the live call speaks with the realtime model · <b data-voice-t>1.3 s</b></small><small class="l-voice__short">offline Piper voice · <code>en_US-lessac-medium</code> · 1.3 s</small>
+              </span>
+              <audio preload="none" data-voice-audio>
+                <source src="{{ 'assets/landing/voice/hi-im-tiny.opus' | url }}" type="audio/ogg; codecs=opus">
+                <source src="{{ 'assets/landing/voice/hi-im-tiny.m4a' | url }}" type="audio/mp4">
+              </audio>
+            </div>
+          </figure>
+      </div>
+    </div>
+  </section>
+
+  {# ------------------------------------------------------------------ 4 · THE BODY
+     Four layers = the 18 MuJoCo bodies of twin.xml (dashboard/frontend/public/model/, MuJoCo 3.13.0, 41 meshes, 161 geoms),
+     each rendered alone from the hi pack with the same camera (tools/landing/render_twin.mjs … only=<bodies>[&noshadow=1]) so they
+     stack pixel-exact; scroll pulls them apart (transform only). Every name/number below is from twin.xml: 9 <position> actuators
+     (yaw_body ±2.79 rad, stewart_1..6 hinges + passive_1..6 ball joints, right/left_antenna), sites camera_optical + head. #}
+  <section class="l-stage l-body" id="body" data-stage aria-labelledby="l-body-h">
+    <div class="l-sticky">
+      <div class="l-split">
+        <figure class="l-fig">
+          <div class="l-explode" style="aspect-ratio: 760 / 900" role="img" aria-label="Exploded view of TINY's twin: the two antennas lift off the head, the head lifts off its six-rod Stewart platform, and the platform lifts off the 3D-printed body that turns on its foot.">
+            <img class="l-layer l-layer--base" src="{{ 'assets/landing/body/base.webp' | url }}" width="760" height="900" loading="lazy" decoding="async" alt="">
+            <img class="l-layer l-layer--stewart" src="{{ 'assets/landing/body/stewart.webp' | url }}" width="760" height="900" loading="lazy" decoding="async" alt="">
+            <img class="l-layer l-layer--head" src="{{ 'assets/landing/body/head.webp' | url }}" width="760" height="900" loading="lazy" decoding="async" alt="">
+            <img class="l-layer l-layer--antennas" src="{{ 'assets/landing/body/antennas.webp' | url }}" width="760" height="900" loading="lazy" decoding="async" alt="">
+            {# hotspots ON the render (the ring's anatomy pattern): one overlay per layer, riding the same --lift, so the label stays on its
+               part as the stack pulls apart. Dot = the part's left edge from the alpha bounding box of its layer render (sharp, % of 760×900), label runs left into the figure's margin;
+               each lights with the side note of the same data-at. Decorative for AT — the list on the right carries the words. #}
+            <div class="l-hs-layer l-layer--antennas" aria-hidden="true"><span class="l-hs" data-at="0.12" style="--x: 46%; --y: 21%"><b>right_antenna · left_antenna</b><small>2 hinges</small><i></i></span></div>
+            <div class="l-hs-layer l-layer--head" aria-hidden="true"><span class="l-hs" data-at="0.36" style="--x: 38%; --y: 46%"><b>camera_optical</b><small>site on xl_330</small><i></i></span></div>
+            <div class="l-hs-layer l-layer--stewart" aria-hidden="true"><span class="l-hs" data-at="0.6" style="--x: 42%; --y: 61%"><b>stewart_1…6</b><small>6 rods · 6 ball joints</small><i></i></span></div>
+            <div class="l-hs-layer l-layer--base" aria-hidden="true"><span class="l-hs" data-at="0.84" style="--x: 37%; --y: 70%"><b>yaw_body</b><small>±160° · CM4 inside</small><i></i></span></div>
+          </div>
+          <figcaption class="l-caption">the same twin, one MuJoCo body group per layer · <code>twin.xml</code> · MuJoCo 3.13.0 · 41 meshes · 161 geoms · 9 actuators</figcaption>
+        </figure>
+        <div class="l-copy">
+          <p class="l-kicker">18 bodies · 9 motors · one <code>twin.xml</code></p>
+          <h2 id="l-body-h">Nine motors. <span class="l-w--accent">One face.</span></h2>
+          <p>The dashboard's digital twin is the robot's own MuJoCo model, so this is not an illustration — it is the geometry the daemon solves against, split by body group.</p>
+          <ol class="l-notes l-notes--body" aria-label="The four layers">
+            <li class="l-note" data-at="0.12"><b>antennas</b> two hinges, <code>right_antenna</code> · <code>left_antenna</code> — the fastest tell of a mood (curious1 throws one to 77° and the other to −85°)</li>
+            <li class="l-note" data-at="0.36"><b>head</b> body <code>xl_330</code> with the <code>camera_optical</code> site — the face-finding camera; six degrees of freedom: roll, pitch, yaw and a little x y z</li>
+            <li class="l-note" data-at="0.6"><b>Stewart platform</b> six <code>stewart_1…6</code> hinges on six rods with <code>passive_1…6</code> ball joints — the head has no neck motor; six arms hold it up and tilt it together</li>
+            <li class="l-note" data-at="0.84"><b>body</b> <code>yaw_body</code> ±160° on the 3D-printed foot; inside the shell: a Raspberry Pi CM4, four microphones and the speaker</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ------------------------------------------------------------------ 5 · THE TOOLS (static — breath after three pinned stages; a spec sheet in four groups Motion/Sense/Speak/Brain, not a wall)
+     Modules + tool names + one-liners mirror docs/reference/tools/index.md, which scripts/tooldoc.py regenerates from the @tool
+     functions at every build (28 tools, 16 modules). Keep the two in step — tests/test_landing_tools.py pins the names. #}
+  <section class="l-flat l-tools" id="tools" aria-labelledby="l-tools-h">
+    <div class="l-flat__in">
+      <p class="l-kicker">28 tools · 16 modules · <code>@tool</code> functions in <code>tools/</code></p>
+      <h2 id="l-tools-h">Everything it can do is a function the model can read.</h2>
+      <p class="l-lede">Every ability is a Python <code>@tool</code> with a docstring — the same text the model sees is what the <a href="{{ 'reference/tools/' | url }}">reference</a> prints at build time. Angles are clamped before they reach the daemon.</p>
+      <ul class="l-toolwall" aria-label="Tool modules, grouped: Motion, Sense, Speak, Brain">
+        <li class="l-toolwall__g" aria-hidden="true"><span>Motion</span><small>9 tools · it moves</small></li>
+        <li><a href="{{ 'reference/tools/reachy_motion/' | url }}"><b>Motion</b><span><code>reachy_look</code> <code>reachy_antennas</code> <code>reachy_body_turn</code> <code>reachy_home</code> <code>reachy_wake</code></span><small>head pose, antennas, body yaw, home, wake/sleep</small></a></li>
+        <li><a href="{{ 'reference/tools/reachy_expression/' | url }}"><b>Expression</b><span><code>reachy_express</code> <code>reachy_list_emotions</code></span><small>the 81 recorded moves the personas fire while they talk</small></a></li>
+        <li><a href="{{ 'reference/tools/reachy_state/' | url }}"><b>State</b><span><code>reachy_get_state</code> <code>reachy_motors</code></span><small>live pose, IMU, motor modes</small></a></li>
+        <li class="l-toolwall__g" aria-hidden="true"><span>Sense</span><small>8 tools · it sees and hears</small></li>
+        <li><a href="{{ 'reference/tools/reachy_camera/' | url }}"><b>Camera</b><span><code>reachy_camera</code> <code>reachy_look_at</code> <code>capture_camera</code></span><small>grab a frame, look at a pixel</small></a></li>
+        <li><a href="{{ 'reference/tools/vision/' | url }}"><b>Vision</b><span><code>take_photo</code></span><small>a frame plus a question for the multimodal model</small></a></li>
+        <li><a href="{{ 'reference/tools/head_tracking/' | url }}"><b>Head tracking</b><span><code>head_tracking</code> <code>head_tracking_status</code></span><small>the daemon's face tracker (reachy-mini ≥ 1.10)</small></a></li>
+        <li><a href="{{ 'reference/tools/turn_to_sound/' | url }}"><b>Turn to sound</b><span><code>turn_to_sound</code> <code>turn_to_sound_status</code></span><small>toward whoever is talking — ReSpeaker direction of arrival</small></a></li>
+        <li class="l-toolwall__g" aria-hidden="true"><span>Speak</span><small>5 tools · it talks</small></li>
+        <li><a href="{{ 'reference/tools/reachy_audio/' | url }}"><b>Audio</b><span><code>reachy_play_sound</code> <code>reachy_say</code> <code>reachy_volume</code></span><small>Piper TTS on the CM4, sounds, volume — "silent" means 0</small></a></li>
+        <li><a href="{{ 'reference/tools/voice_bridge/' | url }}"><b>Voice bridge</b><span><code>voice_say</code></span><small>text → the voice persona's mouth</small></a></li>
+        <li><a href="{{ 'reference/tools/telegram/' | url }}"><b>Telegram</b><span><code>telegram</code></span><small>text and photos to the owner's chat</small></a></li>
+        <li class="l-toolwall__g" aria-hidden="true"><span>Brain</span><small>6 tools · it remembers and delegates</small></li>
+        <li><a href="{{ 'reference/tools/dispatch/' | url }}"><b>Dispatch</b><span><code>dispatch</code></span><small>hand a task to another persona through the shared brain</small></a></li>
+        <li><a href="{{ 'reference/tools/memory/' | url }}"><b>Memory</b><span><code>memory</code></span><small>the cross-persona SQLite brain: remember, recall, forget</small></a></li>
+        <li><a href="{{ 'reference/tools/prompts/' | url }}"><b>Prompts</b><span><code>prompts</code></span><small>read and override each persona's system prompt</small></a></li>
+        <li><a href="{{ 'reference/tools/manage_messages/' | url }}"><b>Manage messages</b><span><code>manage_messages</code></span><small>inspect and compact its own conversation</small></a></li>
+        <li><a href="{{ 'reference/tools/manage_tools/' | url }}"><b>Manage tools</b><span><code>manage_tools</code></span><small>list, create and hot-load new tools at runtime</small></a></li>
+        <li><a href="{{ 'reference/tools/tiny_mcp/' | url }}"><b>Fleet</b><span><code>use_device</code></span><small>tiny.technology MCP, mounted only with <code>TINY_MCP=1</code></small></a></li>
+      </ul>
+    </div>
+  </section>
+
+  {# ------------------------------------------------------------------ 6 · THE COCKPIT (static; the three real screenshots docs/assets/cockpit-*.jpg,
+     re-encoded small as assets/landing/cockpit/*.webp (sharp, 1200 px / q74), captioned as the owner's private cockpit — deliberately NO link to the owner's cockpit host, see INBOX) #}
+  <section class="l-flat l-cockpit" id="cockpit" aria-labelledby="l-cockpit-h">
+    <div class="l-flat__in">
+      <p class="l-kicker">the owner's private cockpit · passkey gate · not linked here</p>
+      <h2 id="l-cockpit-h">The owner sees all of it.</h2>
+      <p class="l-lede">A FastAPI dashboard runs on the CM4 itself behind a Cloudflare tunnel: the live camera, the same MuJoCo twin you just scrolled, every transcript and tool call from all personas, and the tracking controls. It is passkey-gated and not part of this page.</p>
+      <div class="l-shots">
+        <figure class="l-shot l-shot--wide"><img src="{{ 'assets/landing/cockpit/desktop.webp' | url }}" width="1200" height="750" loading="lazy" decoding="async" alt="The cockpit on a desktop: camera view, transcript feed and controls."><figcaption>desktop · camera, feed, controls</figcaption></figure>
+        <figure class="l-shot l-shot--wide"><img src="{{ 'assets/landing/cockpit/desktop-twin.webp' | url }}" width="1200" height="750" loading="lazy" decoding="async" alt="The cockpit showing the MuJoCo digital twin mirroring the robot's pose."><figcaption>desktop · the twin, live</figcaption></figure>
+        <figure class="l-shot l-shot--tall"><img src="{{ 'assets/landing/cockpit/phone.webp' | url }}" width="390" height="844" loading="lazy" decoding="async" alt="The cockpit on a phone."><figcaption>phone</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  {# ------------------------------------------------------------------ 7 · GET STARTED (verbatim from docs/start/quickstart.md §1) #}
+  <section class="l-flat l-start" id="start" aria-labelledby="l-start-h">
+    <div class="l-flat__in l-start__grid">
+      <div>
+        <p class="l-kicker">run it yourself · robot or MuJoCo sim</p>
+        <h2 id="l-start-h">Six lines to a robot that talks back.</h2>
+        <p class="l-lede">Bring a Reachy Mini and a Bedrock or OpenAI key — or no robot at all: <code>make sim</code> spawns a headless MuJoCo daemon.</p>
+        <p class="l-cta"><a class="l-btn l-btn--primary" href="{{ 'start/quickstart/' | url }}">Quickstart</a> <a class="l-btn l-btn--ghost" href="{{ 'showcase/' | url }}">Showcase</a> <a class="l-btn l-btn--ghost" href="https://github.com/cagataycali/tiny-the-reachy">GitHub</a></p>
+      </div>
+      <pre class="l-code" tabindex="0"><code>git clone https://github.com/cagataycali/tiny-the-reachy.git
+cd tiny-the-reachy
+cp .env.example .env &amp;&amp; $EDITOR .env   # your keys
+make venv                              # .venv + deps
+make run                               # REPL → the daemon
+make sim                               # …or no robot at all</code></pre>
+    </div>
+  </section>
+
+</div>
+<script src="{{ 'js/landing/landing.js' | url }}" defer></script>
+{% endblock %}
+
+{% block content %}{% endblock %}
+{% block footer %}{% endblock %}
