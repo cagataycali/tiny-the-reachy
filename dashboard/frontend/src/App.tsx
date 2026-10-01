@@ -243,6 +243,7 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
   return (
     <div className={`shell ${wide ? 'wide' : ''}`} data-testid="cockpit">
       <header className="topbar glass">
+        <h1 className="sr-only">tiny / reachy cockpit</h1>
         <Brand />
         <div className="brand-txt"><small data-testid="link-state">{online ? 'live' : 'daemon offline'} · {connected ? 'ws' : 'reconnecting'}</small></div>
         <div className="stat-pills" data-testid="pills">
@@ -312,7 +313,7 @@ function Cockpit({ auth, onLock }: { auth: AuthStatus; onLock: () => void }) {
           </div>
         </div>
       )}
-      {toast && <div className="toast">{toast}</div>}
+      <div className="toast" role="status" aria-live="polite" hidden={!toast}>{toast}</div>
     </div>
   )
 }

@@ -151,7 +151,8 @@ input[type=range] { width: 100%; accent-color: var(--sr-accent); height: 32px }
 .emotions { display: grid; grid-template-columns: 1fr; gap: 12px } .shell.wide .emotions { grid-template-columns: 1fr } .fam-title { font: 600 11px var(--sr-mono); color: var(--sr-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em }
 .chips { display: flex; flex-wrap: wrap; gap: 6px } .chips .chip { background: var(--sr-pill-bg); font: 13px var(--sr-sans); min-height: 36px }
 .chips .chip.playing { background: var(--sr-accent-soft) }
-.reel { margin-bottom: 12px } .timeline-steps { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; padding: 0; margin: 10px 0 0 } .timeline-steps li { font: 11px var(--sr-mono); padding: 3px 8px; border-radius: 4px; background: var(--sr-chip-bg); color: var(--sr-muted); border: 1px solid transparent } .timeline-steps li.done { color: var(--sr-accent) } .timeline-steps li.now { color: var(--sr-accent); border-color: var(--sr-accent) }
+.reel { margin-bottom: 12px } .timeline-steps { display: flex; flex-wrap: wrap; gap: 4px; list-style: none; padding: 0; margin: 10px 0 0 } .timeline-steps li { font: 11px var(--sr-mono); padding: 3px 8px; border-radius: 4px; background: var(--sr-chip-bg); color: var(--sr-ink-3); border: 1px solid transparent } .timeline-steps li.done { color: var(--sr-accent) } .timeline-steps li.now { color: var(--sr-accent); border-color: var(--sr-accent) }
+.toast[hidden] { display: none }
 .toast { position: fixed; bottom: calc(120px + var(--safe-bot)); left: 50%; transform: translateX(-50%); background: var(--sr-card-bg); border: 1px solid var(--sr-card-border); color: var(--sr-fg); padding: 9px 14px; border-radius: var(--sr-radius); z-index: 60; max-width: 90vw; font: 13px var(--sr-mono) }
 kbd { font: 11px var(--sr-mono); padding: 1px 5px; border: 1px solid var(--sr-pill-border); border-bottom-width: 2px; border-radius: 3px; margin: 0 1px; color: var(--sr-fg); background: var(--sr-kbd) }
 .keys { line-height: 1.9 }
@@ -184,11 +185,11 @@ kbd { font: 11px var(--sr-mono); padding: 1px 5px; border: 1px solid var(--sr-pi
 /* telemetry strip */
 .telemetry { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 12px; margin: 0; background: var(--sr-chip-bg); border-radius: var(--sr-radius); font: 12px var(--sr-mono); color: var(--sr-ink-2) }
 .tm.warn { color: var(--sr-warn) } .tm.svcs { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto }
-.svc { padding: 0 6px; border-radius: 4px; border: 1px solid var(--sr-pill-border) } .svc.on { color: var(--sr-accent); border-color: var(--sr-accent) } .svc.off { color: var(--sr-warn); border-color: var(--sr-warn) } .svc.unk { color: var(--sr-muted) }
+.svc { padding: 0 6px; border-radius: 4px; border: 1px solid var(--sr-pill-border) } .svc.on { color: var(--sr-accent); border-color: var(--sr-accent) } .svc.off { color: var(--sr-warn); border-color: var(--sr-warn) } .svc.unk { color: var(--sr-ink-3) }
 /* lock card */
 .lock { display: flex; flex-direction: column; gap: 10px; font-size: 13px }
 .lockrow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap } .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--sr-pill-border); display: inline-block } .dot.on { background: var(--sr-accent) }
-.creds { display: flex; flex-direction: column; gap: 6px; background: var(--sr-chip-bg); border-radius: var(--sr-radius); padding: 8px 10px } .cred { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center }
+.creds { display: flex; flex-direction: column; gap: 6px; background: var(--sr-chip-bg); border-radius: var(--sr-radius); padding: 8px 10px } .creds .muted, .telemetry .muted { color: var(--sr-ink-3) } .cred { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center }
 @media (max-width: 640px) { .tm.svcs { margin-left: 0 } }
 
 /* auth gate: the team mate's first screen. A bordered card on the page surface, wordmark + project label on top. */
