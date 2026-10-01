@@ -35,16 +35,31 @@ export default function Twin({ joints, onStatus, height = 260, paused = false, m
     const scene = new THREE.Scene()
     const cam = new THREE.PerspectiveCamera(32, 1, 0.01, 10)
     cam.up.set(0, 0, 1)
-    scene.add(new THREE.HemisphereLight(0xaab4d4, 0x1a1a22, 1.1))
     const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(0.6, -0.5, 0.9); key.castShadow = true
     key.shadow.mapSize.set(1024, 1024); key.shadow.camera.near = 0.05; key.shadow.camera.far = 3
     for (const k of ['left', 'right', 'top', 'bottom'] as const) (key.shadow.camera as any)[k] = k === 'left' || k === 'bottom' ? -0.4 : 0.4
     scene.add(key)
     const fill = new THREE.DirectionalLight(0x88aaff, 0.5); fill.position.set(-0.6, 0.4, 0.5); scene.add(fill)
-    // floor disc + grid
-    const floor = new THREE.Mesh(new THREE.CircleGeometry(0.22, 64), new THREE.MeshStandardMaterial({ color: 0x14141c, roughness: 0.9, metalness: 0 }))
+    // floor disc + grid, tinted from the Strands tokens (--sr-viewer-bg / --sr-grid-major / --sr-grid-minor) so the
+    // twin sits on the same surface in paper and dark; re-read when html[data-scheme] flips.
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x14141c, roughness: 0.9, metalness: 0 })
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(0.22, 64), floorMat)
     floor.receiveShadow = true; floor.position.z = -0.0005; scene.add(floor)
-    const grid = new THREE.PolarGridHelper(0.22, 8, 4, 48, 0x2a2a3a, 0x1e1e2a); grid.rotateX(Math.PI / 2); scene.add(grid)
+    let grid = new THREE.PolarGridHelper(0.22, 8, 4, 48, 0x2a2a3a, 0x1e1e2a); grid.rotateX(Math.PI / 2); scene.add(grid)
+    const hemi = new THREE.HemisphereLight(0xaab4d4, 0x1a1a22, 1.1); scene.add(hemi)
+    const tint = () => {
+      const cs = getComputedStyle(document.documentElement)
+      const v = (name: string, fallback: string) => (cs.getPropertyValue(name).trim() || fallback)
+      const dark = v('--sr-scheme', 'paper') === 'dark'
+      const bg = new THREE.Color(v('--sr-viewer-bg', dark ? '#111213' : '#f4f4f4'))
+      floorMat.color.copy(bg).offsetHSL(0, 0, dark ? 0.03 : -0.04)
+      scene.remove(grid); grid.dispose()
+      grid = new THREE.PolarGridHelper(0.22, 8, 4, 48, new THREE.Color(v('--sr-grid-major', dark ? '#46505c' : '#b6b6b6')), new THREE.Color(v('--sr-grid-minor', dark ? '#303740' : '#d9d9d9')))
+      grid.rotateX(Math.PI / 2); scene.add(grid)
+      hemi.color.set(dark ? 0xaab4d4 : 0xffffff); hemi.groundColor.set(dark ? 0x1a1a22 : 0xb0b0b0)
+    }
+    tint()
+    const mo = new MutationObserver(tint); mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-scheme'] })
 
     const resize = () => { const w = el.clientWidth || 320, h = el.clientHeight || height; renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < h ? Math.min(58, 32 * (h / w) * 0.85) : 32; cam.updateProjectionMatrix() }   // portrait hosts widen the FOV so the antennas stay in frame
     resize(); const ro = new ResizeObserver(resize); ro.observe(el)
@@ -143,7 +158,7 @@ export default function Twin({ joints, onStatus, height = 260, paused = false, m
     raf = requestAnimationFrame(tick)
 
     return () => {
-      alive = false; cancelAnimationFrame(raf); clearInterval(simTimer); ro.disconnect()
+      alive = false; cancelAnimationFrame(raf); clearInterval(simTimer); ro.disconnect(); mo.disconnect()
       el.removeEventListener('pointerdown', onDown); el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerup', onUp)
       el.removeEventListener('pointercancel', onUp); el.removeEventListener('wheel', onWheel); el.removeEventListener('touchmove', onTouch)
       renderer.dispose(); el.innerHTML = ''; simRef.current = null
