@@ -111,7 +111,7 @@ def markdown(vars_: dict[str, dict]) -> str:
         lines += [f"## {g}", "", "| variable | default | purpose | reader |", "|---|---|---|---|"]
         for n in names:
             r = vars_[n]
-            d = r["default"] if r["default"] is not None else "*(unset)*"
+            d = r["default"] if r["default"] is not None else "—"            # no default: the code reads it as unset
             if len(d.split()) > 4:  # a prompt-sized default is not a table cell — the reading site has it
                 d = "*(long)*"
             f0 = r["files"][0]
@@ -119,7 +119,7 @@ def markdown(vars_: dict[str, dict]) -> str:
             # further readers in title= — the cell stays one word
             title = " · ".join(r["files"])
             link = f'<a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/{f0}" title="{title}">{f0.rsplit("/", 1)[-1]}</a>'
-            lines.append(f"| `{n}` | `{d}` | {r['purpose']} | {link} |".replace("`*(unset)*`", "*(unset)*"))
+            lines.append(f"| `{n}` | `{d}` | {r['purpose']} | {link} |".replace("`—`", "—"))
         lines.append("")
     lines.append(f"_{len(vars_)} variables._")
     return "\n".join(lines) + "\n"

@@ -5,7 +5,8 @@ Why: the voice log fills with phantom transcripts in random languages ("שרון
 "よっべ", "Fiecare dată") on room noise — the default server VAD (threshold 0.5)
 fires and gpt-4o-transcribe, with no language hint, guesses. Each one costs a
 "TINY didn't catch that". We pin the transcription language and raise the VAD
-bar, all from env so nothing here is hard-coded per household:
+bar, all from the cockpit config (tools/config.py `voice.*`) with these env vars as the
+bootstrap defaults, so nothing here is hard-coded per household:
 
     VOICE_LANG              ISO-639-1 for input transcription (e.g. tr, en). Unset = auto.
     VOICE_TRANSCRIBE_PROMPT free-text hint for the transcriber ("Turkish or English, robot named TINY")
@@ -25,7 +26,6 @@ deep-copying the config so the module-level DEFAULT_SESSION_CONFIG is never muta
 from __future__ import annotations
 
 import copy
-import os
 
 
 def _as_float(raw: str, default: float) -> float:
@@ -42,20 +42,30 @@ def _as_int(raw: str, default: int) -> int:
         return default
 
 
+def _cfg(key: str, default):
+    """tools/config.py value (cockpit Settings) -> env -> default; import is lazy so this module stays standalone."""
+    try:
+        from .config import cfg  # noqa: PLC0415
+        v = cfg(key)
+        return default if v is None else v
+    except Exception:  # noqa: BLE001
+        return default
+
+
 def session_overrides() -> dict:
-    """The audio.input overrides we want, from env."""
-    kind = (os.getenv("VOICE_TURN_DETECTION", "server_vad") or "server_vad").strip().lower()
+    """The audio.input overrides we want: config store (`voice.*`) over the VOICE_* env defaults."""
+    kind = str(_cfg("voice.turn_detection", "server_vad") or "server_vad").strip().lower()
     if kind == "semantic_vad":
-        eager = (os.getenv("VOICE_VAD_EAGERNESS", "auto") or "auto").strip().lower()
+        eager = str(_cfg("voice.vad_eagerness", "auto") or "auto").strip().lower()
         if eager not in ("low", "medium", "high", "auto"):
             eager = "auto"
         turn: dict = {"type": "semantic_vad", "eagerness": eager}
     else:
         turn = {
             "type": "server_vad",
-            "threshold": max(0.0, min(1.0, _as_float(os.getenv("VOICE_VAD_THRESHOLD", "0.5"), 0.5))),
-            "prefix_padding_ms": _as_int(os.getenv("VOICE_VAD_PREFIX_MS", "300"), 300),
-            "silence_duration_ms": _as_int(os.getenv("VOICE_VAD_SILENCE_MS", "600"), 600),
+            "threshold": max(0.0, min(1.0, _as_float(str(_cfg("voice.vad_threshold", 0.5)), 0.5))),
+            "prefix_padding_ms": _as_int(str(_cfg("voice.vad_prefix_ms", 300)), 300),
+            "silence_duration_ms": _as_int(str(_cfg("voice.vad_silence_ms", 600)), 600),
         }
     # Barge-in is a server decision on Realtime: speech_started must cancel the
     # in-flight response and the end of the user's turn must start a new one.
@@ -63,10 +73,10 @@ def session_overrides() -> dict:
     turn["create_response"] = True
     out: dict = {"turn_detection": turn}
     transcription: dict = {"model": "gpt-4o-transcribe"}
-    lang = (os.getenv("VOICE_LANG") or "").strip().lower()
+    lang = str(_cfg("voice.lang", "") or "").strip().lower()
     if lang:
         transcription["language"] = lang
-    hint = (os.getenv("VOICE_TRANSCRIBE_PROMPT") or "").strip()
+    hint = str(_cfg("voice.transcribe_prompt", "") or "").strip()
     if hint:
         transcription["prompt"] = hint
     if len(transcription) > 1:

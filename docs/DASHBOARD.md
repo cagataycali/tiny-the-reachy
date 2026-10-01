@@ -11,7 +11,6 @@ verified: 2026-09-21
 !!! abstract "In 10 seconds"
     - `dashboard/server.py` (FastAPI `:8097`, passkey-gated) + a Vite/React SPA in `dist/`.
     - The camera fills the viewport; the **digital twin** (MuJoCo-WASM + three.js) floats over it, mirroring WS state.
-    - Every number comes from `/api/state`; overlays render only when the field is present.
 
 ```
 ┌ STRANDS / reachy ─────────────────────────────────────┐  motors · dBm · C · thinker/demo · track · sound · lock
@@ -33,9 +32,8 @@ verified: 2026-09-21
 | double-tap, `X` | **swap**: twin full-bleed, camera in the card |
 | `S` / `M` / `L` | 160×120 (phone) · 320×240 (desktop) · 480×360 |
 | `x`, `T` | close; the `twin` chip brings it back |
-| wheel, pinch · drag | zoom · orbit |
 
-The card never covers STOP; a swap re-assigns boxes, one camera client. ≤ 30 fps; `prefers-reduced-motion` kills the spin.
+The card never covers STOP; `prefers-reduced-motion` kills the spin.
 
 ## The readout
 
@@ -53,15 +51,14 @@ The card never covers STOP; a swap re-assigns boxes, one camera client. ≤ 30 f
 |---|---|---|
 | gaze ring, face dot | `tracking.{enabled,detected,x,y,paused}` | daemon tracker; amber = paused |
 | DoA compass | `doa.angle` (rad), `doa.speech_detected` | ReSpeaker direction |
-| `lifted` / `tilted` | `imu.lifted`, `imu.tilted` | not published yet |
 
-## Design
+## Settings (runtime config)
 
-Strands tokens in `src/styles.css`; paper or dark via `html[data-scheme]`.
+Sections (voice, agent, telegram, personas) are generated from `tools/config.py` SCHEMA; values in `.memory/mem.db` override `.env` (`/api/config`; reset = env). Voice keys restart the live session; telegram and thinker follow next turn; API keys stay in `.env`.
 
-## Keyboard
+## Design and keys
 
-`←→↑↓` look · `space` STOP · `H` home · `D` demo · `F` track · `T` twin · `X` swap · `E` emotions · `/` ask.
+Strands tokens in `src/styles.css`; paper or dark via `html[data-scheme]`. `←→↑↓` look · `space` STOP · `H` home · `D` demo · `F` track · `T` twin · `X` swap · `E` emotions · `/` ask.
 
 ## Build · prove · deploy
 

@@ -91,8 +91,10 @@ def handle_message(msg: dict):
     if text == "/voice":
         v = mem_tool(action="kv_get", key="voice.muted")
         muted = isinstance(v, str) and v.strip().lower() in ("1", "true", "yes", "on")
-        provider = os.getenv("VOICE_PROVIDER", "openai")
-        _send(chat_id, f"🎙 voice — provider: `{provider}` — {'🔇 MUTED' if muted else '🟢 LIVE'}")
+        from tiny import voice_settings
+        vs = voice_settings()                                    # cockpit config over VOICE_* env
+        _send(chat_id, f"🎙 voice — provider: `{vs['provider']}` model: `{vs['model'] or 'default'}` "
+                       f"voice: `{vs['voice'] or 'default'}` — {'🔇 MUTED' if muted else '🟢 LIVE'}")
         return
     if text == "/state":
         try:
@@ -130,7 +132,8 @@ def main():
     if not os.getenv("TELEGRAM_BOT_TOKEN"):
         print("✗ TELEGRAM_BOT_TOKEN not set", file=sys.stderr)
         sys.exit(1)
-    print(f"   ALLOWED_USERS = {os.getenv('TELEGRAM_ALLOWED_USERS','(any)')}")
+    from tools.telegram import allowed_users
+    print(f"   allowed users = {sorted(allowed_users()) or '(any)'}  (live: cockpit Settings > Telegram, else TELEGRAM_ALLOWED_USERS)")
     try:
         telegram_listen(handle_message)
     except KeyboardInterrupt:
