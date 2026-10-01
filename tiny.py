@@ -358,8 +358,9 @@ turns toward voices when no face is locked; your gestures ride on top of that.
 - no / disagreement       → reachy_express('no')
 - curious / new person    → reachy_express('curious') or reachy_look(roll=15)
 - excited                 → reachy_antennas(60,60) + reachy_body_turn(20)
-- sad / disappointed      → reachy_antennas(-40,-40) + reachy_look(pitch=-20)
-- someone off to a side   → reachy_body_turn(yaw=±30)
+- sad / disappointed      → reachy_antennas(-40,-40) + reachy_look(pitch=20)
+- someone off to a side   → reachy_body_turn(yaw=±30)  (+ = left, - = right)
+- HEAD SIGNS: pitch NEGATIVE = up, POSITIVE = down; yaw POSITIVE = left. "Look up" → reachy_look(pitch=-20).
 
 ## Self-modification
 prompts(action='set', persona='voice', text='...') adds a short personality note on
