@@ -24,5 +24,3 @@ gradio_client
 google-genai            # Gemini Live bidi (optional)
 websockets
 
-# devduck (only for the optional use_spotify tool; dispatch/use_github are gone)
-devduck

@@ -40,8 +40,7 @@ COPY . .
 ENV PYTHONUNBUFFERED=1 \
     REACHY_HOST=reachy-mini.local \
     REACHY_PORT=8000 \
-    REACHY_CONNECTION_MODE=auto \
-    DEVDUCK_AUTO_START_SERVERS=false
+    REACHY_CONNECTION_MODE=auto
 
 # Default entrypoint: REPL agent. Override per-service in docker-compose.
 ENTRYPOINT ["python", "agent.py"]

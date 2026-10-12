@@ -1,9 +1,23 @@
 # MIGRATION — strands-agents bidi 1.20 → harness-sdk main @ 957579a9 (1.57.2.dev54, `strands.bidi`)
 
-Branch `feat/strands-bidi-1.57`. The robot (`/venvs/apps_venv`, Python 3.12) runs
-strands-agents **1.20.0**. PyPI's latest is 1.57.1 (2026-09-25); it still ships bidi under
-`strands.experimental.bidi` and lacks three things the robot needs. harness-sdk **main**
-has them, so this branch runs strands **from source**, pinned to one sha:
+Merged as PR #1. The robot (`/venvs/apps_venv`, Python 3.12) still runs strands-agents
+**1.20.0** (verified 2026-10-12) — this document is the recipe for moving it. When it was
+written, PyPI's latest was 1.57.1 (2026-09-25), shipping bidi under `strands.experimental.bidi`
+and lacking three things the robot needs, so the branch ran strands **from source**, pinned
+to one sha:
+
+> **Status 2026-10-12 — PyPI has caught up.** `pip install -r requirements.txt` in a clean
+> Python 3.12 venv on the Mac resolves `strands-agents[bidi]>=1.57.2.dev0,<1.60` to
+> **1.59.0** from PyPI, and `tests/test_bidi_compat.py` passes on it (`strands.bidi`, #4642
+> `input_audio_pending`, `agent.cancel()` all present). The wheel build below is therefore
+> optional; the robot upgrade is now just the "Robot" steps with the PyPI release.
+> **1.60.0 is out and deletes the experimental shim** — the `<1.60` cap stays until
+> `tools/bidi_compat.py` drops its tolerance for it.
+>
+> Also 2026-10-12 (owner): **`devduck` left `requirements.txt`** (PR after #4). It was only
+> ever imported for the optional `use_spotify` tool and as the dispatch layer that #4 removed;
+> on the robot `/venvs/apps_venv` still has devduck 1.15.7 installed — uninstall it there as
+> part of this migration (`pip uninstall devduck`) and drop `DEVDUCK_*` from the robot's `.env`.
 
 | main-only fix | what it does for TINY |
 |---|---|

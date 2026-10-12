@@ -51,16 +51,9 @@ from tools.head_tracking import head_tracking, head_tracking_status
 from tools.turn_to_sound import turn_to_sound, turn_to_sound_status
 
 
-def _try_import(modpath: str, name: str):
-    try:
-        mod = __import__(modpath, fromlist=[name])
-        return getattr(mod, name)
-    except Exception:
-        return None
-
-use_spotify = _try_import("devduck.tools.use_spotify", "use_spotify")
-# Deliberately NOT exposed (2026-10-12, owner): shell, environment, dispatch, use_github — TINY has
-# no host shell, no env mutation, no sub-agent spawning and no GitHub access from the robot.
+# Deliberately NOT exposed (2026-10-12, owner): shell, environment, dispatch, use_github, use_spotify —
+# TINY has no host shell, no env mutation, no sub-agent spawning, no GitHub and no devduck import
+# from the robot (devduck left requirements.txt the same day).
 
 
 # ── canonical tool lists ────────────────────────────────────────────
@@ -87,7 +80,7 @@ def _catalog_tools() -> list:
     """Every tool object a persona may be given (the Settings checklist is generated from this)."""
     seen: dict = {}
     for t in [memory, image_reader, prompts, manage_messages, manage_tools_tool,
-              voice_say, take_photo, telegram, *TINY_ALL_TOOLS, use_spotify]:
+              voice_say, take_photo, telegram, *TINY_ALL_TOOLS]:
         if t is not None:
             seen.setdefault(_tool_name(t), t)
     return list(seen.values())
@@ -97,7 +90,6 @@ _CATALOG_GROUPS = (
     ("brain", (memory, prompts, manage_messages, manage_tools_tool, voice_say, telegram, take_photo)),
     ("host", (image_reader,)),
     ("robot", tuple(TINY_ALL_TOOLS)),
-    ("extras", tuple(t for t in (use_spotify,) if t is not None)),
 )
 
 
@@ -138,8 +130,6 @@ def _default_tools(persona: str, include_telegram: bool = True, include_robot: b
             head_tracking, head_tracking_status, turn_to_sound, turn_to_sound_status,
             reachy_volume,   # "silent" → 0 before replying; TINY keeps listening at 0
         ]
-        if use_spotify is not None:
-            tools.append(use_spotify)
         return tools
     t = [
         memory, image_reader,
@@ -150,8 +140,6 @@ def _default_tools(persona: str, include_telegram: bool = True, include_robot: b
         t.append(telegram)
     if include_robot:
         t.extend(TINY_ALL_TOOLS)
-    if use_spotify is not None:
-        t.append(use_spotify)
     return t
 
 
@@ -333,7 +321,6 @@ turns toward voices when no face is locked; your gestures ride on top of that.
   Volume 0 mutes the speaker only — TINY still hears, so it can be un-silenced by voice.
 - Stop listening entirely (only if asked "stop listening"): memory kv voice.muted=true.
 - Remember: memory (facts about people, preferences, what happened) — recall before guessing.
-- Music: use_spotify when mounted.
 {fleet_line}
 - Read own body: reachy_get_state (pose, antennas, IMU) — also refreshed in the prompt.
 
