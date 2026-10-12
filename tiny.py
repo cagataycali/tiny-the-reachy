@@ -19,13 +19,10 @@ import os
 from datetime import datetime
 from typing import Optional
 
-# Disable devduck server boot whenever this module is imported (dispatch uses it).
-os.environ.setdefault("DEVDUCK_AUTO_START_SERVERS", "false")
-
 MODEL_ID = os.getenv("TINY_MODEL_ID", "global.anthropic.claude-opus-4-8")   # bootstrap; model_id() is the live value
 
 from strands import Agent
-from strands_tools import shell, environment, image_reader
+from strands_tools import image_reader
 
 # Reachy Mini robot toolset
 from tools import TINY_ALL_TOOLS
@@ -35,7 +32,6 @@ from tools.memory import memory
 from tools.agent_log import format_for_prompt as _agent_log_block
 from tools.voice_bridge import voice_say
 from tools.telegram import telegram, format_history_for_prompt
-from tools.dispatch import dispatch
 from tools.manage_messages import manage_messages
 from tools.manage_tools import manage_tools as manage_tools_tool
 from tools.prompts import prompts, get_override as _prompt_override
@@ -62,8 +58,9 @@ def _try_import(modpath: str, name: str):
     except Exception:
         return None
 
-use_github  = _try_import("devduck.tools.use_github",  "use_github")
 use_spotify = _try_import("devduck.tools.use_spotify", "use_spotify")
+# Deliberately NOT exposed (2026-10-12, owner): shell, environment, dispatch, use_github — TINY has
+# no host shell, no env mutation, no sub-agent spawning and no GitHub access from the robot.
 
 
 # ── canonical tool lists ────────────────────────────────────────────
@@ -89,18 +86,18 @@ def _tool_name(t) -> str:
 def _catalog_tools() -> list:
     """Every tool object a persona may be given (the Settings checklist is generated from this)."""
     seen: dict = {}
-    for t in [memory, shell, environment, image_reader, prompts, manage_messages, manage_tools_tool,
-              voice_say, take_photo, dispatch, telegram, *TINY_ALL_TOOLS, use_github, use_spotify]:
+    for t in [memory, image_reader, prompts, manage_messages, manage_tools_tool,
+              voice_say, take_photo, telegram, *TINY_ALL_TOOLS, use_spotify]:
         if t is not None:
             seen.setdefault(_tool_name(t), t)
     return list(seen.values())
 
 
 _CATALOG_GROUPS = (
-    ("brain", (memory, prompts, manage_messages, manage_tools_tool, dispatch, voice_say, telegram, take_photo)),
-    ("host", (shell, environment, image_reader)),
+    ("brain", (memory, prompts, manage_messages, manage_tools_tool, voice_say, telegram, take_photo)),
+    ("host", (image_reader,)),
     ("robot", tuple(TINY_ALL_TOOLS)),
-    ("extras", tuple(t for t in (use_github, use_spotify) if t is not None)),
+    ("extras", tuple(t for t in (use_spotify,) if t is not None)),
 )
 
 
@@ -132,8 +129,8 @@ def _default_tools(persona: str, include_telegram: bool = True, include_robot: b
     if persona in ("voice", "dashboard"):
         tools = [
             # cross-persona infra
-            memory, shell, prompts, manage_messages, manage_tools_tool,
-            voice_say, take_photo, dispatch, telegram,
+            memory, prompts, manage_messages, manage_tools_tool,
+            voice_say, take_photo, telegram,
             # robot expression (the personality)
             reachy_look, reachy_antennas, reachy_body_turn, reachy_home, reachy_wake,
             reachy_express, reachy_list_emotions,
@@ -145,17 +142,16 @@ def _default_tools(persona: str, include_telegram: bool = True, include_robot: b
             tools.append(use_spotify)
         return tools
     t = [
-        memory, shell, environment, image_reader,
+        memory, image_reader,
         prompts, manage_messages, manage_tools_tool,
-        voice_say, take_photo, dispatch,
+        voice_say, take_photo,
     ]
     if include_telegram:
         t.append(telegram)
     if include_robot:
         t.extend(TINY_ALL_TOOLS)
-    for extra in (use_github, use_spotify):
-        if extra is not None:
-            t.append(extra)
+    if use_spotify is not None:
+        t.append(use_spotify)
     return t
 
 
@@ -337,7 +333,6 @@ turns toward voices when no face is locked; your gestures ride on top of that.
   Volume 0 mutes the speaker only — TINY still hears, so it can be un-silenced by voice.
 - Stop listening entirely (only if asked "stop listening"): memory kv voice.muted=true.
 - Remember: memory (facts about people, preferences, what happened) — recall before guessing.
-- Background work: dispatch(...) — keep chatting, the result comes back through voice_say.
 - Music: use_spotify when mounted.
 {fleet_line}
 - Read own body: reachy_get_state (pose, antennas, IMU) — also refreshed in the prompt.

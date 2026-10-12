@@ -16,7 +16,7 @@ verified: 2026-09-21
 
 ## What is in the db
 
-<div class="filterable" data-id="table" data-placeholder="kv, prompts, dispatch…" markdown>
+<div class="filterable" data-id="table" data-placeholder="kv, prompts, telegram…" markdown>
 
 | table | created in | purpose |
 |---|---|---|
@@ -26,7 +26,6 @@ verified: 2026-09-21
 | `voice_bridge` | `tools/voice_bridge.py:27` | briefing queue → voice persona |
 | `tg_history` | `tools/telegram.py:45` | per-chat Telegram history |
 | `prompts` · `prompt_history` | `tools/prompts.py:32,38` | per-persona overrides + history |
-| `dispatches` · `dispatch_schedules` | `tools/dispatch.py:61,78` | sub-agent hand-offs |
 
 </div>
 

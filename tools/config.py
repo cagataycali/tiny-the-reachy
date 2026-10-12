@@ -140,7 +140,8 @@ def _schema() -> List[Key]:
 
 SCHEMA: Dict[str, Key] = {key.name: key for key in _schema()}
 # tool names the UI flags with an amber note (they run code / spawn agents / mutate the toolset)
-DANGEROUS_TOOLS = ("shell", "dispatch", "manage_tools", "environment", "use_device")
+# shell / dispatch / environment / use_github were removed from the catalog entirely (2026-10-12).
+DANGEROUS_TOOLS = ("manage_tools", "use_device")
 
 
 def schema() -> List[Dict[str, Any]]:

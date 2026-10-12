@@ -9,7 +9,7 @@ verified: 2026-09-21
 # The family — one brain, three bodies
 
 !!! abstract "In 10 seconds"
-    - Same four personas, same SQLite brain, same deploy shape, same agent factory — `memory · agent_log · voice_bridge · telegram · dispatch` are byte-identical across repos.
+    - Same four personas, same SQLite brain, same deploy shape, same agent factory — `memory · agent_log · voice_bridge · telegram` are byte-identical across repos.
     - Only the hardware layer differs: NEON gates arms and legs behind an FSM and a mutex; SCOUT sends ROS velocities; TINY talks plain HTTP/WS to a daemon and has no danger class.
 
 | robot | body | control layer | mirrors |
@@ -20,7 +20,7 @@ verified: 2026-09-21
 
 ```mermaid
 flowchart TB
-  BRAIN["🧠 shared brain<br/>memory · agent_log · voice_bridge · telegram · dispatch"]
+  BRAIN["🧠 shared brain<br/>memory · agent_log · voice_bridge · telegram"]
   BRAIN --> NEON["🦿 NEON<br/>Unitree G1 · DDS · FSM"]
   BRAIN --> SCOUT["🛞 SCOUT<br/>rover · ROS · velocity"]
   BRAIN --> TINY["🤖 TINY<br/>Reachy Mini · SDK · daemon"]

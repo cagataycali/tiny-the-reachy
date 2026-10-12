@@ -89,12 +89,12 @@ curl -s -H "Authorization: Bearer $REACHY_TOKEN" -H 'Content-Type: application/j
 
 | method | path | params | gate (✅ public · 🔒 key) | what |
 |---|---|---|---|---|
-| `GET` | `/api/config` | — | 🔒 | Settings schema, values, catalog. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L499" title="source">↗</a> |
-| `PUT` | `/api/config` | JSON body | 🔒 | Write settings (voice keys restart the session). <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L504" title="source">↗</a> |
-| `GET` | `/api/config/preview/{persona}` | `persona`: str | 🔒 | Composed prompt and tools. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L522" title="source">↗</a> |
-| `DELETE` | `/api/config/{key}` | `key`: str | 🔒 | Reset `key` to env. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L513" title="source">↗</a> |
-| `GET` | `/api/personas` | — | 🔒 | Units: state, pid, journal tail. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L530" title="source">↗</a> |
-| `POST` | `/api/personas/{unit}/restart` | `unit`: str | 🔒 | Restart `unit`; 30 s cooldown. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L535" title="source">↗</a> |
+| `GET` | `/api/config` | — | 🔒 | Settings schema, values, catalog. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L498" title="source">↗</a> |
+| `PUT` | `/api/config` | JSON body | 🔒 | Write settings (voice keys restart the session). <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L503" title="source">↗</a> |
+| `GET` | `/api/config/preview/{persona}` | `persona`: str | 🔒 | Composed prompt and tools. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L521" title="source">↗</a> |
+| `DELETE` | `/api/config/{key}` | `key`: str | 🔒 | Reset `key` to env. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L512" title="source">↗</a> |
+| `GET` | `/api/personas` | — | 🔒 | Units: state, pid, journal tail. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L529" title="source">↗</a> |
+| `POST` | `/api/personas/{unit}/restart` | `unit`: str | 🔒 | Restart `unit`; 30 s cooldown. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L534" title="source">↗</a> |
 
 ### Auth
 
@@ -113,14 +113,14 @@ curl -s -H "Authorization: Bearer $REACHY_TOKEN" -H 'Content-Type: application/j
 
 | method | path | params | gate (✅ public · 🔒 key) | what |
 |---|---|---|---|---|
-| `WS` | `/ws` | `sock`: WebSocket | 🔒 | State at `REACHY_WS_HZ` + `agent_log` + events; anonymous → 4401. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L549" title="source">↗</a> |
+| `WS` | `/ws` | `sock`: WebSocket | 🔒 | State at `REACHY_WS_HZ` + `agent_log` + events; anonymous → 4401. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L548" title="source">↗</a> |
 
 ### Shell
 
 | method | path | params | gate (✅ public · 🔒 key) | what |
 |---|---|---|---|---|
-| `GET` | `/` | — | ✅ | The SPA shell (no-cache). <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L669" title="source">↗</a> |
-| `GET` | `/{path:path}` | `path`: str | ✅ | Static assets / SPA fallback. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L660" title="source">↗</a> |
+| `GET` | `/` | — | ✅ | The SPA shell (no-cache). <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L668" title="source">↗</a> |
+| `GET` | `/{path:path}` | `path`: str | ✅ | Static assets / SPA fallback. <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/dashboard/server.py#L659" title="source">↗</a> |
 
 ### Other
 

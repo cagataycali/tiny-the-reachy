@@ -1,6 +1,6 @@
 ---
 title: Tool playbook — gestures that fall out of the tools
-description: "The recipes, not the signatures: how a nod, a curious tilt, a droop, a glance and a look-at-me come out of 28 tools — and the one rule that makes them read as alive."
+description: "The recipes, not the signatures: how a nod, a curious tilt, a droop, a glance and a look-at-me come out of 27 tools — and the one rule that makes them read as alive."
 for: anyone writing a prompt, a persona note or a new gesture
 proof: code
 verified: 2026-09-21
@@ -9,7 +9,7 @@ verified: 2026-09-21
 # Tool playbook — gestures that fall out of the tools
 
 !!! abstract "In 10 seconds"
-    - 28 tools, [signatures generated from the code](../reference/tools/index.md): 19 `reachy_*` on the body, 8 shared brain tools, `use_device` for the fleet.
+    - 27 tools, [signatures generated from the code](../reference/tools/index.md): 19 `reachy_*` on the body, 7 shared brain tools, `use_device` for the fleet.
     - Degrees for angles, millimetres for translation, every value [clamped](../guide/safety.md) before the daemon sees it.
     - **The rule** (`prompts/base.md`): a gesture fires **in the same batch as the words**, never before or after.
     - Small, frequent motion reads as alive; big fast swings read as malfunction.
@@ -60,4 +60,4 @@ Text personas that want to be heard call `reachy_say`; `voice_say` queues for a 
 
 ## The brain
 
-`memory` · `agent_log` · `voice_say` · `telegram` · `dispatch` · `prompts` · `manage_messages` · `manage_tools` — verbatim from neon, [documented once](../guide/brain.md).
+`memory` · `agent_log` · `voice_say` · `telegram` · `prompts` · `manage_messages` · `manage_tools` — verbatim from neon, [documented once](../guide/brain.md).

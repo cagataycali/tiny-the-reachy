@@ -38,7 +38,6 @@ tiny-the-reachy/
 │   ├── agent_log.py          ← unified cross-persona reasoning log
 │   ├── voice_bridge.py       ← briefing queue → voice persona
 │   ├── telegram.py           ← Telegram Bot API + per-chat history
-│   ├── dispatch.py           ← spawn devduck sub-agents (cron/run_at)
 │   ├── prompts.py            ← per-persona prompt overrides (SQLite)
 │   ├── manage_messages.py    ← trim/compact own history
 │   └── manage_tools.py       ← load/create tools at runtime

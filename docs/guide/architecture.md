@@ -76,7 +76,7 @@ A persona wakes knowing what the others did and where its head is. Gestures go *
 | layer | modules | what |
 |---|---|---|
 | **Robot** | `reachy_motion` · `reachy_expression` · `reachy_state` · `reachy_camera` · `head_tracking` · `turn_to_sound` · `reachy_audio` | 19 wrappers, every angle clamped — [safety](safety.md) |
-| **Brain** | `memory` · `voice_bridge` · `dispatch` · `telegram` · `vision` · `prompts` · `manage_*` | 8 shared tools — [the brain](brain.md) |
+| **Brain** | `memory` · `voice_bridge` · `telegram` · `vision` · `prompts` · `manage_*` | 7 shared tools — [the brain](brain.md) |
 | **Fleet** | `tiny_mcp` | `use_device` & co, `TINY_MCP=1` only — [fleet](../MCP.md) |
 
 </div>

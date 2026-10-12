@@ -40,7 +40,7 @@ build time. Routes (`dashboard/config_api.py`, same gate as everything else; wri
 Sections: **Voice** (provider, model, voice, language, transcriber hint, VAD — `voice_listener.py` polls the `voice`
 generation every 2 s and ends the live session the way `stop_conversation` does, so a change is live in ~10 s without a
 unit restart), **Agent** (model id, fleet tools, per-persona personality note = `tools/prompts.py` override with its
-`FULL:` rule, per-persona tool checklist from the real tool objects — `shell`/`dispatch`/`manage_tools`/`environment`
+`FULL:` rule, per-persona tool checklist from the real tool objects — `manage_tools`/`use_device`
 carry an amber note — and a read-only preview of the effective prompt), **Telegram** (default chat id, allowed users,
 heartbeat photos; telegram and thinker build a fresh Agent per message/cycle so they follow on the next turn),
 **Personas** (unit state + restart as the fallback). API keys, the bot token and `REACHY_*` never enter the store or the UI.
