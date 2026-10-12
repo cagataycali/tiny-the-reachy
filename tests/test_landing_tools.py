@@ -27,7 +27,7 @@ def test_wall_matches_reference():
 def test_wall_count_matches_kicker():
     html = (ROOT / "docs/overrides/home.html").read_text()
     n = int(re.search(r'<p class="l-kicker">(\d+) tools · (\d+) modules', html).group(1))
-    assert n == len(_reference_tools()) == 28
+    assert n == len(_reference_tools()) == 27
 
 
 def test_landing_scripts_block_pins_materials_bundle():

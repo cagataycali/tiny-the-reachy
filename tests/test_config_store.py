@@ -140,8 +140,10 @@ def test_tiny_builds_tool_lists_and_prompts_from_config(db, monkeypatch):
     tiny = importlib.import_module("tiny")
     monkeypatch.setattr(tiny.tiny_mcp, "get_tools", lambda *a, **k: [])
     catalog = {c["name"] for c in tiny.tool_catalog()}
-    assert {"memory", "shell", "telegram", "reachy_look", "dispatch"} <= catalog
-    assert {c["name"] for c in tiny.tool_catalog() if c["dangerous"]} >= {"shell", "dispatch", "manage_tools"}
+    assert {"memory", "telegram", "reachy_look", "image_reader"} <= catalog
+    # owner decision 2026-10-12: no host shell, env mutation, sub-agent spawning or GitHub from the robot
+    assert not ({"shell", "environment", "dispatch", "use_github"} & catalog)
+    assert {c["name"] for c in tiny.tool_catalog() if c["dangerous"]} >= {"manage_tools"}
     assert tiny.effective_tool_names("voice") == tiny.default_tool_names("voice")
     config.set_many({"agent.tools.voice": ["memory", "reachy_look", "ghost"], "agent.model_id": "global.anthropic.claude-sonnet-4-5",
                      "telegram.default_chat_id": "4242", "telegram.allowed_users": ["owner_fixture"], "telegram.heartbeat_photos": False})

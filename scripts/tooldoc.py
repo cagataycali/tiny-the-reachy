@@ -35,7 +35,6 @@ MODULES = {  # (title, blurb ≤ 8 words — the index row and the page descript
     "turn_to_sound": ("Turn to sound", "ReSpeaker direction of arrival"),
     "vision": ("Vision", "a frame plus a question"),
     "voice_bridge": ("Voice bridge", "text → voice persona queue"),
-    "dispatch": ("Dispatch", "hand off to another persona"),
     "memory": ("Memory", "the shared SQLite brain"),
     "telegram": ("Telegram", "text and photos to the owner"),
     "prompts": ("Prompts", "override persona prompts"),

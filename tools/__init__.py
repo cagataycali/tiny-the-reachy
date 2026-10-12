@@ -3,12 +3,12 @@
 Mirrors neon's tools/__init__.py organizing principle:
   - Robot control talks to the Reachy Mini daemon (localhost:8000 / reachy-mini.local:8000)
     via a cached singleton client (_reachy_common.get_mini()).
-  - Cross-persona infra (memory / agent_log / voice_bridge / telegram / dispatch /
+  - Cross-persona infra (memory / agent_log / voice_bridge / telegram /
     prompts / manage_*) is copied verbatim from neon — identical SQLite-backed
     shared-brain so all four personas see what the others are doing.
 
     from tools import TINY_ALL_TOOLS
-    agent = Agent(tools=[*TINY_ALL_TOOLS, shell, ...])
+    agent = Agent(tools=[*TINY_ALL_TOOLS, ...])
 """
 # ── Robot control (Reachy Mini SDK) ──────────────────────────────────
 from .reachy_motion import (
@@ -37,7 +37,6 @@ from .voice_bridge import (
     flush_stale as voice_bridge_flush_stale,
     stats as voice_bridge_stats,
 )
-from .dispatch import dispatch
 from .telegram import (
     telegram,
     record_message as telegram_record_message,
@@ -73,9 +72,9 @@ TINY_ROBOT_TOOLS = (
     + TINY_AUDIO_TOOLS
 )
 
-# Cross-persona stack (memory/voice/telegram/dispatch)
+# Cross-persona stack (memory/voice/telegram)
 TINY_LOOKOUT_TOOLS = [
-    memory, voice_say, dispatch, telegram, take_photo,
+    memory, voice_say, telegram, take_photo,
     prompts, manage_messages, manage_tools,
 ]
 

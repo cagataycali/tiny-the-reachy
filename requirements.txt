@@ -13,7 +13,7 @@ strands-agents-tools
 # Extras: opencv (camera frames), examples (gradio_client for TTS), mujoco (sim)
 reachy_mini[opencv,examples]
 
-# Telegram + dispatch + memory tooling (shared-brain stack)
+# Telegram + memory tooling (shared-brain stack)
 requests
 python-dotenv
 
@@ -24,5 +24,5 @@ gradio_client
 google-genai            # Gemini Live bidi (optional)
 websockets
 
-# devduck (imported by dispatch tool for sub-agents)
+# devduck (only for the optional use_spotify tool; dispatch/use_github are gone)
 devduck

@@ -52,7 +52,6 @@ nav:
           - Head tracking: reference/tools/head_tracking.md
           - Vision: reference/tools/vision.md
           - Voice bridge: reference/tools/voice_bridge.md
-          - Dispatch: reference/tools/dispatch.md
           - Memory: reference/tools/memory.md
           - Telegram: reference/tools/telegram.md
           - Prompts: reference/tools/prompts.md

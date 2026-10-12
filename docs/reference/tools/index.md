@@ -1,6 +1,6 @@
 ---
 title: Tools reference
-description: "Every @tool TINY can call, generated from the code — 28 tools in 16 modules."
+description: "Every @tool TINY can call, generated from the code — 27 tools in 15 modules."
 for: tool authors · prompt writers
 proof: code
 ---
@@ -10,7 +10,7 @@ proof: code
 # Tools reference
 
 !!! abstract "In 10 seconds"
-    - **28 tools in 16 modules**, from the `@tool` docstrings.
+    - **27 tools in 15 modules**, from the `@tool` docstrings.
     - Who gets which: [Personas](../../showcase/personas.md).
 
 <div class="cards cards--3" markdown>
@@ -26,7 +26,6 @@ proof: code
 | [Turn to sound](turn_to_sound.md) | `turn_to_sound` `turn_to_sound_status` | ReSpeaker direction of arrival |
 | [Vision](vision.md) | `take_photo` | a frame plus a question |
 | [Voice bridge](voice_bridge.md) | `voice_say` | text → voice persona queue |
-| [Dispatch](dispatch.md) | `dispatch` | hand off to another persona |
 | [Memory](memory.md) | `memory` | the shared SQLite brain |
 | [Telegram](telegram.md) | `telegram` | text and photos to the owner |
 | [Prompts](prompts.md) | `prompts` | override persona prompts |

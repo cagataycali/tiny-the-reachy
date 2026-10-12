@@ -36,7 +36,7 @@ verified: 2026-09-21
 | `TINY_PHOTO_QUESTION` | `*(long)*` | Default question `take_photo` asks the model. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/vision.py" title="tools/vision.py">vision.py</a> |
 | `VOICE_CONFIG_POLL_S` | `2` | Config poll period in a live session. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/voice_listener.py" title="voice_listener.py">voice_listener.py</a> |
 | `VOICE_LANG` | — | ISO-639-1 transcription hint (`tr`, `en`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/config.py" title="tools/config.py">config.py</a> |
-| `VOICE_MODEL` | — | OpenAI Realtime model override (robot: `gpt-realtime-2`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/config.py" title="tools/config.py">config.py</a> |
+| `VOICE_MODEL` | — | OpenAI Realtime model override (robot: `gpt-realtime-2`). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tiny.py" title="tiny.py · tools/config.py">tiny.py</a> |
 | `VOICE_NAME` | — | Provider voice; the robot sets `shimmer`. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/config.py" title="tools/config.py">config.py</a> |
 | `VOICE_PROVIDER` | `openai` | `openai` · `nova_sonic` · `gemini` — the bidi model. | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/tools/config.py" title="tools/config.py">config.py</a> |
 | `VOICE_RELEASE_MEDIA` | `0` | `1` releases daemon media before each start (Lite). | <a href="https://github.com/cagataycali/tiny-the-reachy/blob/main/voice_listener.py" title="voice_listener.py">voice_listener.py</a> |

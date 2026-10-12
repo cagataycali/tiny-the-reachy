@@ -45,7 +45,7 @@ def test_every_tool_module_has_a_page():
     undescribed = [m for m, v in inv.items() if "not yet described" in v["blurb"]]
     assert not undescribed, f"add these modules to scripts/tooldoc.MODULES: {undescribed}"
     total = sum(len(v["tools"]) for v in inv.values())
-    assert total >= 26, total  # 21 robot tools + memory/prompts/dispatch/telegram/manage_* — never fewer
+    assert total >= 25, total  # 21 robot tools + memory/prompts/telegram/manage_* — never fewer
 
 
 def test_every_dashboard_route_has_a_note():

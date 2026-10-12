@@ -83,7 +83,7 @@ Shell mount a slim subset for latency; Telegram and Thinker mount everything.
 | State | `reachy_get_state` `reachy_motors` |
 | Sensing | `reachy_camera` `capture_camera` `reachy_look_at` `head_tracking` `head_tracking_status` `turn_to_sound` `turn_to_sound_status` |
 | Audio | `reachy_say` `reachy_play_sound` `reachy_volume` |
-| Shared brain | `memory` `telegram` `dispatch` `prompts` `voice_say` `manage_messages` `manage_tools` |
+| Shared brain | `memory` `telegram` `prompts` `voice_say` `manage_messages` `manage_tools` |
 
 Signatures: [tool reference](https://cagataycali.github.io/tiny-the-reachy/reference/tools/).
 
