@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 180" width="560" height="180"
+     role="img" aria-label="tiny — expressive desktop robot" preserveAspectRatio="xMidYMid meet">
+  <rect width="560" height="180" fill="transparent"/>
+  <g transform="translate(280,90)">
+    <!-- mark: violet chip with 't' + two antenna dots (Reachy ears) -->
+    <g transform="translate(-186,-46)">
+      <rect x="0" y="0" width="92" height="92" rx="24" fill="#7a6aa8"/>
+      <!-- left antenna -->
+      <circle cx="28" cy="20" r="5.5" fill="#fff" opacity="0.92">
+        <animate attributeName="cy" values="20;14;20" dur="2.8s" repeatCount="indefinite"/>
+      </circle>
+      <!-- right antenna -->
+      <circle cx="64" cy="20" r="5.5" fill="#fff" opacity="0.92">
+        <animate attributeName="cy" values="20;14;20" dur="2.8s" begin="0.4s" repeatCount="indefinite"/>
+      </circle>
+      <text x="46" y="72" text-anchor="middle"
+            font-family="'Inter','SF Pro Display',system-ui,sans-serif"
+            font-size="60" font-weight="650" letter-spacing="-3" fill="#fff">t</text>
+    </g>
+    <!-- wordmark -->
+    <text x="-70" y="8" text-anchor="start"
+          font-family="'Inter','SF Pro Display',system-ui,sans-serif"
+          font-size="82" font-weight="700" letter-spacing="-4" fill="#1c1a17">tiny</text>
+    <!-- tagline -->
+    <text x="-66" y="42" text-anchor="start"
+          font-family="'JetBrains Mono','SF Mono',ui-monospace,monospace"
+          font-size="12" font-weight="400" letter-spacing="4" fill="#8a847a">EXPRESSIVE · DESKTOP · ROBOT</text>
+  </g>
+</svg>
