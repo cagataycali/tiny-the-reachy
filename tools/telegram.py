@@ -1,6 +1,6 @@
 """Telegram tool — rich actions + per-chat conversation memory.
 
-Modeled after devduck/tools/telegram.py + DevDuck's get_last_messages() pattern.
+Long-poll + per-chat history (get_last_messages) pattern; no external agent framework.
 
 Features:
 - 14 actions: send_message, send_photo, send_document, send_poll, edit_message,

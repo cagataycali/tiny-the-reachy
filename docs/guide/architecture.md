@@ -84,7 +84,7 @@ A persona wakes knowing what the others did and where its head is. Gestures go *
 ## `tiny.py`
 
 ```python
-build_tools()            # text personas: everything above (+ use_github/use_spotify when importable)
+build_tools()            # text personas: everything above
 build_voice_tools()      # voice + dashboard Ask: the latency-slim list
 build_agent(persona)     # shell · telegram · thinker · dashboard — one factory, per-persona prompt
 build_shell_agent()      # the REPL you get from `make run`

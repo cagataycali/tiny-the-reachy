@@ -49,7 +49,7 @@ tiny-the-reachy/
 │   ├── tiny-voice.service     ← bare-metal voice unit
 │   ├── tiny-telegram.service  ← bare-metal telegram unit
 │   └── tiny-thinker.service   ← bare-metal thinker unit
-├── requirements.txt      ← strands + reachy_mini[opencv,examples] + devduck
+├── requirements.txt      ← strands + reachy_mini[opencv,examples]
 ├── Makefile              ← operational verbs (make help)
 └── tests/test_import.py  ← smoke test (no robot needed)
 ```

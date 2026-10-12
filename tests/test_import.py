@@ -68,3 +68,17 @@ if __name__ == "__main__":
         print(f"\n{failures} test(s) FAILED")
         sys.exit(1)
     print("\n✅ all smoke tests passed")
+
+
+def test_devduck_is_gone():
+    """Owner decision 2026-10-12: devduck is no dispatch layer here. Nothing imports it and
+    requirements.txt does not install it (it only ever served use_spotify, which left with it)."""
+    import pathlib, re
+    root = pathlib.Path(__file__).resolve().parents[1]
+    req = (root / "requirements.txt").read_text()
+    assert not re.search(r"(?im)^\s*devduck\b", req)
+    offenders = []
+    for f in list(root.glob("*.py")) + list((root / "tools").glob("*.py")) + list((root / "dashboard").glob("*.py")):
+        if "devduck" in f.read_text().lower():
+            offenders.append(str(f.relative_to(root)))
+    assert offenders == ["tiny.py"], offenders   # tiny.py names it once, in the "not exposed" comment
